@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 from matplotlib import cm
 
 
+# plu classes
 def findHfromHist(hist, edges):
     ml = 0
     mh = 0

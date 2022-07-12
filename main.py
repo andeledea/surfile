@@ -3,6 +3,7 @@ import os
 import tkinter as tk
 from tkinter import filedialog
 
+# main
 if __name__ == '__main__':
     # plt.style.use('dark_background')
     plt.rcParams["figure.autolayout"] = True
