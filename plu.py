@@ -1,40 +1,8 @@
-import numpy as np
-import matplotlib.pyplot as plt
-from matplotlib import cm
-import matplotlib.gridspec as gridspec
+from profile import *
+from funct import *
 
 
 # plu classes
-def findHfromHist(hist, edges):
-    ml = 0
-    mh = 0
-    binl = 0
-    binh = 0
-    i = 0
-    for edge in edges[:-1]:
-        if edge < 0:
-            binl = edge if hist[i] > ml else binl
-            ml = max(ml, hist[i])
-
-        else:
-            binh = edge if hist[i] > mh else binh
-            mh = max(mh, hist[i])
-
-        i = i + 1
-
-    print(f'Max left {ml} @ {binl} \nMax right {mh} @ {binh}')
-    print(f'Height: {binh - binl}')
-
-    return binh - binl
-
-
-def persFig(figure, gridcol, xlab, ylab, zlab=None):
-    figure.set_xlabel(xlab)
-    figure.set_ylabel(ylab)
-    if zlab is not None:
-        figure.set_zlabel(zlab)
-    figure.grid(color=gridcol)
-
 
 class Plu:
     def __init__(self, name):
@@ -91,7 +59,7 @@ class Plu:
             plt.close(fig)
 
         fig, ax = plt.subplots()
-        points = ax.pcolormesh(self.X, self.Y, self.Z, cmap=cm.rainbow, picker=pointPick)
+        ax.pcolormesh(self.X, self.Y, self.Z, cmap=cm.rainbow, picker=pointPick)
         ax.set_title('3 Points plane fit')
         fig.canvas.mpl_connect('close_event', onClose)
 
@@ -147,6 +115,44 @@ class Plu:
     def removePlane(self):
         z_plane = (-self.a * self.X - self.b * self.Y - self.d) * 1. / self.c
         self.Z = self.Z - z_plane + np.mean(z_plane)
+
+    def extractProfile(self):
+        po = {'x': 0, 'y': 0}
+        profile = Profile()
+
+        def pointPick(point, mouseevent):
+            if mouseevent.xdata is None:
+                return False, dict()
+            xdata = mouseevent.xdata
+            ydata = mouseevent.ydata
+
+            xind = np.where(self.X[0, :] <= xdata)[0][-1]
+            yind = np.where(self.Y[:, 0] <= ydata)[0][-1]
+            print(f'Chosen point {xind}, {yind}')
+
+            po['x'] = xind
+            po['y'] = yind
+            return True, dict(pickx=xind, picky=yind)
+
+        def onClose(event):
+            choice = input('Extract [x/y] profile?')
+            if choice == 'x':
+                profile.setValues(self.X[po[choice]], self.Z[po[choice]])
+            else:
+                profile.setValues(self.Y[po[choice]], self.Z[po[choice]])  # TODO: extract y profile
+            # if choice in po:
+            #     print(f"Extracting profile: {choice} = {po[choice]}")
+            # else:
+            #     print(f"No valid choice {choice}, default x = {po['x']}")
+            plt.close(fig)
+
+        fig, ax = plt.subplots()
+        ax.pcolormesh(self.X, self.Y, self.Z, cmap=cm.rainbow, picker=pointPick)
+        ax.set_title('Extract profile')
+        fig.canvas.mpl_connect('close_event', onClose)
+
+        plt.show()
+        return profile
 
     #####################################################################################################
     #                                       PLOT SECTION                                                #
@@ -204,7 +210,7 @@ class Plu:
 
     def histPlot(self, hist, edges):
         ax_ht = self.fig.add_subplot(self.gs[2, :])
-        ax_ht.hist(edges[:-1], bins=edges, weights=hist/np.size(self.Z)*100, color='red')
+        ax_ht.hist(edges[:-1], bins=edges, weights=hist / np.size(self.Z) * 100, color='red')
         persFig(
             ax_ht,
             gridcol='grey',

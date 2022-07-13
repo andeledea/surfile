@@ -28,6 +28,7 @@ if __name__ == '__main__':
 
             hist, edges = plu.histMethod(bins=200)
             # h[f] = plu.findHfromHist(hist, edges)
+            extracted = copy.copy(plu.extractProfile())
 
             print('plotting results')
             plu.init_graphics()
@@ -36,4 +37,8 @@ if __name__ == '__main__':
             plu.pltCplot(f)
             plu.planePlot()
             plu.histPlot(hist, edges)
+
+            extracted.init_graphics()
+            extracted.prfPlot()
+
             plt.show()
