@@ -1,5 +1,6 @@
 from plu import *
 import os
+import copy
 import tkinter as tk
 from tkinter import filedialog
 
@@ -15,7 +16,7 @@ if __name__ == '__main__':
     root = tk.Tk()
     root.withdraw()
 
-    files = filedialog.askopenfilenames(parent=root)
+    files = filedialog.askopenfilenames(parent=root, title='Choose files to process')
 
     for fname in files:
         if os.path.isfile(fname):
@@ -26,19 +27,22 @@ if __name__ == '__main__':
             # plu.fitPlane3P()
             plu.removePlane()
 
-            hist, edges = plu.histMethod(bins=200)
-            # h[f] = plu.findHfromHist(hist, edges)
+            hist, edges = plu.histMethod(bins=250)
+            print(findHfromHist(hist, edges))
+
             extracted = copy.copy(plu.extractProfile())
+            extracted.stepAuto()
 
             print('plotting results')
-            plu.init_graphics()
-
-            plu.pltPlot(f)
-            plu.pltCplot(f)
-            plu.planePlot()
-            plu.histPlot(hist, edges)
+            # plu.init_graphics()
+            #
+            # plu.pltPlot(f)
+            # plu.pltCplot()
+            # plu.planePlot()
+            # plu.histPlot(hist, edges)
 
             extracted.init_graphics()
             extracted.prfPlot()
+            extracted.roiPlot()
 
             plt.show()

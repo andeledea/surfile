@@ -9,15 +9,15 @@ class Plu:
         self.gs = None
         self.fig = None
 
-        self.a, self.b, self.c, self.d = 0, 0, 0, 0
+        self.a, self.b, self.c, self.d = 0, 0, 0, 0  # plane parameters
         with open(name, 'r') as fin:
             line = fin.readline().split()
-            sx = int(line[0])
-            sy = int(line[1])
+            sx = int(line[0])  # read number of x points
+            sy = int(line[1])  # read number of y points
             print(f'Pixels: {sx} x {sy}')
 
-            spacex = float(line[2])
-            spacey = float(line[3])
+            spacex = float(line[2])  # read x spacing
+            spacey = float(line[3])  # read y spacing
 
         plu = np.loadtxt(name, usecols=range(sy), skiprows=1)
         plu = (plu - np.mean(plu)) * (10 ** 6)
@@ -25,26 +25,32 @@ class Plu:
         x = np.linspace(0, sx * spacex, num=sx)
         y = np.linspace(0, sy * spacey, num=sy)
 
+        # create main XYZ and backup of original points in Z0
         self.X, self.Y = np.meshgrid(x, y)
-        self.Z = np.transpose(plu)
+        self.Z0 = self.Z = np.transpose(plu)
 
     def fitPlane3P(self):
+        """
+        3 points plane fit implementation
+        Opens a plot figure to choose the 3 points and fids the plane for those points
+        """
         po = []
 
-        def pointPick(point, mouseevent):
+        def pointPick(point, mouseevent):  # called when pick event happens on fig
             if mouseevent.xdata is None:
                 return False, dict()
             xdata = mouseevent.xdata
             ydata = mouseevent.ydata
 
+            # find indexes corresponding to picked values
             xind = np.where(self.X[0, :] <= xdata)[0][-1]
             yind = np.where(self.Y[:, 0] <= ydata)[0][-1]
 
-            if len(po) < 3:
+            if len(po) < 3:  # find the 3 points to apply the method
                 po.append([xdata, ydata, self.Z[yind, xind]])
             return True, dict(pickx=xdata, picky=ydata)
 
-        def onClose(event):
+        def onClose(event):  # when fig is closed calculate plane parameters
             print(f"Collected points: {po}")
             a1 = po[1][0] - po[0][0]  # x2 - x1;
             b1 = po[1][1] - po[0][1]  # y2 - y1;
@@ -66,6 +72,10 @@ class Plu:
         plt.show()
 
     def fitPlaneLS(self):
+        """
+        Least square plane fit implementation
+        """
+        # create matrix and Z vector to use lstsq
         XYZ = np.vstack([self.X.reshape(np.size(self.X)),
                          self.Y.reshape(np.size(self.Y)),
                          self.Z.reshape(np.size(self.Z))]).T
@@ -74,25 +84,30 @@ class Plu:
         G[:, 0] = XYZ[:, 0]  # X
         G[:, 1] = XYZ[:, 1]  # Y
         Z = XYZ[:, 2]
-        (a, b, c), resid, rank, s = np.linalg.lstsq(G, Z, rcond=None)
+        (a, b, c), resid, rank, s = np.linalg.lstsq(G, Z, rcond=None)  # calculate LS plane
 
         print(f'Params: a={a}, b={b}')
 
-        self.d = 0
+        self.d = 0  # discard d value to keep plane in center
         self.a = a
         self.b = b
-        self.c = -1
+        self.c = -1  # z coefficient in plane eq.
 
     def fitPlaneLS_bound(self, comp, bound=None):
+        """
+        Least square plane only top/bottom points
+        :param comp: comparation method (ex. labda points, bound: points > bound)
+        :param bound: bound level for comparison
+        """
         if bound is None:
-            bound = np.mean(self.Z)
+            bound = np.mean(self.Z)  # set the bound to the mean point
 
         XYZ = np.vstack([self.X.reshape(np.size(self.X)),
                          self.Y.reshape(np.size(self.Y)),
                          self.Z.reshape(np.size(self.Z))]).T
 
         where = np.argwhere(comp(self.Z.reshape(np.size(self.Z)), bound))
-        XYZ = np.delete(XYZ, where, 0)
+        XYZ = np.delete(XYZ, where, 0)  # remove unwanted points from fit
 
         (rows, cols) = XYZ.shape
         G = np.ones((rows, 3))
@@ -109,18 +124,29 @@ class Plu:
         self.c = -1
 
     def histMethod(self, bins=100):
+        """
+        histogram method implementation
+        :return: histogram values, bin edges values
+        """
         hist, edges = np.histogram(self.Z, bins)
         return hist, edges
 
     def removePlane(self):
+        """
+        removes the fitted plane from the points
+        """
         z_plane = (-self.a * self.X - self.b * self.Y - self.d) * 1. / self.c
         self.Z = self.Z - z_plane + np.mean(z_plane)
 
     def extractProfile(self):
+        """
+        extracts a profile along x or y
+        :return: profile object extracted (use p = copy.copy())
+        """
         po = {'x': 0, 'y': 0}
         profile = Profile()
 
-        def pointPick(point, mouseevent):
+        def pointPick(point, mouseevent):  # called when pick event on fig
             if mouseevent.xdata is None:
                 return False, dict()
             xdata = mouseevent.xdata
@@ -128,15 +154,15 @@ class Plu:
 
             xind = np.where(self.X[0, :] <= xdata)[0][-1]
             yind = np.where(self.Y[:, 0] <= ydata)[0][-1]
-            print(f'Chosen point {xind}, {yind}')
+            print(f'Chosen point {xind}, {yind}')  # print the point the user chose
 
             po['x'] = xind
             po['y'] = yind
             return True, dict(pickx=xind, picky=yind)
 
-        def onClose(event):
+        def onClose(event):  # called when fig is closed
             choice = input('Extract [x/y] profile?')
-            if choice == 'x':
+            if choice == 'x':  # the user chooses the direction of extraction
                 profile.setValues(self.X[po[choice]], self.Z[po[choice]])
             else:
                 profile.setValues(self.Y[po[choice]], self.Z[po[choice]])  # TODO: extract y profile
@@ -146,7 +172,7 @@ class Plu:
             #     print(f"No valid choice {choice}, default x = {po['x']}")
             plt.close(fig)
 
-        fig, ax = plt.subplots()
+        fig, ax = plt.subplots()  # create the fig for profile selection
         ax.pcolormesh(self.X, self.Y, self.Z, cmap=cm.rainbow, picker=pointPick)
         ax.set_title('Extract profile')
         fig.canvas.mpl_connect('close_event', onClose)
@@ -158,6 +184,9 @@ class Plu:
     #                                       PLOT SECTION                                                #
     #####################################################################################################
     def init_graphics(self):
+        """
+        call this function before starting to plot
+        """
         self.fig = plt.figure()
         self.gs = gridspec.GridSpec(3, 3)
 
@@ -174,7 +203,7 @@ class Plu:
         ax_3d.set_title(fname)
         # ax_3d.colorbar(p)
 
-    def pltCplot(self, fname):
+    def pltCplot(self):
         ax_2d = self.fig.add_subplot(self.gs[0, 2])
         ax_2d.pcolormesh(self.X, self.Y, self.Z, cmap=cm.rainbow)  # hot, viridis, rainbow
         persFig(
@@ -190,9 +219,13 @@ class Plu:
         minx = np.min(self.X)
         miny = np.min(self.Y)
 
+        # compute needed points for plane plotting
+        xx, yy = np.meshgrid([minx, maxx], [miny, maxy])
+        z_plane = (-self.a * xx - self.b * yy - self.d) * 1. / self.c
+
         # plot original points
         ax_pl = self.fig.add_subplot(self.gs[1, 2], projection='3d')
-        ax_pl.plot_surface(self.X, self.Y, self.Z, alpha=0.5, cmap=cm.Greys_r)  # hot, viridis, rainbow
+        ax_pl.plot_surface(self.X, self.Y, self.Z0, alpha=0.5, cmap=cm.Greys_r)  # hot, viridis, rainbow
         persFig(
             ax_pl,
             gridcol='grey',
@@ -200,10 +233,6 @@ class Plu:
             ylab='y [um]',
             zlab='z [nm]'
         )
-
-        # compute needed points for plane plotting
-        xx, yy = np.meshgrid([minx, maxx], [miny, maxy])
-        z_plane = (-self.a * xx - self.b * yy - self.d) * 1. / self.c
 
         # plot plane
         ax_pl.plot_surface(xx, yy, z_plane - np.mean(z_plane), alpha=0.8, cmap=cm.viridis)
