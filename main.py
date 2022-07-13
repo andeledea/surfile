@@ -7,7 +7,7 @@ from tkinter import filedialog
 if __name__ == '__main__':
     # plt.style.use('dark_background')
     plt.rcParams["figure.autolayout"] = True
-    plt.rcParams["figure.figsize"] = (10, 9)
+    plt.rcParams["figure.figsize"] = (12, 9)
 
     h = {}
     folder = 'C:/Elaborazione_profilometro/Symetrics/Txt_files'
@@ -23,15 +23,17 @@ if __name__ == '__main__':
             plu = Plu(fname)
 
             plu.fitPlaneLS_bound(lambda a, b: a < b)
-            # plu.planePlot()
+            # plu.fitPlane3P()
             plu.removePlane()
 
-            # hist, edges = plu.histMethod(bins=200)
-            # plu.histPlot(hist, edges)
+            hist, edges = plu.histMethod(bins=200)
             # h[f] = plu.findHfromHist(hist, edges)
+
+            print('plotting results')
+            plu.init_graphics()
 
             plu.pltPlot(f)
             plu.pltCplot(f)
-            # print(h)
-
+            plu.planePlot()
+            plu.histPlot(hist, edges)
             plt.show()

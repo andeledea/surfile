@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import cm
+import matplotlib.gridspec as gridspec
 
 
 # plu classes
@@ -27,21 +28,7 @@ def findHfromHist(hist, edges):
     return binh - binl
 
 
-def histPlot(edges, hist):
-    fig = plt.figure()
-    bx = plt.axes()
-    bx.plot(edges[0:-1], hist, color='red')
-    persFig(
-        bx,
-        gridcol='grey',
-        title='Histogram',
-        xlab='z [nm]',
-        ylab='pixels'
-    )
-
-
-def persFig(figure, gridcol, title, xlab, ylab, zlab=None):
-    figure.set_title(title)
+def persFig(figure, gridcol, xlab, ylab, zlab=None):
     figure.set_xlabel(xlab)
     figure.set_ylabel(ylab)
     if zlab is not None:
@@ -51,6 +38,9 @@ def persFig(figure, gridcol, title, xlab, ylab, zlab=None):
 
 class Plu:
     def __init__(self, name):
+        self.gs = None
+        self.fig = None
+
         self.a, self.b, self.c, self.d = 0, 0, 0, 0
         with open(name, 'r') as fin:
             line = fin.readline().split()
@@ -98,7 +88,7 @@ class Plu:
             self.b = a2 * c1 - a1 * c2
             self.c = a1 * b2 - b1 * a2
             self.d = 0  # (- self.a * po[0][0] - self.b * po[0][1] - self.c * po[0][2])
-            plt.close()
+            plt.close(fig)
 
         fig, ax = plt.subplots()
         points = ax.pcolormesh(self.X, self.Y, self.Z, cmap=cm.rainbow, picker=pointPick)
@@ -116,7 +106,6 @@ class Plu:
         G[:, 0] = XYZ[:, 0]  # X
         G[:, 1] = XYZ[:, 1]  # Y
         Z = XYZ[:, 2]
-        print(Z)
         (a, b, c), resid, rank, s = np.linalg.lstsq(G, Z, rcond=None)
 
         print(f'Params: a={a}, b={b}')
@@ -133,21 +122,15 @@ class Plu:
         XYZ = np.vstack([self.X.reshape(np.size(self.X)),
                          self.Y.reshape(np.size(self.Y)),
                          self.Z.reshape(np.size(self.Z))]).T
-        print(np.shape(XYZ), XYZ)
 
         where = np.argwhere(comp(self.Z.reshape(np.size(self.Z)), bound))
         XYZ = np.delete(XYZ, where, 0)
-        print(len(where), np.shape(XYZ))
-
-        plt.show()
-        plt.close()
 
         (rows, cols) = XYZ.shape
         G = np.ones((rows, 3))
         G[:, 0] = XYZ[:, 0]  # X
         G[:, 1] = XYZ[:, 1]  # Y
         Z = XYZ[:, 2]
-        print(Z)
         (a, b, c), resid, rank, s = np.linalg.lstsq(G, Z, rcond=None)
 
         print(f'Params: a={a}, b={b}')
@@ -168,33 +151,32 @@ class Plu:
     #####################################################################################################
     #                                       PLOT SECTION                                                #
     #####################################################################################################
+    def init_graphics(self):
+        self.fig = plt.figure()
+        self.gs = gridspec.GridSpec(3, 3)
 
     def pltPlot(self, fname):
-        fig = plt.figure()
-        ax = plt.axes(projection='3d')
-        p = ax.plot_surface(self.X, self.Y, self.Z, cmap=cm.rainbow)  # hot, viridis, rainbow
+        ax_3d = self.fig.add_subplot(self.gs[0:-1, 0:-1], projection='3d')
+        ax_3d.plot_surface(self.X, self.Y, self.Z, cmap=cm.rainbow)  # hot, viridis, rainbow
         persFig(
-            ax,
+            ax_3d,
             gridcol='grey',
-            title='Surface ' + fname,
             xlab='x [um]',
             ylab='y [um]',
             zlab='z [nm]'
         )
-        fig.colorbar(p)
+        ax_3d.set_title(fname)
+        # ax_3d.colorbar(p)
 
     def pltCplot(self, fname):
-        fig = plt.figure()
-        ax = plt.axes()
-        p = ax.pcolormesh(self.X, self.Y, self.Z, cmap=cm.rainbow)  # hot, viridis, rainbow
+        ax_2d = self.fig.add_subplot(self.gs[0, 2])
+        ax_2d.pcolormesh(self.X, self.Y, self.Z, cmap=cm.rainbow)  # hot, viridis, rainbow
         persFig(
-            ax,
+            ax_2d,
             gridcol='grey',
-            title='Surface ' + fname,
             xlab='x [um]',
             ylab='y [um]'
         )
-        fig.colorbar(p)
 
     def planePlot(self):
         maxx = np.max(self.X)
@@ -203,22 +185,29 @@ class Plu:
         miny = np.min(self.Y)
 
         # plot original points
-        fig = plt.figure()
-        ax = plt.axes(projection='3d')
-        p = ax.plot_surface(self.X, self.Y, self.Z, alpha=0.5, cmap=cm.Greys_r)  # hot, viridis, rainbow
+        ax_pl = self.fig.add_subplot(self.gs[1, 2], projection='3d')
+        ax_pl.plot_surface(self.X, self.Y, self.Z, alpha=0.5, cmap=cm.Greys_r)  # hot, viridis, rainbow
         persFig(
-            ax,
+            ax_pl,
             gridcol='grey',
-            title='Plane fit',
             xlab='x [um]',
             ylab='y [um]',
             zlab='z [nm]'
         )
-        fig.colorbar(p)
 
         # compute needed points for plane plotting
         xx, yy = np.meshgrid([minx, maxx], [miny, maxy])
         z_plane = (-self.a * xx - self.b * yy - self.d) * 1. / self.c
 
         # plot plane
-        ax.plot_surface(xx, yy, z_plane - np.mean(z_plane), alpha=0.8, cmap=cm.viridis)
+        ax_pl.plot_surface(xx, yy, z_plane - np.mean(z_plane), alpha=0.8, cmap=cm.viridis)
+
+    def histPlot(self, hist, edges):
+        ax_ht = self.fig.add_subplot(self.gs[2, :])
+        ax_ht.hist(edges[:-1], bins=edges, weights=hist/np.size(self.Z)*100, color='red')
+        persFig(
+            ax_ht,
+            gridcol='grey',
+            xlab='z [nm]',
+            ylab='pixels %'
+        )
