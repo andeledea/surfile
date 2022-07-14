@@ -215,7 +215,7 @@ class Plu:
             ylab='y [um]',
             zlab='z [nm]'
         )
-        ax_3d.set_title(fname)
+        ax_3d.set_title('Surface' + fname)
         # ax_3d.colorbar(p)
 
     def pltCplot(self):

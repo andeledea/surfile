@@ -1,11 +1,10 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from dataclasses import dataclass
 from matplotlib import cm
 from funct import *
 from scipy.signal import find_peaks
 import matplotlib.gridspec as gridspec
-
-from dataclasses import dataclass
 
 
 @dataclass
@@ -35,7 +34,7 @@ class Profile:
         self.X = X
         self.Z = Y
 
-    def stepAuto(self, minD):  # TODO: can you find a way to automate minD calculations?
+    def stepAuto(self):  # TODO: can you find a way to automate minD calculations?
         """
         Calculates the step height using the auto method
         :param minD: minimum distance in pixels between consecutive derivative peaks
@@ -43,34 +42,48 @@ class Profile:
 
         def calcSteps() -> list:
             steps = []
+            definedPeaks = True
             for j in range(len(self.roi) - 2):  # consider j, j+1, j+2
                 outerMeanL = np.mean(self.roi[j].Z)
                 outerMeanR = np.mean(self.roi[j + 2].Z)
                 innerMean = np.mean(self.roi[j + 1].Z)
 
-                steps.append(innerMean - (outerMeanL + outerMeanR) / 2)
+                outerStdL = np.std(self.roi[j].Z)
+                outerStdR = np.std(self.roi[j + 2].Z)
+                innerStd = np.std(self.roi[j + 1].Z)
+
+                step = innerMean - (outerMeanL + outerMeanR) / 2
+                steps.append(step)
+
+                if outerStdL > abs(step) / 200 or outerStdR > abs(step) / 200 or innerStd > abs(step) / 200:
+                    definedPeaks = False
+
+            if not definedPeaks:
+                print(Bcol.WARNING + 'STEP HEIGHT MIGHT BE INCORRECT (PEAKS ARE POURLY DEFINED)' + Bcol.ENDC)
             return steps
 
         self.gr = np.gradient(self.Z)
-        thresh = np.max(self.gr) / 1.5  # derivative threshold to detect peak
-        peaks, _ = find_peaks(self.gr, height=thresh, distance=minD)
-        valle, _ = find_peaks(-self.gr, height=thresh, distance=minD)
+
+        thresh = np.max(self.gr[30:-30]) / 1.5  # derivative threshold to detect peak, avoid border samples
+        zero_cross = np.where(np.diff(np.sign(self.Z)))[0]
+        spacing = (zero_cross[1] - zero_cross[0]) / 1.5
+
+        peaks, _ = find_peaks(self.gr, height=thresh, distance=spacing)
+        valle, _ = find_peaks(-self.gr, height=thresh, distance=spacing)
 
         self.roi = []  # regions of interest points
         p_v = np.sort(np.concatenate((peaks, valle)))  # every point of interest (INDEXES of x array)
 
         for i in range(len(p_v) - 1):
-            # print(f'Eval {self.p_v[i]}, {self.p_v[i + 1]}')
             locRange = round((p_v[i + 1] - p_v[i]) / 3)  # profile portion is 1/3 of region
             roi_start = p_v[i] + locRange
             roi_end = p_v[i + 1] - locRange
-            # print(f'Roi: from {roi_start} to {roi_end}')
             self.roi.append(Roi(self.X[roi_start: roi_end],  # append to roi X and Y values of roi
                                 self.Z[roi_start: roi_end]))
 
         return calcSteps(), p_v
 
-    def fitLineLS(self):  # TODO: check if this works
+    def fitLineLS(self):
         """
         Least square line fit implementation
         """
@@ -96,7 +109,7 @@ class Profile:
         self.fig = plt.figure()
         self.gs = gridspec.GridSpec(3, 2)  # rows, cols
 
-    def prfPlot(self):  # plots the profile
+    def prfPlot(self, fname):  # plots the profile
         ax_prf = self.fig.add_subplot(self.gs[0, :])
         ax_prf.plot(self.X, self.Z, color='teal')
         persFig(
@@ -105,7 +118,7 @@ class Profile:
             xlab='x [um]',
             ylab='z [um]'
         )
-        ax_prf.set_title('Profile')
+        ax_prf.set_title('Profile ' + fname)
 
     def roiPlot(self, p_v=None):
         ax_roi = self.fig.add_subplot(self.gs[1, :])

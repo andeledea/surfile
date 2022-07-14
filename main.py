@@ -24,17 +24,17 @@ if __name__ == '__main__':
             plu = Plu(fname)
 
             plu.fitPlaneLS_bound(lambda a, b: a < b)
-            # plu.fitPlane3P()
             plu.removePlane()
 
             hist, edges = plu.histMethod(bins=250)
-            print(findHfromHist(hist, edges))
+            findHfromHist(hist, edges)
 
             extracted = copy.copy(plu.meanProfile('x'))
-            steps, p_v = extracted.stepAuto(20)
-            print(f'Steps found: {steps} at {p_v}')
+            steps, p_v = extracted.stepAuto()  # P_V are the peaks and valleys
+            print(f'Steps found: {steps}')
             extracted.fitLineLS()
 
+            # plot section
             print('plotting results')
             plu.init_graphics()
 
@@ -44,7 +44,7 @@ if __name__ == '__main__':
             plu.histPlot(hist, edges)
 
             extracted.init_graphics()
-            extracted.prfPlot()
+            extracted.prfPlot(f)
             extracted.roiPlot(p_v)
             extracted.linePlot()
 
