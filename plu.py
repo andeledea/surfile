@@ -22,11 +22,11 @@ class Plu:
         plu = np.loadtxt(name, usecols=range(sy), skiprows=1)
         plu = (plu - np.mean(plu)) * (10 ** 6)
 
-        x = np.linspace(0, sx * spacex, num=sx)
-        y = np.linspace(0, sy * spacey, num=sy)
+        self.x = np.linspace(0, sx * spacex, num=sx)
+        self.y = np.linspace(0, sy * spacey, num=sy)
 
         # create main XYZ and backup of original points in Z0
-        self.X, self.Y = np.meshgrid(x, y)
+        self.X, self.Y = np.meshgrid(self.x, self.y)
         self.Z0 = self.Z = np.transpose(plu)
 
     def fitPlane3P(self):
@@ -138,7 +138,7 @@ class Plu:
         z_plane = (-self.a * self.X - self.b * self.Y - self.d) * 1. / self.c
         self.Z = self.Z - z_plane + np.mean(z_plane)
 
-    def extractProfile(self):
+    def extractProfile(self) -> Profile:
         """
         extracts a profile along x or y
         :return: profile object extracted (use p = copy.copy())
@@ -178,6 +178,21 @@ class Plu:
         fig.canvas.mpl_connect('close_event', onClose)
 
         plt.show()
+        return profile
+
+    def meanProfile(self, direction='x') -> Profile:
+        """
+        extracts the mean profile along x or y
+        :param direction: 'x' or 'y'
+        :return: profile object extracted (use p = copy.copy())
+        """
+        profile = Profile()
+        if direction == 'x':
+            profile.setValues(self.x, np.mean(self.Z, axis=0))
+
+        if direction == 'y':
+            profile.setValues(self.y, np.mean(self.Z, axis=1))
+
         return profile
 
     #####################################################################################################

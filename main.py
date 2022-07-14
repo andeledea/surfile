@@ -30,19 +30,22 @@ if __name__ == '__main__':
             hist, edges = plu.histMethod(bins=250)
             print(findHfromHist(hist, edges))
 
-            extracted = copy.copy(plu.extractProfile())
-            extracted.stepAuto()
+            extracted = copy.copy(plu.meanProfile('x'))
+            steps, p_v = extracted.stepAuto(20)
+            print(f'Steps found: {steps} at {p_v}')
+            extracted.fitLineLS()
 
             print('plotting results')
-            # plu.init_graphics()
-            #
-            # plu.pltPlot(f)
-            # plu.pltCplot()
-            # plu.planePlot()
-            # plu.histPlot(hist, edges)
+            plu.init_graphics()
+
+            plu.pltPlot(f)
+            plu.pltCplot()
+            plu.planePlot()
+            plu.histPlot(hist, edges)
 
             extracted.init_graphics()
             extracted.prfPlot()
-            extracted.roiPlot()
+            extracted.roiPlot(p_v)
+            extracted.linePlot()
 
             plt.show()
