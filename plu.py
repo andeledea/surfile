@@ -5,6 +5,7 @@ from funct import *
 # plu classes
 
 class Plu:
+    @timer
     def __init__(self, name):
         self.gs = None
         self.fig = None
@@ -20,8 +21,10 @@ class Plu:
             spacey = float(line[3])  # read y spacing
 
         plu = np.loadtxt(name, usecols=range(sy), skiprows=1)
-        plu = (plu - np.mean(plu)) * (10 ** 6)
+        plu = (plu - np.mean(plu)) * (10 ** 6)  # 10^6 from mm to nm
 
+        self.rangeX = sx * spacex
+        self.rangeY = sy * spacey
         self.x = np.linspace(0, sx * spacex, num=sx)
         self.y = np.linspace(0, sy * spacey, num=sy)
 
@@ -166,10 +169,6 @@ class Plu:
                 profile.setValues(self.X[po[choice]], self.Z[po[choice]])
             else:
                 profile.setValues(self.Y[po[choice]], self.Z[po[choice]])  # TODO: extract y profile
-            # if choice in po:
-            #     print(f"Extracting profile: {choice} = {po[choice]}")
-            # else:
-            #     print(f"No valid choice {choice}, default x = {po['x']}")
             plt.close(fig)
 
         fig, ax = plt.subplots()  # create the fig for profile selection
@@ -194,6 +193,28 @@ class Plu:
             profile.setValues(self.y, np.mean(self.Z, axis=1))
 
         return profile
+
+    @timer
+    def resample(self, newXsize, newYsize):
+        xi = np.linspace(0, self.rangeX, newXsize)
+        yi = np.linspace(0, self.rangeY, newYsize)
+        Xi, Yi = np.meshgrid(xi, yi)
+
+        XY = np.vstack([self.X.reshape(np.size(self.X)),
+                        self.Y.reshape(np.size(self.Y))]).T
+
+        Zi = interpolate.griddata(XY, self.Z.reshape(np.size(self.Z)), (Xi, Yi), method='cubic')  # 'linear' 'cubic'
+        print(np.shape(self.Z), np.shape(Zi))
+
+        self.x = xi
+        self.y = yi
+
+        self.X = Xi
+        self.Y = Yi
+        self.Z = Zi
+
+    # TODO: implementare parametri S
+    # TODO: implementare filtri 2D
 
     #####################################################################################################
     #                                       PLOT SECTION                                                #
@@ -220,7 +241,7 @@ class Plu:
 
     def pltCplot(self):
         ax_2d = self.fig.add_subplot(self.gs[0, 2])
-        ax_2d.pcolormesh(self.X, self.Y, self.Z, cmap=cm.rainbow)  # hot, viridis, rainbow
+        ax_2d.pcolormesh(self.X, self.Y, self.Z, cmap=cm.jet)  # hot, viridis, rainbow
         persFig(
             ax_2d,
             gridcol='grey',

@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from dataclasses import dataclass
 from matplotlib import cm
 from funct import *
-from scipy.signal import find_peaks
+from scipy import signal, ndimage, interpolate
 import matplotlib.gridspec as gridspec
 
 
@@ -24,6 +24,7 @@ class Profile:
         self.fig = None
         self.X = None
         self.Z = None
+        self.Z0 = None
 
     def setValues(self, X, Y):
         """
@@ -32,12 +33,12 @@ class Profile:
         :param Y: y values of profile
         """
         self.X = X
-        self.Z = Y
+        self.Z0 = self.Z = Y
 
     def stepAuto(self):  # TODO: can you find a way to automate minD calculations?
         """
         Calculates the step height using the auto method
-        :param minD: minimum distance in pixels between consecutive derivative peaks
+        :return: steps: array containing all found step heights on profile
         """
 
         def calcSteps() -> list:
@@ -68,8 +69,8 @@ class Profile:
         zero_cross = np.where(np.diff(np.sign(self.Z)))[0]
         spacing = (zero_cross[1] - zero_cross[0]) / 1.5
 
-        peaks, _ = find_peaks(self.gr, height=thresh, distance=spacing)
-        valle, _ = find_peaks(-self.gr, height=thresh, distance=spacing)
+        peaks, _ = signal.find_peaks(self.gr, height=thresh, distance=spacing)
+        valle, _ = signal.find_peaks(-self.gr, height=thresh, distance=spacing)
 
         self.roi = []  # regions of interest points
         p_v = np.sort(np.concatenate((peaks, valle)))  # every point of interest (INDEXES of x array)
@@ -102,6 +103,11 @@ class Profile:
         self.q = q
         self.c = -1  # y coefficient in line eq.
 
+    def filterGauss(self, cutoff, order=0):
+        sigma = cutoff / (np.max(self.X) / np.size(self.X)) * (1-0.68268949)  # corretto????
+        print(f'Appliyng filter sigma: {sigma}')
+        self.Z = ndimage.gaussian_filter1d(self.Z, sigma=sigma, order=order)
+
     #####################################################################################################
     #                                       PLOT SECTION                                                #
     #####################################################################################################
@@ -116,7 +122,7 @@ class Profile:
             ax_prf,
             gridcol='grey',
             xlab='x [um]',
-            ylab='z [um]'
+            ylab='z [nm]'
         )
         ax_prf.set_title('Profile ' + fname)
 
@@ -136,11 +142,11 @@ class Profile:
             ax_roi,
             gridcol='grey',
             xlab='x [um]',
-            ylab='z [um]'
+            ylab='z [nm]'
         )
 
     def linePlot(self):
-        ax_lin = self.fig.add_subplot(self.gs[2, :])
+        ax_lin = self.fig.add_subplot(self.gs[2, 0])
         ax_lin.plot(self.X, self.Z, color='teal')
 
         z_line = (- self.m * self.X - self.q) * 1. / self.c
@@ -150,5 +156,18 @@ class Profile:
             ax_lin,
             gridcol='grey',
             xlab='x [um]',
-            ylab='z [um]'
+            ylab='z [nm]'
+        )
+
+    def filterPlot(self):
+        ax_lin = self.fig.add_subplot(self.gs[2, 1])
+        ax_lin.plot(self.X, self.Z0, color='teal')
+
+        ax_lin.plot(self.X, self.Z, color='red')
+
+        persFig(
+            ax_lin,
+            gridcol='grey',
+            xlab='x [um]',
+            ylab='z [nm]'
         )

@@ -30,6 +30,7 @@ if __name__ == '__main__':
             findHfromHist(hist, edges)
 
             extracted = copy.copy(plu.meanProfile('x'))
+            extracted.filterGauss(cutoff=0.8)
             steps, p_v = extracted.stepAuto()  # P_V are the peaks and valleys
             print(f'Steps found: {steps}')
             extracted.fitLineLS()
@@ -47,5 +48,6 @@ if __name__ == '__main__':
             extracted.prfPlot(f)
             extracted.roiPlot(p_v)
             extracted.linePlot()
+            extracted.filterPlot()
 
             plt.show()

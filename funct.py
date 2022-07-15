@@ -1,3 +1,6 @@
+import time
+
+
 class Bcol:
     HEADER = '\033[95m'
     OKBLUE = '\033[94m'
@@ -46,3 +49,13 @@ def persFig(figure, gridcol, xlab, ylab, zlab=None):
     if zlab is not None:
         figure.set_zlabel(zlab)
     figure.grid(color=gridcol)
+
+
+def timer(func):  # wrapper function
+    def wrapper(*args):
+        init = time.time()
+        func(*args)
+        print(Bcol.OKCYAN + f"Function {func} took: {time.time() - init} seconds" + Bcol.ENDC)
+
+    return wrapper
+
