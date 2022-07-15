@@ -26,6 +26,28 @@ class Profile:
         self.Z = None
         self.Z0 = None
 
+    def openPrf(self, fname):
+        z = []
+        xs = 0
+        zs = 0
+        with open(fname, 'r') as fin:
+            for line in fin.readlines():
+                word = line.split()[0]
+                if word == 'SPACING':
+                    xs = float(line.split()[2])
+                    print(f'Spacing x: {xs}')
+                if word == 'CZ':
+                    zs = float(line.split()[4]) * 10**3
+                    print(f'Scaling z: {zs}')
+
+                try:
+                    z.append(float(word) * zs)
+                except ValueError:
+                    a = None
+
+            self.Z0 = self.Z = np.array(z)
+            self.X = np.linspace(0, (len(z)) * xs, len(z))
+
     def setValues(self, X, Y):
         """
         Sets the values for the profile
@@ -103,10 +125,36 @@ class Profile:
         self.q = q
         self.c = -1  # y coefficient in line eq.
 
-    def filterGauss(self, cutoff, order=0):
-        sigma = cutoff / (np.max(self.X) / np.size(self.X)) * (1-0.68268949)  # corretto????
+    def removeLine(self):
+        z_line = (-self.X * self.m - self.q) * 1. / self.c
+        self.Z = self.Z - z_line
+
+    def filterGauss(self, roi, cutoff, order=0):
+        nsample_cutoff = cutoff / (np.max(self.X) / np.size(self.X))
+        sigma = nsample_cutoff * (1 - 0.68268949)  # corretto????
         print(f'Appliyng filter sigma: {sigma}')
-        self.Z = ndimage.gaussian_filter1d(self.Z, sigma=sigma, order=order)
+        roi_filtered = ndimage.gaussian_filter1d(roi, sigma=sigma, order=order)
+
+        return roi_filtered
+
+    def Ra(self, cutoff, ncutoffs):  # TODO: check if this works
+        nsample_cutoff = cutoff / (np.max(self.X) / np.size(self.X))
+        nsample_region = nsample_cutoff * ncutoffs
+
+        fig, ax = plt.subplots()
+        ax.set_title('Ra cutoffs evaluation')
+
+        border = round((np.size(self.Z) - nsample_region) / 2)
+        roi = self.Z[border: -border]  # la roi sono i cutoff in mezzo
+        ax.plot(self.X[border: -border], roi, alpha=0.3, label='roi unfiltered')
+
+        envelope = self.filterGauss(roi, cutoff)
+        roi = roi - envelope  # applico il filtro per il calcolo
+        ax.plot(self.X[border: -border], roi, color='green', alpha=0.3, label='roi filtered')
+        ax.plot(self.X[border: -border], envelope, color='red', label='filter envelope')
+
+        ax.legend()
+        return np.sum(abs(roi)) / np.size(roi)
 
     #####################################################################################################
     #                                       PLOT SECTION                                                #
@@ -147,7 +195,7 @@ class Profile:
 
     def linePlot(self):
         ax_lin = self.fig.add_subplot(self.gs[2, 0])
-        ax_lin.plot(self.X, self.Z, color='teal')
+        ax_lin.plot(self.X, self.Z0, color='teal')
 
         z_line = (- self.m * self.X - self.q) * 1. / self.c
         ax_lin.plot(self.X, z_line, color='red')
@@ -159,15 +207,3 @@ class Profile:
             ylab='z [nm]'
         )
 
-    def filterPlot(self):
-        ax_lin = self.fig.add_subplot(self.gs[2, 1])
-        ax_lin.plot(self.X, self.Z0, color='teal')
-
-        ax_lin.plot(self.X, self.Z, color='red')
-
-        persFig(
-            ax_lin,
-            gridcol='grey',
-            xlab='x [um]',
-            ylab='z [nm]'
-        )
