@@ -1,5 +1,11 @@
-from plu import *
+import numpy as np
+import matplotlib.pyplot as plt
 import os
+
+import plu
+import profile as prf
+import funct
+
 import copy
 import tkinter as tk
 from tkinter import filedialog
@@ -21,13 +27,13 @@ if __name__ == '__main__':
     for fname in files:
         if os.path.isfile(fname):
             f = fname.removeprefix(folder)
-            plu = Plu(fname)
+            plu = plu.Plu(fname)
 
             plu.fitPlaneLS_bound(lambda a, b: a < b)
             plu.removePlane()
 
             hist, edges = plu.histMethod(bins=250)
-            findHfromHist(hist, edges)
+            funct.findHfromHist(hist, edges)
 
             extracted = copy.copy(plu.meanProfile('x'))
             extracted.filterGauss(cutoff=0.8)
@@ -48,6 +54,5 @@ if __name__ == '__main__':
             extracted.prfPlot(f)
             extracted.roiPlot(p_v)
             extracted.linePlot()
-            extracted.filterPlot()
 
             plt.show()

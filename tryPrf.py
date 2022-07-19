@@ -1,8 +1,12 @@
-from plu import *
+import numpy as np
+import matplotlib.pyplot as plt
 import os
-import copy
+
+import profile as prf
+
 import tkinter as tk
 from tkinter import filedialog
+
 
 # main
 if __name__ == '__main__':
@@ -21,14 +25,14 @@ if __name__ == '__main__':
     for fname in files:
         if os.path.isfile(fname):
             f = fname.removeprefix(folder)
-            prf = Profile()
-            prf.openPrf(fname)
-            prf.fitLineLS()
-            prf.removeLine()
-            print(prf.Ra(0.8, 5))
+            prof = prf.Profile()
+            prof.openPrf(fname)
+            prof.fitLineLS()
+            prof.removeLine()
+            print(prof.Ra(0.8, 5))
 
-            prf.init_graphics()
-            prf.prfPlot(f)
-            prf.linePlot()
+            prof.init_graphics()
+            prof.prfPlot(f)
+            prof.linePlot()
 
             plt.show()

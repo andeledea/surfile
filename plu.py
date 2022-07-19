@@ -1,11 +1,17 @@
-from profile import *
-from funct import *
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib import cm
+import matplotlib.gridspec as gridspec
+from scipy import signal, ndimage, interpolate
+
+import profile as prf
+import funct
 
 
 # plu classes
 
 class Plu:
-    @timer
+    @funct.timer
     def __init__(self, name):
         self.gs = None
         self.fig = None
@@ -141,13 +147,13 @@ class Plu:
         z_plane = (-self.a * self.X - self.b * self.Y - self.d) * 1. / self.c
         self.Z = self.Z - z_plane + np.mean(z_plane)
 
-    def extractProfile(self) -> Profile:
+    def extractProfile(self) -> prf.Profile:
         """
         extracts a profile along x or y
         :return: profile object extracted (use p = copy.copy())
         """
         po = {'x': 0, 'y': 0}
-        profile = Profile()
+        profile = prf.Profile()
 
         def pointPick(point, mouseevent):  # called when pick event on fig
             if mouseevent.xdata is None:
@@ -179,13 +185,13 @@ class Plu:
         plt.show()
         return profile
 
-    def meanProfile(self, direction='x') -> Profile:
+    def meanProfile(self, direction='x') -> prf.Profile:
         """
         extracts the mean profile along x or y
         :param direction: 'x' or 'y'
         :return: profile object extracted (use p = copy.copy())
         """
-        profile = Profile()
+        profile = prf.Profile()
         if direction == 'x':
             profile.setValues(self.x, np.mean(self.Z, axis=0))
 
@@ -194,7 +200,7 @@ class Plu:
 
         return profile
 
-    @timer
+    @funct.timer
     def resample(self, newXsize, newYsize):
         xi = np.linspace(0, self.rangeX, newXsize)
         yi = np.linspace(0, self.rangeY, newYsize)
@@ -229,7 +235,7 @@ class Plu:
     def pltPlot(self, fname):
         ax_3d = self.fig.add_subplot(self.gs[0:-1, 0:-1], projection='3d')
         ax_3d.plot_surface(self.X, self.Y, self.Z, cmap=cm.rainbow)  # hot, viridis, rainbow
-        persFig(
+        funct.persFig(
             ax_3d,
             gridcol='grey',
             xlab='x [um]',
@@ -242,7 +248,7 @@ class Plu:
     def pltCplot(self):
         ax_2d = self.fig.add_subplot(self.gs[0, 2])
         ax_2d.pcolormesh(self.X, self.Y, self.Z, cmap=cm.jet)  # hot, viridis, rainbow
-        persFig(
+        funct.persFig(
             ax_2d,
             gridcol='grey',
             xlab='x [um]',
@@ -262,7 +268,7 @@ class Plu:
         # plot original points
         ax_pl = self.fig.add_subplot(self.gs[1, 2], projection='3d')
         ax_pl.plot_surface(self.X, self.Y, self.Z0, alpha=0.5, cmap=cm.Greys_r)  # hot, viridis, rainbow
-        persFig(
+        funct.persFig(
             ax_pl,
             gridcol='grey',
             xlab='x [um]',
@@ -276,7 +282,7 @@ class Plu:
     def histPlot(self, hist, edges):
         ax_ht = self.fig.add_subplot(self.gs[2, :])
         ax_ht.hist(edges[:-1], bins=edges, weights=hist / np.size(self.Z) * 100, color='red')
-        persFig(
+        funct.persFig(
             ax_ht,
             gridcol='grey',
             xlab='z [nm]',

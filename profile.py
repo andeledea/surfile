@@ -1,10 +1,10 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from dataclasses import dataclass
-from matplotlib import cm
-from funct import *
-from scipy import signal, ndimage, interpolate
 import matplotlib.gridspec as gridspec
+from dataclasses import dataclass
+
+import funct
+from scipy import signal, ndimage, interpolate
 
 
 @dataclass
@@ -14,7 +14,6 @@ class Roi:
 
 
 class Profile:
-
     def __init__(self):
         self.c, self.q, self.m = 0, 0, 0  # line fit parameters
 
@@ -26,24 +25,28 @@ class Profile:
         self.Z = None
         self.Z0 = None
 
+    @funct.timer
     def openPrf(self, fname):
         z = []
         xs = 0
         zs = 0
         with open(fname, 'r') as fin:
+            charlines = 0
             for line in fin.readlines():
                 word = line.split()[0]
-                if word == 'SPACING':
+                if word == 'SPACING':  # linea di spacing x
                     xs = float(line.split()[2])
                     print(f'Spacing x: {xs}')
-                if word == 'CZ':
-                    zs = float(line.split()[4]) * 10**3
+                if word == 'CZ':  # linea di spacing z
+                    zs = float(line.split()[4]) * 10 ** 3
                     print(f'Scaling z: {zs}')
 
-                try:
+                try:  # salvo solo i valori numerici
                     z.append(float(word) * zs)
                 except ValueError:
-                    a = None
+                    charlines += 1
+            print(f'Skipped {charlines} word lines')
+            z.pop(0)
 
             self.Z0 = self.Z = np.array(z)
             self.X = np.linspace(0, (len(z)) * xs, len(z))
@@ -82,7 +85,8 @@ class Profile:
                     definedPeaks = False
 
             if not definedPeaks:
-                print(Bcol.WARNING + 'STEP HEIGHT MIGHT BE INCORRECT (PEAKS ARE POURLY DEFINED)' + Bcol.ENDC)
+                print(
+                    funct.Bcol.WARNING + 'STEP HEIGHT MIGHT BE INCORRECT (PEAKS ARE POURLY DEFINED)' + funct.Bcol.ENDC)
             return steps
 
         self.gr = np.gradient(self.Z)
@@ -166,7 +170,7 @@ class Profile:
     def prfPlot(self, fname):  # plots the profile
         ax_prf = self.fig.add_subplot(self.gs[0, :])
         ax_prf.plot(self.X, self.Z, color='teal')
-        persFig(
+        funct.persFig(
             ax_prf,
             gridcol='grey',
             xlab='x [um]',
@@ -186,7 +190,7 @@ class Profile:
             ax_roi.plot(roi.X, roi.Z, color='red')  # hot, viridis, rainbow
             ax_roi.plot(self.X, self.gr, color='blue')
 
-        persFig(
+        funct.persFig(
             ax_roi,
             gridcol='grey',
             xlab='x [um]',
@@ -200,10 +204,9 @@ class Profile:
         z_line = (- self.m * self.X - self.q) * 1. / self.c
         ax_lin.plot(self.X, z_line, color='red')
 
-        persFig(
+        funct.persFig(
             ax_lin,
             gridcol='grey',
             xlab='x [um]',
             ylab='z [nm]'
         )
-
