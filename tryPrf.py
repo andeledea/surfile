@@ -28,8 +28,8 @@ if __name__ == '__main__':
             prof = prf.Profile()
             prof.openPrf(fname)
             prof.fitLineLS()
-            prof.removeLine()
-            print(prof.Ra(0.8, 5))
+            # prof.removeLine()
+            print(prof.roughnessParams(0.8, 5))
 
             prof.init_graphics()
             prof.prfPlot(f)

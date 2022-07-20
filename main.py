@@ -36,7 +36,6 @@ if __name__ == '__main__':
             funct.findHfromHist(hist, edges)
 
             extracted = copy.copy(plu.meanProfile('x'))
-            extracted.filterGauss(cutoff=0.8)
             steps, p_v = extracted.stepAuto()  # P_V are the peaks and valleys
             print(f'Steps found: {steps}')
             extracted.fitLineLS()

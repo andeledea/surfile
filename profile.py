@@ -133,32 +133,52 @@ class Profile:
         z_line = (-self.X * self.m - self.q) * 1. / self.c
         self.Z = self.Z - z_line
 
-    def filterGauss(self, roi, cutoff, order=0):
+    def __filterGauss(self, roi, cutoff, order=0):
         nsample_cutoff = cutoff / (np.max(self.X) / np.size(self.X))
-        sigma = nsample_cutoff * (1 - 0.68268949)  # corretto????
+        sigma = nsample_cutoff * (1 - 0.68268949)  # radq(ln(2)/pi)
         print(f'Appliyng filter sigma: {sigma}')
         roi_filtered = ndimage.gaussian_filter1d(roi, sigma=sigma, order=order)
 
         return roi_filtered
 
-    def Ra(self, cutoff, ncutoffs):  # TODO: check if this works
-        nsample_cutoff = cutoff / (np.max(self.X) / np.size(self.X))
-        nsample_region = nsample_cutoff * ncutoffs
+    def roughnessParams(self, cutoff, ncutoffs):  # TODO: check if this works
+        """
+        Applies the indicated filter and calculates the roughness parameters
+        :param cutoff: co length
+        :param ncutoffs: number of cutoffs to considerate in the center of the profile
+        :return: RA, RQ, RP, RV, RZ, RSK, RKU
+        """
+        # samples preparation for calculation of params
+        def prepare_roi(plot=False):
+            nsample_cutoff = cutoff / (np.max(self.X) / np.size(self.X))
+            nsample_region = nsample_cutoff * ncutoffs
 
-        fig, ax = plt.subplots()
-        ax.set_title('Ra cutoffs evaluation')
+            border = round((np.size(self.Z) - nsample_region) / 2)
+            roi_I = self.Z[border: -border]  # la roi sono i cutoff in mezzo
 
-        border = round((np.size(self.Z) - nsample_region) / 2)
-        roi = self.Z[border: -border]  # la roi sono i cutoff in mezzo
-        ax.plot(self.X[border: -border], roi, alpha=0.3, label='roi unfiltered')
+            envelope = self.__filterGauss(roi_I, cutoff)
+            roi_F = roi_I - envelope  # applico il filtro per il calcolo
 
-        envelope = self.filterGauss(roi, cutoff)
-        roi = roi - envelope  # applico il filtro per il calcolo
-        ax.plot(self.X[border: -border], roi, color='green', alpha=0.3, label='roi filtered')
-        ax.plot(self.X[border: -border], envelope, color='red', label='filter envelope')
+            if plot:
+                fig, ax = plt.subplots()
+                ax.set_title('Ra cutoffs evaluation')
+                ax.plot(self.X[border: -border], roi_I, alpha=0.3, label='roi unfiltered')
+                ax.plot(self.X[border: -border], roi_F, color='green', alpha=0.6, label='roi filtered')
+                ax.plot(self.X[border: -border], envelope, color='red', label='filter envelope')
 
-        ax.legend()
-        return np.sum(abs(roi)) / np.size(roi)
+                ax.legend()
+            return roi_F  # cutoff roi
+
+        roi = prepare_roi(plot=True)
+
+        RA = np.sum(abs(roi)) / np.size(roi)
+        RQ = np.sqrt(np.sum(abs(roi ** 2)) / np.size(roi))
+        RP = abs(np.max(roi))
+        RV = abs(np.min(roi))
+        RZ = RP + RV
+        RSK = (np.sum(roi ** 3) / np.size(roi)) / (RQ ** 3)
+        RKU = (np.sum(roi ** 4) / np.size(roi)) / (RQ ** 4)
+        return RA, RQ, RP, RV, RZ, RSK, RKU
 
     #####################################################################################################
     #                                       PLOT SECTION                                                #
