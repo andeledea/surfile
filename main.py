@@ -2,13 +2,15 @@ import numpy as np
 import matplotlib.pyplot as plt
 import os
 
-import plu
+import surface as sur
 import profile as prf
 import funct
 
 import copy
 import tkinter as tk
 from tkinter import filedialog
+
+import pandas as pd
 
 # main
 if __name__ == '__main__':
@@ -23,22 +25,30 @@ if __name__ == '__main__':
     root.withdraw()
 
     files = filedialog.askopenfilenames(parent=root, title='Choose files to process')
+    df = pd.DataFrame(columns=['filename', 'h_hist', 'h_ISO (mean)', 'ok_ISO'])
 
     for fname in files:
         if os.path.isfile(fname):
             f = fname.removeprefix(folder)
-            plu = plu.Plu(fname)
+            plu = sur.Surface()
+            plu.openTxt(fname)
 
             plu.fitPlaneLS_bound(lambda a, b: a < b)
             plu.removePlane()
 
             hist, edges = plu.histMethod(bins=250)
-            funct.findHfromHist(hist, edges)
+            h_hist = funct.findHfromHist(hist, edges)
 
             extracted = copy.copy(plu.meanProfile('x'))
-            steps, p_v = extracted.stepAuto()  # P_V are the peaks and valleys
-            print(f'Steps found: {steps}')
+            h_iso, ok_steps = extracted.stepAuto()  # P_V are the peaks and valleys
             extracted.fitLineLS()
+
+            df_tmp = pd.DataFrame({'filename': f,
+                                   'h_hist': h_hist,
+                                   'h_ISO (mean)': np.mean(np.abs(h_iso)),
+                                   'ok_ISO': ok_steps},
+                                  index=[0])
+            df = pd.concat([df_tmp, df.loc[:]]).reset_index(drop=True)
 
             # plot section
             print('plotting results')
@@ -51,7 +61,13 @@ if __name__ == '__main__':
 
             extracted.init_graphics()
             extracted.prfPlot(f)
-            extracted.roiPlot(p_v)
+            extracted.roiPlot()
             extracted.linePlot()
 
             plt.show()
+
+    print('------- RESULTS -------')
+    print(df)
+
+    # with pd.ExcelWriter(folder + '/out.xlsx') as writer:
+    #     df.to_excel(writer, sheet_name='Heights')

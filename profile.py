@@ -66,8 +66,8 @@ class Profile:
         :return: steps: array containing all found step heights on profile
         """
 
-        def calcSteps() -> list:
-            steps = []
+        def calcSteps():
+            st = []
             definedPeaks = True
             for j in range(len(self.roi) - 2):  # consider j, j+1, j+2
                 outerMeanL = np.mean(self.roi[j].Z)
@@ -79,15 +79,15 @@ class Profile:
                 innerStd = np.std(self.roi[j + 1].Z)
 
                 step = innerMean - (outerMeanL + outerMeanR) / 2
-                steps.append(step)
+                st.append(step)
 
                 if outerStdL > abs(step) / 200 or outerStdR > abs(step) / 200 or innerStd > abs(step) / 200:
                     definedPeaks = False
 
             if not definedPeaks:
-                print(
-                    funct.Bcol.WARNING + 'STEP HEIGHT MIGHT BE INCORRECT (PEAKS ARE POURLY DEFINED)' + funct.Bcol.ENDC)
-            return steps
+                print(funct.Bcol.WARNING + 'STEP HEIGHT MIGHT BE INCORRECT (PEAKS ARE POURLY DEFINED)' + funct.Bcol.ENDC)
+
+            return st, definedPeaks
 
         self.gr = np.gradient(self.Z)
 
@@ -107,8 +107,8 @@ class Profile:
             roi_end = p_v[i + 1] - locRange
             self.roi.append(Roi(self.X[roi_start: roi_end],  # append to roi X and Y values of roi
                                 self.Z[roi_start: roi_end]))
-
-        return calcSteps(), p_v
+        steps, ok = calcSteps()
+        return steps, ok
 
     def fitLineLS(self):
         """
@@ -141,15 +141,16 @@ class Profile:
 
         return roi_filtered
 
-    def roughnessParams(self, cutoff, ncutoffs):  # TODO: check if this works
+    def roughnessParams(self, cutoff, ncutoffs, plot=False):  # TODO: check if this works
         """
         Applies the indicated filter and calculates the roughness parameters
+        :param plot: shows roi plot
         :param cutoff: co length
         :param ncutoffs: number of cutoffs to considerate in the center of the profile
         :return: RA, RQ, RP, RV, RZ, RSK, RKU
         """
         # samples preparation for calculation of params
-        def prepare_roi(plot=False):
+        def prepare_roi(pl=False):
             nsample_cutoff = cutoff / (np.max(self.X) / np.size(self.X))
             nsample_region = nsample_cutoff * ncutoffs
 
@@ -159,7 +160,7 @@ class Profile:
             envelope = self.__filterGauss(roi_I, cutoff)
             roi_F = roi_I - envelope  # applico il filtro per il calcolo
 
-            if plot:
+            if pl:
                 fig, ax = plt.subplots()
                 ax.set_title('Ra cutoffs evaluation')
                 ax.plot(self.X[border: -border], roi_I, alpha=0.3, label='roi unfiltered')
@@ -169,7 +170,7 @@ class Profile:
                 ax.legend()
             return roi_F  # cutoff roi
 
-        roi = prepare_roi(plot=True)
+        roi = prepare_roi(plot)
 
         RA = np.sum(abs(roi)) / np.size(roi)
         RQ = np.sqrt(np.sum(abs(roi ** 2)) / np.size(roi))
@@ -198,13 +199,10 @@ class Profile:
         )
         ax_prf.set_title('Profile ' + fname)
 
-    def roiPlot(self, p_v=None):
+    def roiPlot(self):
         ax_roi = self.fig.add_subplot(self.gs[1, :])
         ax_roi.plot(self.X, self.Z, color='teal')
         ax_roi.plot(self.X, self.gr, color='blue')
-
-        if p_v is not None:
-            ax_roi.plot(self.X[p_v], self.gr[p_v], 'o', color='red')
 
         for roi in self.roi:
             ax_roi.plot(roi.X, roi.Z, color='red')  # hot, viridis, rainbow

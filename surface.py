@@ -10,14 +10,24 @@ import funct
 
 # plu classes
 
-class Plu:
+class Surface:
     @funct.timer
-    def __init__(self, name):
+    def __init__(self):
+        self.Z = None
+        self.Y = None
+        self.Z0 = None
+        self.X = None
+        self.y = None
+        self.x = None
+        self.rangeY = None
+        self.rangeX = None
         self.gs = None
         self.fig = None
 
         self.a, self.b, self.c, self.d = 0, 0, 0, 0  # plane parameters
-        with open(name, 'r') as fin:
+
+    def openTxt(self, fname):
+        with open(fname, 'r') as fin:
             line = fin.readline().split()
             sx = int(line[0])  # read number of x points
             sy = int(line[1])  # read number of y points
@@ -26,7 +36,7 @@ class Plu:
             spacex = float(line[2])  # read x spacing
             spacey = float(line[3])  # read y spacing
 
-        plu = np.loadtxt(name, usecols=range(sy), skiprows=1)
+        plu = np.loadtxt(fname, usecols=range(sy), skiprows=1)
         plu = (plu - np.mean(plu)) * (10 ** 6)  # 10^6 from mm to nm
 
         self.rangeX = sx * spacex
