@@ -25,7 +25,7 @@ class Profile:
         self.Z = None
         self.Z0 = None
 
-    @funct.timer
+    # @funct.timer
     def openPrf(self, fname):
         z = []
         xs = 0
@@ -85,7 +85,8 @@ class Profile:
                     definedPeaks = False
 
             if not definedPeaks:
-                print(funct.Bcol.WARNING + 'STEP HEIGHT MIGHT BE INCORRECT (PEAKS ARE POURLY DEFINED)' + funct.Bcol.ENDC)
+                print(funct.Bcol.WARNING + 'STEP HEIGHT MIGHT BE INCORRECT (PEAKS ARE POURLY DEFINED)' +
+                      funct.Bcol.ENDC)
 
             return st, definedPeaks
 
@@ -135,13 +136,16 @@ class Profile:
 
     def __filterGauss(self, roi, cutoff, order=0):
         nsample_cutoff = cutoff / (np.max(self.X) / np.size(self.X))
-        sigma = nsample_cutoff * (1 - 0.68268949)  # radq(ln(2)/pi)
+        
+        alpha = np.sqrt(np.log(2) / np.pi)
+        sigma = nsample_cutoff * (alpha / np.sqrt(2 * np.pi))  # da norma ISO 16610-21  # * (1 - 0.68268949)
         print(f'Appliyng filter sigma: {sigma}')
         roi_filtered = ndimage.gaussian_filter1d(roi, sigma=sigma, order=order)
 
         return roi_filtered
 
-    def roughnessParams(self, cutoff, ncutoffs, plot=False):  # TODO: check if this works
+    @funct.timer
+    def roughnessParams(self, cutoff, ncutoffs, plot):  # TODO: check if this works
         """
         Applies the indicated filter and calculates the roughness parameters
         :param plot: shows roi plot
@@ -157,15 +161,25 @@ class Profile:
             border = round((np.size(self.Z) - nsample_region) / 2)
             roi_I = self.Z[border: -border]  # la roi sono i cutoff in mezzo
 
-            envelope = self.__filterGauss(roi_I, cutoff)
-            roi_F = roi_I - envelope  # applico il filtro per il calcolo
+            envelope = self.__filterGauss(self.Z, cutoff)
+            roi_F = roi_I - envelope[border: -border]  # applico il filtro per il calcolo
 
             if pl:
                 fig, ax = plt.subplots()
-                ax.set_title('Ra cutoffs evaluation')
+
+                twin = ax.twinx()
+                twin.set_ylabel('Filtered roi')
+
+                ax.set_title(f'Gaussian filter: cutoffs: {ncutoffs}, cutoff length: {cutoff}')
+                ax.plot(self.X, self.Z, alpha=0.2, label='Data')
                 ax.plot(self.X[border: -border], roi_I, alpha=0.3, label='roi unfiltered')
-                ax.plot(self.X[border: -border], roi_F, color='green', alpha=0.6, label='roi filtered')
-                ax.plot(self.X[border: -border], envelope, color='red', label='filter envelope')
+
+                twin.set_ylim(np.min(roi_F) - 0.7 * (np.max(roi_F) - np.min(roi_F)),
+                              np.max(roi_F) + 0.7 * (np.max(roi_F) - np.min(roi_F)))
+                rF, = twin.plot(self.X[border: -border], roi_F, color='green', alpha=0.6, label='roi filtered')
+                twin.tick_params(axis='y', colors=rF.get_color())
+
+                ax.plot(self.X, envelope, color='red', label='filter envelope')
 
                 ax.legend()
             return roi_F  # cutoff roi

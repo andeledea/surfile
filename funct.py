@@ -52,10 +52,10 @@ def persFig(figure, gridcol, xlab, ylab, zlab=None):
 
 
 def timer(func):  # wrapper function
-    def wrapper(*args):
+    def wrapper(*args, **kwargs):
         init = time.time()
-        func(*args)
-        print(Bcol.OKCYAN + f"Function {func} took: {time.time() - init} seconds" + Bcol.ENDC)
-
+        ret = func(*args, **kwargs)
+        print(Bcol.OKCYAN + f"Function {func.__name__} took: {(time.time() - init):.2f} seconds" + Bcol.ENDC)
+        return ret
     return wrapper
 

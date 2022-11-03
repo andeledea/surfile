@@ -11,12 +11,12 @@ import funct
 # plu classes
 
 class Surface:
-    @funct.timer
     def __init__(self):
+        self.Z0 = None
         self.Z = None
         self.Y = None
-        self.Z0 = None
         self.X = None
+
         self.y = None
         self.x = None
         self.rangeY = None

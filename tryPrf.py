@@ -6,6 +6,7 @@ import profile as prf
 
 import tkinter as tk
 from tkinter import filedialog
+from tabulate import tabulate
 
 
 # main
@@ -15,24 +16,25 @@ if __name__ == '__main__':
     plt.rcParams["figure.figsize"] = (12, 9)
 
     h = {}
-    folder = 'C:/Elaborazione_profilometro/Symetrics/Txt_files/prf'
+    folder = filedialog.askdirectory(title='Choose directory to process')
 
     root = tk.Tk()
     root.withdraw()
 
-    files = filedialog.askopenfilenames(parent=root, title='Choose files to process')
+    results = []
 
-    for fname in files:
-        if os.path.isfile(fname):
-            f = fname.removeprefix(folder)
-            prof = prf.Profile()
-            prof.openPrf(fname)
-            prof.fitLineLS()
-            # prof.removeLine()
-            print(prof.roughnessParams(0.8, 5))
+    for subdir, dirs, files in os.walk(folder):
+        for file in files:
+            fname = os.path.join(subdir, file)
+            if os.path.isfile(fname) and ('PRF' in fname):
+                f = fname.removeprefix(folder)
+                prof = prf.Profile()
+                prof.openPrf(fname)
 
-            prof.init_graphics()
-            prof.prfPlot(f)
-            prof.linePlot()
+                single = list(prof.roughnessParams(2.5, 5, True))
+                single.insert(0, f)
+                results.append(single)
 
-            plt.show()
+                plt.show()
+
+    print(tabulate(results, headers=['name', 'RA', 'RQ', 'RP', 'RV', 'RZ', 'RSK', 'RKU']))
