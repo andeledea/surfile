@@ -30,6 +30,12 @@ if __name__ == '__main__':
                 f = fname.removeprefix(folder)
                 prof = prf.Profile()
                 prof.openPrf(fname)
+                prof.fitLineLS()
+                hist, edges = prof.histMethod()
+                prof.init_graphics()
+                prof.prfPlot(fname)
+                prof.linePlot()
+                prof.histPlot(hist, edges)
 
                 single = list(prof.roughnessParams(2.5, 5, True))
                 single.insert(0, f)

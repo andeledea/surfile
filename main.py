@@ -39,16 +39,9 @@ if __name__ == '__main__':
             hist, edges = plu.histMethod(bins=250)
             h_hist = funct.findHfromHist(hist, edges)
 
-            extracted = copy.copy(plu.meanProfile('x'))
+            extracted = copy.copy(plu.extractProfile())
             h_iso, ok_steps = extracted.stepAuto()  # P_V are the peaks and valleys
             extracted.fitLineLS()
-
-            df_tmp = pd.DataFrame({'filename': f,
-                                   'h_hist': h_hist,
-                                   'h_ISO (mean)': np.mean(np.abs(h_iso)),
-                                   'ok_ISO': ok_steps},
-                                  index=[0])
-            df = pd.concat([df_tmp, df.loc[:]]).reset_index(drop=True)
 
             # plot section
             print('plotting results')
@@ -65,10 +58,3 @@ if __name__ == '__main__':
             extracted.linePlot()
 
             plt.show()
-
-    # print section
-    print('------- RESULTS -------')
-    print(df)
-
-    # with pd.ExcelWriter(folder + '/out.xlsx') as writer:
-    #     df.to_excel(writer, sheet_name='Heights')

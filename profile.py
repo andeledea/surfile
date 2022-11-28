@@ -130,13 +130,54 @@ class Profile:
         self.q = q
         self.c = -1  # y coefficient in line eq.
 
+    def allignWithHist(self, start_m):
+        tot_bins = int(np.size(self.X) / 25)
+        threshold = 50 / tot_bins
+
+        line_m = start_m  # start incline
+
+        def calcNBUT():
+            fig = plt.figure()
+            ax = fig.add_subplot(211)
+            bx = fig.add_subplot(212)
+
+            hist, edges = self.histMethod(tot_bins)  # make the hist
+            weights = hist / np.size(self.Z) * 100
+            n_bins_under_threshold = np.size(np.where(weights < threshold)[0])  # how many bins under th
+
+            ax.hist(edges[:-1], bins=edges, weights=weights, color='red')
+            ax.axhline(y=threshold, color='b')
+            bx.plot(self.X, self.Z)
+            plt.show()
+
+            return n_bins_under_threshold
+
+        nbut = calcNBUT()
+
+        # until I have enough bins < th keep loop
+        while np.abs(line_m) > 0.005:  # nbut < (tot_bins - tot_bins / 20):
+            self.Z = self.Z - self.X * line_m
+            nbut_old = nbut
+            nbut = calcNBUT()
+
+            if nbut < nbut_old:  # invert rotation if we are going the wrong way
+                line_m = -line_m / 2
+
+    def histMethod(self, bins=100):
+        """
+        histogram method implementation
+        :return: histogram values, bin edges values
+        """
+        hist, edges = np.histogram(self.Z, bins)
+        return hist, edges
+
     def removeLine(self):
         z_line = (-self.X * self.m - self.q) * 1. / self.c
         self.Z = self.Z - z_line
 
     def __filterGauss(self, roi, cutoff, order=0):
         nsample_cutoff = cutoff / (np.max(self.X) / np.size(self.X))
-        
+
         alpha = np.sqrt(np.log(2) / np.pi)
         sigma = nsample_cutoff * (alpha / np.sqrt(2 * np.pi))  # da norma ISO 16610-21  # * (1 - 0.68268949)
         print(f'Appliyng filter sigma: {sigma}')
@@ -153,6 +194,7 @@ class Profile:
         :param ncutoffs: number of cutoffs to considerate in the center of the profile
         :return: RA, RQ, RP, RV, RZ, RSK, RKU
         """
+
         # samples preparation for calculation of params
         def prepare_roi(pl=False):
             nsample_cutoff = cutoff / (np.max(self.X) / np.size(self.X))
@@ -241,4 +283,14 @@ class Profile:
             gridcol='grey',
             xlab='x [um]',
             ylab='z [nm]'
+        )
+
+    def histPlot(self, hist, edges):
+        ax_ht = self.fig.add_subplot(self.gs[2, 1])
+        ax_ht.hist(edges[:-1], bins=edges, weights=hist / np.size(self.Z) * 100, color='red')
+        funct.persFig(
+            ax_ht,
+            gridcol='grey',
+            xlab='z [nm]',
+            ylab='pixels %'
         )
