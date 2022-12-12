@@ -1,10 +1,11 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
+import matplotlib.animation as animation
 from dataclasses import dataclass
 
 import funct
-from scipy import signal, ndimage, interpolate
+from scipy import signal, ndimage, interpolate, integrate
 
 
 @dataclass
@@ -124,44 +125,65 @@ class Profile:
         Z = XZ[:, 1]
         (m, q), resid, rank, s = np.linalg.lstsq(G, Z, rcond=None)  # calculate LS plane
 
-        print(f'Params: m={m}, q={q}')
+        print(f'LS line method -> Params: m={m:.3f}, q={q:.3f}')
 
         self.m = m
         self.q = q
         self.c = -1  # y coefficient in line eq.
 
-    def allignWithHist(self, start_m):
-        tot_bins = int(np.size(self.X) / 25)
-        threshold = 50 / tot_bins
+    def allignWithHist(self, final_m):
+        self.fitLineLS()  # preprocess inclination
+        self.removeLine()
 
-        line_m = start_m  # start incline
+        tot_bins = int(np.size(self.X) / 20)
+        # threshold = 50 / tot_bins
+
+        line_m = self.m / 10  # start incline
+        print(f'Hist method -> Start slope  {line_m}')
+
+        fig = plt.figure()
+        ax = fig.add_subplot(211)
+        bx = fig.add_subplot(212)
 
         def calcNBUT():
-            fig = plt.figure()
-            ax = fig.add_subplot(211)
-            bx = fig.add_subplot(212)
-
             hist, edges = self.histMethod(tot_bins)  # make the hist
             weights = hist / np.size(self.Z) * 100
+            threshold = np.max(weights) / 20
             n_bins_under_threshold = np.size(np.where(weights < threshold)[0])  # how many bins under th
 
+            ax.clear()
             ax.hist(edges[:-1], bins=edges, weights=weights, color='red')
+            ax.plot(edges[:-1], integrate.cumtrapz(hist / np.size(self.Z) * 100, edges[:-1], initial=0))
+            ax.text(.25, .75, f'NBUT = {n_bins_under_threshold} / {tot_bins}, line_m = {line_m:.3f} -> {final_m}',
+                    horizontalalignment='left',
+                    verticalalignment='bottom', transform=ax.transAxes)
             ax.axhline(y=threshold, color='b')
+
+            bx.clear()
             bx.plot(self.X, self.Z)
-            plt.show()
+            plt.draw()
+            plt.pause(0.05)
 
             return n_bins_under_threshold
 
-        nbut = calcNBUT()
-
+        param = calcNBUT()
+        n_row = 0
         # until I have enough bins < th keep loop
-        while np.abs(line_m) > 0.005:  # nbut < (tot_bins - tot_bins / 20):
+        while np.abs(line_m) > final_m:  # nbut < (tot_bins - tot_bins / 20):
             self.Z = self.Z - self.X * line_m
-            nbut_old = nbut
-            nbut = calcNBUT()
+            param_old = param
+            param = calcNBUT()
 
-            if nbut < nbut_old:  # invert rotation if we are going the wrong way
+            if param < param_old:  # invert rotation if we are going the wrong way
                 line_m = -line_m / 2
+
+            if param == param_old:
+                n_row += 1
+                if n_row >= 15: break  # we got stuck for too long
+            else:
+                n_row = 0
+
+        print(f'Hist method -> End slope    {line_m}')
 
     def histMethod(self, bins=100):
         """
@@ -184,6 +206,13 @@ class Profile:
         roi_filtered = ndimage.gaussian_filter1d(roi, sigma=sigma, order=order)
 
         return roi_filtered
+
+    def morphFilter(self, radius):
+        """
+        Apllies a morphological filter as described in ISO-21920,
+        rolls a disk  of radius R along the original profile
+        """
+        # TODO: morph
 
     @funct.timer
     def roughnessParams(self, cutoff, ncutoffs, plot):  # TODO: check if this works
@@ -288,6 +317,7 @@ class Profile:
     def histPlot(self, hist, edges):
         ax_ht = self.fig.add_subplot(self.gs[2, 1])
         ax_ht.hist(edges[:-1], bins=edges, weights=hist / np.size(self.Z) * 100, color='red')
+        ax_ht.plot(edges[:-1], integrate.cumtrapz(hist / np.size(self.Z) * 100, edges[:-1], initial=0))
         funct.persFig(
             ax_ht,
             gridcol='grey',
