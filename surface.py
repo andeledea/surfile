@@ -195,6 +195,16 @@ class Surface:
         plt.show()
         return profile
 
+    def extractMidProfile(self, direction='x') -> prf.Profile:
+        profile = prf.Profile()
+        if direction == 'x':
+            profile.setValues(self.x, self.Z[int(np.size(self.x) / 2), :])
+
+        if direction == 'y':
+            profile.setValues(self.y, self.Z[:, int(np.size(self.y) / 2)])
+
+        return profile
+
     def meanProfile(self, direction='x') -> prf.Profile:
         """
         extracts the mean profile along x or y

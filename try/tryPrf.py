@@ -20,25 +20,27 @@ if __name__ == '__main__':
     root = tk.Tk()
     root.withdraw()
 
-    # fname = filedialog.askopenfilename(parent=root, title='Choose files to process')
+    results = []
 
-    x = np.linspace(0, 100, 4500)
-    y = 7 * x + 10 * np.sin(x) + 4
-    y[500: 1000] = y[500: 1000] + 100 * np.sin(x[500: 1000] * 7) + 200
-    y[3000: 3500] = y[3000: 3500] + 50 * np.sin(x[3000: 3500] * 7) - 100
+    fname = filedialog.askopenfilename(parent=root, title='Choose files to process')
 
     prof = prf.Profile()
-    prof.setValues(x, y)
-    prof.fitLineLS()
+    prof.openPrf(fname)
 
-    prof.allignWithHist(0.001)
+    single = list(prof.roughnessParams(0.8, 5, plot=True))
+    single.insert(0, 'ISO old')
+    results.append(single)
 
-    hist, edges = prof.histMethod()
+    prof.morphFilter(0.0025)  # radius in mm
+
+    single = list(prof.roughnessParams(0.8, 5, plot=True))
+    single.insert(0, 'ISO new')
+    results.append(single)
 
     prof.init_graphics()
     prof.prfPlot('Plot')
-    prof.linePlot()
-    prof.histPlot(hist, edges)
 
     plt.show()
+
+    print(tabulate(results, headers=['name', 'RA', 'RQ', 'RP', 'RV', 'RZ', 'RSK', 'RKU']))
 

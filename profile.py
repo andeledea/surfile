@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 import matplotlib.animation as animation
 from dataclasses import dataclass
+from alive_progress import alive_bar
 
 import funct
 from scipy import signal, ndimage, interpolate, integrate
@@ -212,7 +213,58 @@ class Profile:
         Apllies a morphological filter as described in ISO-21920,
         rolls a disk  of radius R along the original profile
         """
-        # TODO: morph
+        def morph(profile_x, profile_y, radius):
+            spacing = profile_x[1] - profile_x[0]
+            n_radius = int(radius / spacing)
+            n_samples = len(profile_x)
+
+            fig, ax = plt.subplots()
+            ax.axis('equal')
+
+            filler_L = np.ones(n_radius) * profile_y[0]
+            filler_R = np.ones(n_radius) * profile_y[-1]
+
+            profile_x_filled = np.arange(start=profile_x[0] - radius, stop=profile_x[-2] + radius, step=spacing)
+            profile_y_filled = np.concatenate([filler_L, profile_y, filler_R])
+
+            profile_out = profile_y_filled - radius
+
+            with alive_bar(n_samples, force_tty=True,
+                           title='Morph', theme='smooth',
+                           elapsed_end=True, stats_end=True, length=30) as bar:
+                for i in range(n_radius, n_samples + n_radius):
+                    loc_x = np.linspace(profile_x_filled[i - n_radius], profile_x_filled[i + n_radius], 1000)
+                    loc_p = np.interp(loc_x, profile_x_filled[i - n_radius:i + n_radius],
+                                      profile_y_filled[i - n_radius:i + n_radius])
+
+                    alpha = profile_x_filled[i]
+                    beta = profile_out[i]  # start under the profile
+
+                    cerchio = np.sqrt(-(alpha ** 2 - radius ** 2) + 2 * alpha * loc_x - loc_x ** 2) + beta
+
+                    dbeta = -10 * radius
+                    disp = 0
+
+                    bar()
+                    up = len(np.argwhere((cerchio - loc_p) > 0))
+                    if up > 1:
+                        while np.abs(dbeta) > radius / 1000:
+                            cerchio += dbeta
+                            disp -= dbeta
+                            up = len(np.argwhere((cerchio - loc_p) > 0))
+
+                            if (dbeta < 0 and up == 0) or (dbeta > 0 and up != 0):
+                                dbeta = -dbeta / 2
+
+                        profile_out[i] -= disp
+
+            profile_out = profile_out[n_radius: -(n_radius)]
+            ax.plot(profile_x, profile_y, profile_x_filled, profile_y_filled, '--', profile_x, profile_out)
+            plt.show()
+
+            return profile_out
+
+        self.Z = morph(self.X, self.Z, radius)
 
     @funct.timer
     def roughnessParams(self, cutoff, ncutoffs, plot):  # TODO: check if this works
@@ -279,8 +331,8 @@ class Profile:
         funct.persFig(
             ax_prf,
             gridcol='grey',
-            xlab='x [um]',
-            ylab='z [nm]'
+            xlab='x [mm]',
+            ylab='z [um]'
         )
         ax_prf.set_title('Profile ' + fname)
 
@@ -296,8 +348,8 @@ class Profile:
         funct.persFig(
             ax_roi,
             gridcol='grey',
-            xlab='x [um]',
-            ylab='z [nm]'
+            xlab='x [mm]',
+            ylab='z [um]'
         )
 
     def linePlot(self):
@@ -310,8 +362,8 @@ class Profile:
         funct.persFig(
             ax_lin,
             gridcol='grey',
-            xlab='x [um]',
-            ylab='z [nm]'
+            xlab='x [mm]',
+            ylab='z [um]'
         )
 
     def histPlot(self, hist, edges):
@@ -321,6 +373,6 @@ class Profile:
         funct.persFig(
             ax_ht,
             gridcol='grey',
-            xlab='z [nm]',
+            xlab='z [um]',
             ylab='pixels %'
         )
