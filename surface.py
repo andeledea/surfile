@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import cm
 import matplotlib.gridspec as gridspec
+from matplotlib.widgets import RectangleSelector
 from scipy import signal, ndimage, interpolate
 
 import profile as prf
@@ -156,6 +157,69 @@ class Surface:
         """
         z_plane = (-self.a * self.X - self.b * self.Y - self.d) * 1. / self.c
         self.Z = self.Z - z_plane + np.mean(z_plane)
+
+    def cutSurface(self, radius):
+        # TODO: check x and y coord on surface matrix
+
+        n_radius_x = int(radius / (self.rangeX / len(self.x)))
+        n_radius_y = int(radius / (self.rangeY / len(self.y)))
+
+        n_mid_x = int(len(self.x) / 2)
+        n_mid_y = int(len(self.y) / 2)
+
+        start_x, end_x = n_mid_x - n_radius_x, n_mid_x + n_radius_x
+        start_y, end_y = n_mid_y - n_radius_y, n_mid_y + n_radius_y
+
+        print(f'x len: {len(self.x)}, cutting from {start_x} to {end_x}')
+        print(f'y len: {len(self.y)}, cutting from {start_y} to {end_y}')
+
+        print(np.shape(self.Z))
+
+        self.X = self.X[start_y: end_y, start_x: end_x]
+        self.Y = self.Y[start_y: end_y, start_x: end_x]
+        self.Z = self.Z[start_y: end_y, start_x: end_x]
+
+        print(np.shape(self.Z))
+
+    def cutSurfaceRectangle(self):
+        def onSelect(eclick, erelease):
+            print('Choose cut region')
+
+        def toggle_selector(event):
+            print(' Key pressed.')
+            if event.key in ['Q', 'q'] and toggle_selector.RS.active:
+                print(' RectangleSelector deactivated.')
+                toggle_selector.RS.set_active(False)
+            if event.key in ['A', 'a'] and not toggle_selector.RS.active:
+                print(' RectangleSelector activated.')
+                toggle_selector.RS.set_active(True)
+
+        def onClose(event):
+            xmin, xmax, ymin, ymax = toggle_selector.RS.extents
+
+            print(toggle_selector.RS.extents)
+
+            i_near = lambda arr, val: (np.abs(arr - val)).argmin()
+            start_x, end_x = i_near(self.x, xmin), i_near(self.x, xmax)
+            start_y, end_y = i_near(self.y, ymin), i_near(self.y, ymax)
+
+            self.X = self.X[start_y: end_y, start_x: end_x]
+            self.Y = self.Y[start_y: end_y, start_x: end_x]
+            self.Z = self.Z[start_y: end_y, start_x: end_x]
+
+        fig, ax = plt.subplots()
+        toggle_selector.RS = RectangleSelector(ax, onSelect,
+                                               drawtype='box', useblit=True,
+                                               button=[1, 3],  # don't use middle button
+                                               minspanx=5, minspany=5,
+                                               spancoords='pixels',
+                                               interactive=True)
+
+        ax.pcolormesh(self.X, self.Y, self.Z, cmap=cm.rainbow)
+        ax.set_title('3 Points plane fit')
+        fig.canvas.mpl_connect('close_event', onClose)
+
+        plt.show()
 
     def extractProfile(self) -> prf.Profile:
         """

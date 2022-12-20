@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 import matplotlib.animation as animation
+from matplotlib.widgets import RectangleSelector
 from dataclasses import dataclass
 from alive_progress import alive_bar
 
@@ -53,6 +54,32 @@ class Profile:
             self.Z0 = self.Z = np.array(z)
             self.X = np.linspace(0, (len(z)) * xs, len(z))
 
+    def openTS(self, fname, curvename):
+        with open(fname, 'rb') as tsfile:
+            file_bytes = tsfile.read()  # .replace(b' ', b'')
+
+            d = curvename.encode('utf-8')
+            file_splits = [d + a for a in file_bytes.split(d)]
+
+        for i, s in enumerate(file_splits):
+            name = s[0: 62].decode('utf-8')
+            print(f'{i}, Name = {name.replace(" ", "")},\t\t Len = {len(s)}')
+
+        s = file_splits[int(input('Choose graph number: '))]
+
+        Lcutoff = np.frombuffer(s[356: 360], dtype=np.single)[0]
+        Factor = np.frombuffer(s[360: 364], dtype=np.single)[0]
+        print(f'Lc_o = {Lcutoff}, Factor = {Factor}')
+
+        dt = np.dtype('<i2')
+        Ncutoffs = np.frombuffer(s[762: 764], dtype=dt)[0]
+        Npoints = np.frombuffer(s[764: 766], dtype=dt)[0]
+        Speed = np.frombuffer(s[766: 768], dtype=dt)[0]
+        print(f'N = {Npoints}, Nc_o = {Ncutoffs}, Speed = {Speed}')
+
+        self.X = np.linspace(0, Ncutoffs * Lcutoff, Npoints)
+        self.Z = self.Z0 = np.frombuffer(s[920: 920 + 2 * Npoints], dtype=dt) / Factor
+
     def setValues(self, X, Y):
         """
         Sets the values for the profile
@@ -95,7 +122,7 @@ class Profile:
         self.gr = np.gradient(self.Z)
 
         thresh = np.max(self.gr[30:-30]) / 1.5  # derivative threshold to detect peak, avoid border samples
-        zero_cross = np.where(np.diff(np.sign(self.Z)))[0]
+        zero_cross = np.where(np.diff(np.sign(self.Z - np.mean(self.Z))))[0]
         spacing = (zero_cross[1] - zero_cross[0]) / 1.5
 
         peaks, _ = signal.find_peaks(self.gr, height=thresh, distance=spacing)
@@ -198,7 +225,7 @@ class Profile:
         z_line = (-self.X * self.m - self.q) * 1. / self.c
         self.Z = self.Z - z_line
 
-    def __filterGauss(self, roi, cutoff, order=0):
+    def __gaussianKernel(self, roi, cutoff, order=0):
         nsample_cutoff = cutoff / (np.max(self.X) / np.size(self.X))
 
         alpha = np.sqrt(np.log(2) / np.pi)
@@ -207,6 +234,19 @@ class Profile:
         roi_filtered = ndimage.gaussian_filter1d(roi, sigma=sigma, order=order)
 
         return roi_filtered
+
+    def removeFormPolynomial(self, degree, bound=None):
+        if bound is None:
+            coeff = np.polyfit(self.X, self.Z, degree)
+        else:
+            ind = np.argwhere(self.Z < bound).ravel()
+            coeff = np.polyfit(self.X[ind], self.Z[ind], degree)
+
+        form = np.polyval(coeff, self.X)
+        self.Z -= form
+
+    def gaussianFilter(self, cutoff):
+        self.Z = self.__gaussianKernel(self.Z, cutoff)
 
     def morphFilter(self, radius):
         """
@@ -266,6 +306,43 @@ class Profile:
 
         self.Z = morph(self.X, self.Z, radius)
 
+    def cutProfileRectangle(self):
+        def onSelect(eclick, erelease):
+            print('Choose cut region')
+
+        def toggle_selector(event):
+            print(' Key pressed.')
+            if event.key in ['Q', 'q'] and toggle_selector.RS.active:
+                print(' RectangleSelector deactivated.')
+                toggle_selector.RS.set_active(False)
+            if event.key in ['A', 'a'] and not toggle_selector.RS.active:
+                print(' RectangleSelector activated.')
+                toggle_selector.RS.set_active(True)
+
+        def onClose(event):
+            xmin, xmax, ymin, ymax = toggle_selector.RS.extents
+
+            print(toggle_selector.RS.extents)
+
+            i_near = lambda arr, val: (np.abs(arr - val)).argmin()
+            start_x, end_x = i_near(self.X, xmin), i_near(self.X, xmax)
+
+            self.X = self.X[start_x: end_x]
+            self.Z = self.Z[start_x: end_x]
+
+        fig, ax = plt.subplots()
+        toggle_selector.RS = RectangleSelector(ax, onSelect,
+                                               drawtype='box', useblit=True,
+                                               button=[1, 3],  # don't use middle button
+                                               minspanx=0, minspany=0,
+                                               spancoords='data',
+                                               interactive=True)
+
+        ax.plot(self.X, self.Z)
+        ax.set_title('Choose region')
+        fig.canvas.mpl_connect('close_event', onClose)
+        plt.show()
+
     @funct.timer
     def roughnessParams(self, cutoff, ncutoffs, plot):  # TODO: check if this works
         """
@@ -284,7 +361,7 @@ class Profile:
             border = round((np.size(self.Z) - nsample_region) / 2)
             roi_I = self.Z[border: -border]  # la roi sono i cutoff in mezzo
 
-            envelope = self.__filterGauss(self.Z, cutoff)
+            envelope = self.__gaussianKernel(self.Z, cutoff)
             roi_F = roi_I - envelope[border: -border]  # applico il filtro per il calcolo
 
             if pl:
@@ -343,7 +420,7 @@ class Profile:
 
         for roi in self.roi:
             ax_roi.plot(roi.X, roi.Z, color='red')  # hot, viridis, rainbow
-            ax_roi.plot(self.X, self.gr, color='blue')
+            ax_roi.plot(self.X, self.gr, color='blue', linewidth=0.2)
 
         funct.persFig(
             ax_roi,

@@ -25,22 +25,30 @@ if __name__ == '__main__':
     fname = filedialog.askopenfilename(parent=root, title='Choose files to process')
 
     prof = prf.Profile()
-    prof.openPrf(fname)
+    prof.openTS(fname, 'stepMont')
 
-    single = list(prof.roughnessParams(0.8, 5, plot=True))
-    single.insert(0, 'ISO old')
-    results.append(single)
+    prof.fitLineLS()
+    prof.cutProfileRectangle()
+    prof.removeLine()
+    prof.removeFormPolynomial(2, bound=0)
+    prof.gaussianFilter(0.01)
+    print(prof.stepAuto())
 
-    prof.morphFilter(0.0025)  # radius in mm
-
-    single = list(prof.roughnessParams(0.8, 5, plot=True))
-    single.insert(0, 'ISO new')
-    results.append(single)
+    # single = list(prof.roughnessParams(0.8, 5, plot=True))
+    # single.insert(0, 'ISO old')
+    # results.append(single)
+    #
+    # prof.morphFilter(0.0025)  # radius in mm
+    #
+    # single = list(prof.roughnessParams(0.8, 5, plot=True))
+    # single.insert(0, 'ISO new')
+    # results.append(single)
 
     prof.init_graphics()
     prof.prfPlot('Plot')
+    prof.roiPlot()
 
     plt.show()
 
-    print(tabulate(results, headers=['name', 'RA', 'RQ', 'RP', 'RV', 'RZ', 'RSK', 'RKU']))
+    # print(tabulate(results, headers=['name', 'RA', 'RQ', 'RP', 'RV', 'RZ', 'RSK', 'RKU']))
 
