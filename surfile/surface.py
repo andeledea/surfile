@@ -3,10 +3,11 @@ import matplotlib.pyplot as plt
 from matplotlib import cm
 import matplotlib.gridspec as gridspec
 from matplotlib.widgets import RectangleSelector
-from scipy import signal, ndimage, interpolate
+from scipy import interpolate
 
-import profile as prf
-import funct
+from surfile import profile as prf
+from surfile import funct
+from surfile import measfile_io
 
 
 # plu classes
@@ -48,6 +49,20 @@ class Surface:
         # create main XYZ and backup of original points in Z0
         self.X, self.Y = np.meshgrid(self.x, self.y)
         self.Z0 = self.Z = np.transpose(plu)
+
+    def openPlu(self, fname):
+        userscalecorrections = [1.0, 1.0, 1.0]
+        dx, dy, z_map, weights, magnification, measdate = \
+            measfile_io.read_microscopedata(fname, userscalecorrections, 1)
+        (n_y, n_x) = z_map.shape
+        self.rangeX = n_x * dx
+        self.rangeY = n_y * dy
+        self.x = np.linspace(0, self.rangeX, num=n_x)
+        self.y = np.linspace(0, self.rangeY, num=n_y)
+
+        # create main XYZ and backup of original points in Z0
+        self.X, self.Y = np.meshgrid(self.x, self.y)
+        self.Z0 = self.Z = z_map
 
     def fitPlane3P(self):
         """
@@ -206,6 +221,10 @@ class Surface:
             self.X = self.X[start_y: end_y, start_x: end_x]
             self.Y = self.Y[start_y: end_y, start_x: end_x]
             self.Z = self.Z[start_y: end_y, start_x: end_x]
+            self.Z0 = self.Z0[start_y: end_y, start_x: end_x]
+
+            self.x = self.x[start_x: end_x]
+            self.y = self.y[start_y: end_y]
 
         fig, ax = plt.subplots()
         toggle_selector.RS = RectangleSelector(ax, onSelect,

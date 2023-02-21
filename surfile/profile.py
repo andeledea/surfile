@@ -1,13 +1,12 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
-import matplotlib.animation as animation
 from matplotlib.widgets import RectangleSelector
 from dataclasses import dataclass
 from alive_progress import alive_bar
 
-import funct
-from scipy import signal, ndimage, interpolate, integrate
+from surfile import funct
+from scipy import signal, ndimage, integrate
 
 
 @dataclass
@@ -54,11 +53,11 @@ class Profile:
             self.Z0 = self.Z = np.array(z)
             self.X = np.linspace(0, (len(z)) * xs, len(z))
 
-    def openTS(self, fname, curvename):
+    def openTS(self, fname, splitter):
         with open(fname, 'rb') as tsfile:
             file_bytes = tsfile.read()  # .replace(b' ', b'')
 
-            d = curvename.encode('utf-8')
+            d = splitter.encode('utf-8')
             file_splits = [d + a for a in file_bytes.split(d)]
 
         for i, s in enumerate(file_splits):
@@ -79,6 +78,10 @@ class Profile:
 
         self.X = np.linspace(0, Ncutoffs * Lcutoff, Npoints)
         self.Z = self.Z0 = np.frombuffer(s[920: 920 + 2 * Npoints], dtype=dt) / Factor
+
+    def savecsv(self):
+        name = input('Choose filename: ')
+        np.savetxt('c:/monticone/'+ name + '.csv', np.hstack((self.X.reshape(len(self.X), 1), self.Z.reshape(len(self.Z), 1))), delimiter=';')
 
     def setValues(self, X, Y):
         """
