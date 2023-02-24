@@ -43,12 +43,13 @@ def findHfromHist(hist, edges):
     return binh - binl
 
 
-def persFig(figure, gridcol, xlab, ylab, zlab=None):
-    figure.set_xlabel(xlab)
-    figure.set_ylabel(ylab)
-    if zlab is not None:
-        figure.set_zlabel(zlab)
-    figure.grid(color=gridcol)
+def persFig(figures, gridcol, xlab, ylab, zlab=None):
+    for figure in figures:
+        figure.set_xlabel(xlab)
+        figure.set_ylabel(ylab)
+        if zlab is not None:
+            figure.set_zlabel(zlab)
+        figure.grid(color=gridcol)
 
 
 def timer(func):  # wrapper function

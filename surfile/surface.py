@@ -1,8 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import cm
-import matplotlib.gridspec as gridspec
-from matplotlib.widgets import RectangleSelector
+import os
+from matplotlib.widgets import RectangleSelector, PolygonSelector
 from scipy import interpolate
 
 from surfile import profile as prf
@@ -13,8 +13,9 @@ from surfile import measfile_io
 # plu classes
 
 class Surface:
+    # TODO: remove meshgrids for x and y.
     def __init__(self):
-        self.Z0 = None
+        self.X0, self.Y0, self.Z0 = None, None, None
         self.Z = None
         self.Y = None
         self.X = None
@@ -23,13 +24,13 @@ class Surface:
         self.x = None
         self.rangeY = None
         self.rangeX = None
-        self.gs = None
-        self.fig = None
 
-        self.a, self.b, self.c, self.d = 0, 0, 0, 0  # plane parameters
+        self.name = 'Figure'
 
-    def openTxt(self, fname):
+    def openTxt(self, fname, bplt):
         with open(fname, 'r') as fin:
+            self.name = os.path.basename(fin.name)
+
             line = fin.readline().split()
             sx = int(line[0])  # read number of x points
             sy = int(line[1])  # read number of y points
@@ -47,10 +48,14 @@ class Surface:
         self.y = np.linspace(0, sy * spacey, num=sy)
 
         # create main XYZ and backup of original points in Z0
-        self.X, self.Y = np.meshgrid(self.x, self.y)
+        self.X0, self.Y0 = self.X, self.Y = np.meshgrid(self.x, self.y)
         self.Z0 = self.Z = np.transpose(plu)
 
-    def openPlu(self, fname):
+        if bplt: self.__pltC()
+
+    def openFile(self, fname, bplt):
+        self.name = os.path.basename(fname)
+
         userscalecorrections = [1.0, 1.0, 1.0]
         dx, dy, z_map, weights, magnification, measdate = \
             measfile_io.read_microscopedata(fname, userscalecorrections, 1)
@@ -61,31 +66,43 @@ class Surface:
         self.y = np.linspace(0, self.rangeY, num=n_y)
 
         # create main XYZ and backup of original points in Z0
-        self.X, self.Y = np.meshgrid(self.x, self.y)
+        self.X0, self.Y0 = self.X, self.Y = np.meshgrid(self.x, self.y)
         self.Z0 = self.Z = z_map
 
+        if bplt: self.__pltC()
+
     def fitPlane3P(self):
+        # TODO: define radius of points and avg
+        # TODO: expand using polygonSelector https://matplotlib.org/stable/gallery/widgets/polygon_selector_simple.html
         """
         3 points plane fit implementation
         Opens a plot figure to choose the 3 points and fids the plane for those points
         """
-        po = []
 
-        def pointPick(point, mouseevent):  # called when pick event happens on fig
-            if mouseevent.xdata is None:
-                return False, dict()
-            xdata = mouseevent.xdata
-            ydata = mouseevent.ydata
+        # po = []
 
-            # find indexes corresponding to picked values
-            xind = np.where(self.X[0, :] <= xdata)[0][-1]
-            yind = np.where(self.Y[:, 0] <= ydata)[0][-1]
-
-            if len(po) < 3:  # find the 3 points to apply the method
-                po.append([xdata, ydata, self.Z[yind, xind]])
-            return True, dict(pickx=xdata, picky=ydata)
+        # def pointPick(point, mouseevent):  # called when pick event happens on fig
+        #     if mouseevent.xdata is None:
+        #         return False, dict()
+        #     xdata = mouseevent.xdata
+        #     ydata = mouseevent.ydata
+        #
+        #     # find indexes corresponding to picked values
+        #     xind = np.where(self.X[0, :] <= xdata)[0][-1]
+        #     yind = np.where(self.Y[:, 0] <= ydata)[0][-1]
+        #
+        #     if len(po) < 3:  # find the 3 points to apply the method
+        #         po.append([xdata, ydata, self.Z[yind, xind]])
+        #     return True, dict(pickx=xdata, picky=ydata)
 
         def onClose(event):  # when fig is closed calculate plane parameters
+            po = []
+            for (a, b) in selector.verts:
+                xind = np.where(self.X[0, :] <= a)[0][-1]
+                yind = np.where(self.Y[:, 0] <= b)[0][-1]
+
+                po.append([a, b, self.Z[yind, xind]])
+
             print(f"Collected points: {po}")
             a1 = po[1][0] - po[0][0]  # x2 - x1;
             b1 = po[1][1] - po[0][1]  # y2 - y1;
@@ -93,16 +110,20 @@ class Surface:
             a2 = po[2][0] - po[0][0]  # x3 - x1;
             b2 = po[2][1] - po[0][1]  # y3 - y1;
             c2 = po[2][2] - po[0][2]  # z3 - z1;
-            self.a = b1 * c2 - b2 * c1
-            self.b = a2 * c1 - a1 * c2
-            self.c = a1 * b2 - b1 * a2
-            self.d = 0  # (- self.a * po[0][0] - self.b * po[0][1] - self.c * po[0][2])
+            a = b1 * c2 - b2 * c1
+            b = a2 * c1 - a1 * c2
+            c = a1 * b2 - b1 * a2
+            d = 0  # (- self.a * po[0][0] - self.b * po[0][1] - self.c * po[0][2])
             plt.close(fig)
 
+            self.__removePlane(a, b, c, d)
+
         fig, ax = plt.subplots()
-        ax.pcolormesh(self.X, self.Y, self.Z, cmap=cm.rainbow, picker=pointPick)
+        ax.pcolormesh(self.X, self.Y, self.Z, cmap=cm.rainbow)
         ax.set_title('3 Points plane fit')
         fig.canvas.mpl_connect('close_event', onClose)
+
+        selector = PolygonSelector(ax, lambda *args: None)
 
         plt.show()
 
@@ -121,12 +142,8 @@ class Surface:
         Z = XYZ[:, 2]
         (a, b, c), resid, rank, s = np.linalg.lstsq(G, Z, rcond=None)  # calculate LS plane
 
-        print(f'Params: a={a}, b={b}')
-
-        self.d = 0  # discard d value to keep plane in center
-        self.a = a
-        self.b = b
-        self.c = -1  # z coefficient in plane eq.
+        print(f'Plane Params: a={a}, b={b}')
+        self.__removePlane(a, b, -1, 0)
 
     def fitPlaneLS_bound(self, comp, bound=None):
         """
@@ -151,26 +168,24 @@ class Surface:
         Z = XYZ[:, 2]
         (a, b, c), resid, rank, s = np.linalg.lstsq(G, Z, rcond=None)
 
-        print(f'Params: a={a}, b={b}')
+        print(f'Plane Params: a={a}, b={b}')
+        self.__removePlane(a, b, -1, 0)
 
-        self.d = 0
-        self.a = a
-        self.b = b
-        self.c = -1
-
-    def histMethod(self, bins=100):
+    def histMethod(self, bplt, bins=100):
         """
         histogram method implementation
         :return: histogram values, bin edges values
         """
         hist, edges = np.histogram(self.Z, bins)
+        if bplt: self.__pltHist(hist, edges)
         return hist, edges
 
-    def removePlane(self):
+    def __removePlane(self, a, b, c, d):
+        # TODO: put this method at the end of the fit functions
         """
         removes the fitted plane from the points
         """
-        z_plane = (-self.a * self.X - self.b * self.Y - self.d) * 1. / self.c
+        z_plane = (- a * self.X - b * self.Y - d) * 1. / c
         self.Z = self.Z - z_plane + np.mean(z_plane)
 
     def cutSurface(self, radius):
@@ -198,21 +213,12 @@ class Surface:
 
     def cutSurfaceRectangle(self):
         def onSelect(eclick, erelease):
-            print('Choose cut region')
-
-        def toggle_selector(event):
-            print(' Key pressed.')
-            if event.key in ['Q', 'q'] and toggle_selector.RS.active:
-                print(' RectangleSelector deactivated.')
-                toggle_selector.RS.set_active(False)
-            if event.key in ['A', 'a'] and not toggle_selector.RS.active:
-                print(' RectangleSelector activated.')
-                toggle_selector.RS.set_active(True)
+            pass
 
         def onClose(event):
-            xmin, xmax, ymin, ymax = toggle_selector.RS.extents
+            xmin, xmax, ymin, ymax = RS.extents
 
-            print(toggle_selector.RS.extents)
+            print(RS.extents)
 
             i_near = lambda arr, val: (np.abs(arr - val)).argmin()
             start_x, end_x = i_near(self.x, xmin), i_near(self.x, xmax)
@@ -221,21 +227,20 @@ class Surface:
             self.X = self.X[start_y: end_y, start_x: end_x]
             self.Y = self.Y[start_y: end_y, start_x: end_x]
             self.Z = self.Z[start_y: end_y, start_x: end_x]
-            self.Z0 = self.Z0[start_y: end_y, start_x: end_x]
 
             self.x = self.x[start_x: end_x]
             self.y = self.y[start_y: end_y]
 
         fig, ax = plt.subplots()
-        toggle_selector.RS = RectangleSelector(ax, onSelect,
-                                               drawtype='box', useblit=True,
-                                               button=[1, 3],  # don't use middle button
-                                               minspanx=5, minspany=5,
-                                               spancoords='pixels',
-                                               interactive=True)
+        RS = RectangleSelector(ax, onSelect,
+                               drawtype='box', useblit=True,
+                               button=[1, 3],  # don't use middle button
+                               minspanx=5, minspany=5,
+                               spancoords='pixels',
+                               interactive=True)
 
         ax.pcolormesh(self.X, self.Y, self.Z, cmap=cm.rainbow)
-        ax.set_title('3 Points plane fit')
+        ax.set_title('Choose cut region')
         fig.canvas.mpl_connect('close_event', onClose)
 
         plt.show()
@@ -328,66 +333,79 @@ class Surface:
     #####################################################################################################
     #                                       PLOT SECTION                                                #
     #####################################################################################################
-    def init_graphics(self):
-        """
-        call this function before starting to plot
-        """
-        self.fig = plt.figure()
-        self.gs = gridspec.GridSpec(3, 3)
-
-    def pltPlot(self, fname):
-        ax_3d = self.fig.add_subplot(self.gs[0:-1, 0:-1], projection='3d')
+    # TODO: move graphics to respective method
+    def plt3D(self):
+        fig = plt.figure()
+        ax_3d = fig.add_subplot(111, projection='3d')
         ax_3d.plot_surface(self.X, self.Y, self.Z, cmap=cm.rainbow)  # hot, viridis, rainbow
         funct.persFig(
-            ax_3d,
+            [ax_3d],
             gridcol='grey',
             xlab='x [um]',
             ylab='y [um]',
             zlab='z [nm]'
         )
-        ax_3d.set_title('Surface' + fname)
+        ax_3d.set_title(self.name)
         # ax_3d.colorbar(p)
+        plt.show()
 
-    def pltCplot(self):
-        ax_2d = self.fig.add_subplot(self.gs[0, 2])
-        ax_2d.pcolormesh(self.X, self.Y, self.Z, cmap=cm.jet)  # hot, viridis, rainbow
+    def pltCompare(self):
+        fig, (ax, bx) = plt.subplots(nrows=1, ncols=2)
+        ax.pcolormesh(self.X0, self.Y0, self.Z0, cmap=cm.jet)  # hot, viridis, rainbow
+        bx.pcolormesh(self.X, self.Y, self.Z, cmap=cm.jet)  # hot, viridis, rainbow
         funct.persFig(
-            ax_2d,
+            [ax, bx],
             gridcol='grey',
             xlab='x [um]',
             ylab='y [um]'
         )
+        plt.show()
 
-    def planePlot(self):
-        maxx = np.max(self.X)
-        maxy = np.max(self.Y)
-        minx = np.min(self.X)
-        miny = np.min(self.Y)
-
-        # compute needed points for plane plotting
-        xx, yy = np.meshgrid([minx, maxx], [miny, maxy])
-        z_plane = (-self.a * xx - self.b * yy - self.d) * 1. / self.c
-
-        # plot original points
-        ax_pl = self.fig.add_subplot(self.gs[1, 2], projection='3d')
-        ax_pl.plot_surface(self.X, self.Y, self.Z0, alpha=0.5, cmap=cm.Greys_r)  # hot, viridis, rainbow
+    def __pltC(self):
+        fig = plt.figure()
+        ax_2d = fig.add_subplot(111)
+        ax_2d.pcolormesh(self.X, self.Y, self.Z, cmap=cm.jet)  # hot, viridis, rainbow
         funct.persFig(
-            ax_pl,
+            [ax_2d],
             gridcol='grey',
             xlab='x [um]',
-            ylab='y [um]',
-            zlab='z [nm]'
+            ylab='y [um]'
         )
+        ax_2d.set_title(self.name)
+        plt.show()
 
-        # plot plane
-        ax_pl.plot_surface(xx, yy, z_plane - np.mean(z_plane), alpha=0.8, cmap=cm.viridis)
+    # def __planePlot(self):
+    #     maxx = np.max(self.X)
+    #     maxy = np.max(self.Y)
+    #     minx = np.min(self.X)
+    #     miny = np.min(self.Y)
+    #
+    #     # compute needed points for plane plotting
+    #     xx, yy = np.meshgrid([minx, maxx], [miny, maxy])
+    #     z_plane = (-self.a * xx - self.b * yy - self.d) * 1. / self.c
+    #
+    #     # plot original points
+    #     ax_pl = self.fig.add_subplot(self.gs[1, 2], projection='3d')
+    #     ax_pl.plot_surface(self.X, self.Y, self.Z0, alpha=0.5, cmap=cm.Greys_r)  # hot, viridis, rainbow
+    #     funct.persFig(
+    #         [ax_pl],
+    #         gridcol='grey',
+    #         xlab='x [um]',
+    #         ylab='y [um]',
+    #         zlab='z [nm]'
+    #     )
+    #
+    #     # plot plane
+    #     ax_pl.plot_surface(xx, yy, z_plane - np.mean(z_plane), alpha=0.8, cmap=cm.viridis)
 
-    def histPlot(self, hist, edges):
-        ax_ht = self.fig.add_subplot(self.gs[2, :])
+    def __pltHist(self, hist, edges):
+        fig = plt.figure()
+        ax_ht = fig.add_subplot(111)
         ax_ht.hist(edges[:-1], bins=edges, weights=hist / np.size(self.Z) * 100, color='red')
         funct.persFig(
-            ax_ht,
+            [ax_ht],
             gridcol='grey',
             xlab='z [nm]',
             ylab='pixels %'
         )
+        plt.show()
