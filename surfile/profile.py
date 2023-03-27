@@ -53,16 +53,25 @@ class Profile:
 
             if bplt: self.__pltPrf()
 
-    def openTS(self, fname, splitter, bplt):
+    def openTS(self, fname, bplt):
         with open(fname, 'rb') as tsfile:
-            file_bytes = tsfile.read()  # .replace(b' ', b'')
+            firstline_sp = tsfile.readline().split(b'\x1a', maxsplit=1)
+            names = firstline_sp[0]
+            names = [a.decode('utf-8').strip() for a in names.split(b'\x03')]
 
-            d = splitter.encode('utf-8')
-            file_splits = [d + a for a in file_bytes.split(d)]
+            file_bytes = firstline_sp[-1] + tsfile.read()
+
+            file_splits = []
+            for i, name in enumerate(names[:-1]):
+                d = name.encode('utf-8')
+                s = file_bytes.split(d, maxsplit=1)
+                if len(s) > 1:
+                    file_splits.append(d + s[1])
+                    file_bytes = s[1]
 
         for i, s in enumerate(file_splits):
-            name = s[0: 62].decode('utf-8')
-            print(f'{i}, Name = {name.replace(" ", "")},\t\t Len = {len(s)}')
+            name = s[0: 42].decode('utf-8')
+            print(f'{i}, Name = {name.strip()}')
 
         s = file_splits[int(input('Choose graph number: '))]
 
@@ -86,7 +95,7 @@ class Profile:
         np.savetxt('c:/monticone/' + name + '.csv',
                    np.hstack((self.X.reshape(len(self.X), 1), self.Z.reshape(len(self.Z), 1))), delimiter=';')
 
-    def setValues(self, X, Y):
+    def setValues(self, X, Y, bplt):
         """
         Sets the values for the profile
         :param X: x values of profile
@@ -94,6 +103,8 @@ class Profile:
         """
         self.X0 = self.X = X
         self.Z0 = self.Z = Y
+
+        if bplt: self.__pltPrf()
 
     def stepAuto(self, bplt):  # TODO: can you find a way to automate minD calculations?
         """
@@ -239,14 +250,29 @@ class Profile:
 
         return roi_filtered
 
-    def removeFormPolynomial(self, degree, bound=None):
+    def removeFormPolynomial(self, degree, bplt, comp=lambda a, b: a < b, bound=None):
+        """
+        Removes the form from the profile calculated as a polynomial fit of the data
+        :param comp: comparison method between comp and profile
+        :param degree: polynomial degree
+        :param bound: if not set the fit uses all points, if set the fit uses all points below the values, if set to
+        True the fit uses only the values below the average value of the profile
+        """
         if bound is None:
             coeff = np.polyfit(self.X, self.Z, degree)
+        elif bound:
+            bound = np.mean(self.Z)
+            ind = np.argwhere(comp(self.Z, bound)).ravel()
+            coeff = np.polyfit(self.X[ind], self.Z[ind], degree)
         else:
-            ind = np.argwhere(self.Z < bound).ravel()
+            ind = np.argwhere(comp(self.Z, bound)).ravel()
             coeff = np.polyfit(self.X[ind], self.Z[ind], degree)
 
         form = np.polyval(coeff, self.X)
+        if bplt:
+            fig, ax = plt.subplots()
+            ax.plot(self.X, self.Z, self.X, form)
+            plt.show()
         self.Z -= form
 
     def gaussianFilter(self, cutoff):
@@ -340,7 +366,7 @@ class Profile:
         :param ncutoffs: number of cutoffs to considerate in the center of the profile
         :return: RA, RQ, RP, RV, RZ, RSK, RKU
         """
-
+        print(f'Applying filter cutoff: {cutoff}')
         # samples preparation for calculation of params
         def prepare_roi():
             nsample_cutoff = cutoff / (np.max(self.X) / np.size(self.X))
@@ -361,10 +387,48 @@ class Profile:
         RQ = np.sqrt(np.sum(abs(roi ** 2)) / np.size(roi))
         RP = abs(np.max(roi))
         RV = abs(np.min(roi))
-        RZ = RP + RV
+        RT = RP + RV
         RSK = (np.sum(roi ** 3) / np.size(roi)) / (RQ ** 3)
         RKU = (np.sum(roi ** 4) / np.size(roi)) / (RQ ** 4)
-        return RA, RQ, RP, RV, RZ, RSK, RKU
+        return RA, RQ, RP, RV, RT, RSK, RKU
+
+    def findMaxArcSlope(self, R):
+        """
+        Used to find the max measured slope of sphere of radius R
+        """
+        try:
+            bound_nan = np.argwhere(np.isnan(self.Z))[0][-1] - 1
+        except IndexError:
+            bound_nan = 0
+
+        Rms_1 = self.X[bound_nan-1] - self.X[0]
+        Rms_2 = self.X[np.nanargmin(self.Z)] - self.X[0]  # find the furthest max point
+        phi_max_1 = np.arcsin(Rms_1 / R)
+        phi_max_2 = np.arcsin(Rms_2 / R)
+        return phi_max_1, phi_max_2
+
+    def arcRadius(self, bplt):
+        # TODO : check if it works
+        r = []
+        z = []
+        for i, p in enumerate(self.Z):
+            if np.isnan(p): break
+            ri = self.X[i] - self.X[0]
+            zeh = np.abs(self.Z[0] - p)
+            z.append(zeh)
+            r.append((ri**2 + zeh**2) / (2 * zeh))
+
+        if bplt:
+            fig, ax = plt.subplots()
+            ax.plot(z, r)
+            funct.persFig(
+                [ax],
+                gridcol='grey',
+                xlab='Depth',
+                ylab='Radius'
+            )
+            plt.show()
+        return r, z
 
     #####################################################################################################
     #                                       PLOT SECTION                                                #

@@ -1,9 +1,12 @@
+import copy
+
 import numpy as np
 import matplotlib.pyplot as plt
-from matplotlib import cm
+from matplotlib import cm, lines
 import os
 from matplotlib.widgets import RectangleSelector, PolygonSelector
-from scipy import interpolate
+from scipy import interpolate, ndimage
+from alive_progress import alive_bar
 
 from surfile import profile as prf
 from surfile import funct
@@ -51,14 +54,14 @@ class Surface:
         self.X0, self.Y0 = self.X, self.Y = np.meshgrid(self.x, self.y)
         self.Z0 = self.Z = np.transpose(plu)
 
-        if bplt: self.__pltC()
+        if bplt: self.pltC()
 
     def openFile(self, fname, bplt):
         self.name = os.path.basename(fname)
 
         userscalecorrections = [1.0, 1.0, 1.0]
         dx, dy, z_map, weights, magnification, measdate = \
-            measfile_io.read_microscopedata(fname, userscalecorrections, 1)
+            measfile_io.read_microscopedata(fname, userscalecorrections, 0)
         (n_y, n_x) = z_map.shape
         self.rangeX = n_x * dx
         self.rangeY = n_y * dy
@@ -69,7 +72,7 @@ class Surface:
         self.X0, self.Y0 = self.X, self.Y = np.meshgrid(self.x, self.y)
         self.Z0 = self.Z = z_map
 
-        if bplt: self.__pltC()
+        if bplt: self.pltC()
 
     def fitPlane3P(self):
         # TODO: define radius of points and avg
@@ -188,48 +191,29 @@ class Surface:
         z_plane = (- a * self.X - b * self.Y - d) * 1. / c
         self.Z = self.Z - z_plane + np.mean(z_plane)
 
-    def cutSurface(self, radius):
+    def cutSurface(self, extents):
         # TODO: check x and y coord on surface matrix
+        xmin, xmax, ymin, ymax = extents
 
-        n_radius_x = int(radius / (self.rangeX / len(self.x)))
-        n_radius_y = int(radius / (self.rangeY / len(self.y)))
+        print(extents)
 
-        n_mid_x = int(len(self.x) / 2)
-        n_mid_y = int(len(self.y) / 2)
-
-        start_x, end_x = n_mid_x - n_radius_x, n_mid_x + n_radius_x
-        start_y, end_y = n_mid_y - n_radius_y, n_mid_y + n_radius_y
-
-        print(f'x len: {len(self.x)}, cutting from {start_x} to {end_x}')
-        print(f'y len: {len(self.y)}, cutting from {start_y} to {end_y}')
-
-        print(np.shape(self.Z))
+        i_near = lambda arr, val: (np.abs(arr - val)).argmin()  # find the closest index
+        start_x, end_x = i_near(self.x, xmin), i_near(self.x, xmax)
+        start_y, end_y = i_near(self.y, ymin), i_near(self.y, ymax)
 
         self.X = self.X[start_y: end_y, start_x: end_x]
         self.Y = self.Y[start_y: end_y, start_x: end_x]
         self.Z = self.Z[start_y: end_y, start_x: end_x]
 
-        print(np.shape(self.Z))
+        self.x = self.x[start_x: end_x]
+        self.y = self.y[start_y: end_y]
 
     def cutSurfaceRectangle(self):
         def onSelect(eclick, erelease):
             pass
 
         def onClose(event):
-            xmin, xmax, ymin, ymax = RS.extents
-
-            print(RS.extents)
-
-            i_near = lambda arr, val: (np.abs(arr - val)).argmin()
-            start_x, end_x = i_near(self.x, xmin), i_near(self.x, xmax)
-            start_y, end_y = i_near(self.y, ymin), i_near(self.y, ymax)
-
-            self.X = self.X[start_y: end_y, start_x: end_x]
-            self.Y = self.Y[start_y: end_y, start_x: end_x]
-            self.Z = self.Z[start_y: end_y, start_x: end_x]
-
-            self.x = self.x[start_x: end_x]
-            self.y = self.y[start_y: end_y]
+            self.cutSurface(RS.extents)
 
         fig, ax = plt.subplots()
         RS = RectangleSelector(ax, onSelect,
@@ -244,6 +228,7 @@ class Surface:
         fig.canvas.mpl_connect('close_event', onClose)
 
         plt.show()
+        return RS.extents
 
     def extractProfile(self) -> prf.Profile:
         """
@@ -270,9 +255,9 @@ class Surface:
         def onClose(event):  # called when fig is closed
             choice = input('Extract [x/y] profile?')
             if choice == 'x':  # the user chooses the direction of extraction
-                profile.setValues(self.X[po[choice]], self.Z[po[choice]])
+                profile.setValues(self.X[po[choice]], self.Z[po[choice]], False)
             else:
-                profile.setValues(self.Y[po[choice]], self.Z[po[choice]])  # TODO: extract y profile
+                profile.setValues(self.Y[po[choice]], self.Z[po[choice]], False)  # TODO: extract y profile
             plt.close(fig)
 
         fig, ax = plt.subplots()  # create the fig for profile selection
@@ -286,10 +271,10 @@ class Surface:
     def extractMidProfile(self, direction='x') -> prf.Profile:
         profile = prf.Profile()
         if direction == 'x':
-            profile.setValues(self.x, self.Z[int(np.size(self.x) / 2), :])
+            profile.setValues(self.x, self.Z[int(np.size(self.x) / 2), :], False)
 
         if direction == 'y':
-            profile.setValues(self.y, self.Z[:, int(np.size(self.y) / 2)])
+            profile.setValues(self.y, self.Z[:, int(np.size(self.y) / 2)], False)
 
         return profile
 
@@ -301,12 +286,145 @@ class Surface:
         """
         profile = prf.Profile()
         if direction == 'x':
-            profile.setValues(self.x, np.mean(self.Z, axis=0))
+            profile.setValues(self.x, np.mean(self.Z, axis=0), False)
 
         if direction == 'y':
-            profile.setValues(self.y, np.mean(self.Z, axis=1))
+            profile.setValues(self.y, np.mean(self.Z, axis=1), False)
 
         return profile
+
+    def sphereMaxProfile(self, start, bplt) -> prf.Profile:
+        """
+        Returns the profile starting from the max of the topo and
+        on the positive x direction
+        """
+        # TODO : check if xind and yind are inverted
+        profile = prf.Profile()
+        if start == 'max':
+            raveled = np.nanargmax(self.Z)
+            unraveled = np.unravel_index(raveled, self.Z.shape)
+            xind = unraveled[0]
+            yind = unraveled[1]
+        elif start == 'fit':
+            r, C = self.sphereFit(bplt=False)
+            yc = C[0][0]
+            xc = C[1][0]
+            xind = np.argwhere(self.x > xc)[0][0]
+            yind = np.argwhere(self.y > yc)[0][0]
+        elif start == 'center':
+            xind = int(len(self.x) / 2)
+            yind = int(len(self.y) / 2)
+        elif start == 'local':
+            maxima = (self.Z == ndimage.filters.maximum_filter(self.Z, 5))
+            mid = np.asarray(self.Z.shape) / 2
+            maxinds = np.argwhere(maxima)  # find all maxima indices
+            center_max = maxinds[np.argmin(np.linalg.norm(maxinds - mid, axis=1))]
+
+            xind = center_max[0]
+            yind = center_max[1]
+        else:
+            raise Exception(f'{start} is not a valid start method')
+
+        if bplt:
+            fig, ax = plt.subplots()
+            ax.pcolormesh(self.X, self.Y, self.Z, cmap=cm.viridis)  # hot, viridis, rainbow
+            funct.persFig(
+                [ax],
+                gridcol='grey',
+                xlab='x [um]',
+                ylab='y [um]'
+            )
+            plt.hlines(self.y[yind], self.x[xind], self.x[-1])
+            plt.show()
+
+        profile.setValues(self.x[yind:-1], self.Z[xind][yind:-1], bplt=bplt)
+
+        return profile
+
+    def rotate(self, angle):
+        """
+        rotates the original topography by the specified angle
+        """
+        self.Z = ndimage.rotate(self.Z0, angle, order=0, reshape=False, cval=np.nan)
+
+    def maxMeasSlope(self, angleStepSize, bplt, start='center'):
+        """
+        Returns the maximum measurable slope in every direction
+        (directions are sampled every angleStepSize)
+        """
+        meas_slope1, meas_slope2 = [], []
+        with alive_bar(int(360 / angleStepSize), force_tty=True,
+                       title='Angles', theme='smooth',
+                       elapsed_end=True, stats_end=True, length=30) as bar:
+            for a in range(0, 360, angleStepSize):
+                self.rotate(a)
+                slopeprofile = copy.copy(self.sphereMaxProfile(start=start, bplt=False))
+                ms1, ms2 = slopeprofile.findMaxArcSlope(350)  # 350 um radius
+                meas_slope1.append(np.rad2deg(ms1))
+                meas_slope2.append(np.rad2deg(ms2))
+                bar()
+
+        if bplt:
+            fig, ax = plt.subplots()
+            ax.plot(range(0, 360, angleStepSize), meas_slope1, 'r', label='Max slope Rms1')
+            ax.plot(range(0, 360, angleStepSize), meas_slope2, 'b', label='Max slope Rms2')
+            ax.legend()
+
+            fig2, bx = plt.subplots(subplot_kw={'projection': 'polar'})
+            bx.plot(np.deg2rad(range(0, 360, angleStepSize)), meas_slope1, 'r', label='Max slope Rms1')
+            bx.plot(np.deg2rad(range(0, 360, angleStepSize)), meas_slope2, 'b', label='Max slope Rms2')
+            bx.legend()
+            plt.show()
+
+        return meas_slope1, meas_slope2
+
+    def sphereFit(self, bplt):
+        #   Assemble the A matrix
+        spZ = self.Z.flatten()
+        spX = self.X.flatten()
+        spY = self.Y.flatten()
+
+        nanind = ~np.isnan(spZ)
+
+        spZ = spZ[nanind]
+        spX = spX[nanind]
+        spY = spY[nanind]
+
+        A = np.zeros((len(spX), 4))
+        A[:, 0] = spX * 2
+        A[:, 1] = spY * 2
+        A[:, 2] = spZ * 2
+        A[:, 3] = 1
+
+        #   Assemble the f matrix
+        f = np.zeros((len(spX), 1))
+        f[:, 0] = (spX * spX) + (spY * spY) + (spZ * spZ)
+        C, residules, rank, singval = np.linalg.lstsq(A, f, rcond=None)
+
+        #   solve for the radius
+        t = (C[0] * C[0]) + (C[1] * C[1]) + (C[2] * C[2]) + C[3]
+        radius = np.sqrt(t)
+
+        if bplt:
+            u, v = np.mgrid[0:2 * np.pi:20j, 0:np.pi:10j]
+            x = np.cos(u) * np.sin(v) * radius
+            y = np.sin(u) * np.sin(v) * radius
+            z = np.cos(v) * radius
+            x = x + C[0]
+            y = y + C[1]
+            z = z + C[2]
+
+            #   3D plot of Sphere
+            fig = plt.figure()
+            ax = fig.add_subplot(111, projection='3d')
+            ax.plot_surface(self.X, self.Y, self.Z, cmap=cm.rainbow)
+            ax.plot_wireframe(x, y, z, color="r", alpha=0.2)
+            ax.set_xlabel('$x$', fontsize=16)
+            ax.set_ylabel('\n$y$', fontsize=16)
+            zlabel = ax.set_zlabel('\n$z$', fontsize=16)
+            plt.show()
+
+        return radius[0], C
 
     @funct.timer
     def resample(self, newXsize, newYsize):
@@ -361,10 +479,10 @@ class Surface:
         )
         plt.show()
 
-    def __pltC(self):
+    def pltC(self):
         fig = plt.figure()
         ax_2d = fig.add_subplot(111)
-        ax_2d.pcolormesh(self.X, self.Y, self.Z, cmap=cm.jet)  # hot, viridis, rainbow
+        ax_2d.pcolormesh(self.X, self.Y, self.Z, cmap=cm.viridis)  # hot, viridis, rainbow
         funct.persFig(
             [ax_2d],
             gridcol='grey',
@@ -372,6 +490,8 @@ class Surface:
             ylab='y [um]'
         )
         ax_2d.set_title(self.name)
+        ax_2d.grid(False)
+        ax_2d.set_aspect('equal')
         plt.show()
 
     # def __planePlot(self):
