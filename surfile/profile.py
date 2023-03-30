@@ -367,6 +367,7 @@ class Profile:
         :return: RA, RQ, RP, RV, RZ, RSK, RKU
         """
         print(f'Applying filter cutoff: {cutoff}')
+
         # samples preparation for calculation of params
         def prepare_roi():
             nsample_cutoff = cutoff / (np.max(self.X) / np.size(self.X))
@@ -401,7 +402,7 @@ class Profile:
         except IndexError:
             bound_nan = 0
 
-        Rms_1 = self.X[bound_nan-1] - self.X[0]
+        Rms_1 = self.X[bound_nan - 1] - self.X[0]
         Rms_2 = self.X[np.nanargmin(self.Z)] - self.X[0]  # find the furthest max point
         phi_max_1 = np.arcsin(Rms_1 / R)
         phi_max_2 = np.arcsin(Rms_2 / R)
@@ -411,12 +412,14 @@ class Profile:
         # TODO : check if it works
         r = []
         z = []
-        for i, p in enumerate(self.Z):
+        for i, p in enumerate(self.Z[0:-1]):
             if np.isnan(p): break
             ri = self.X[i] - self.X[0]
             zeh = np.abs(self.Z[0] - p)
-            z.append(zeh)
-            r.append((ri**2 + zeh**2) / (2 * zeh))
+            if zeh > 0.05:  # skip the first nanometers
+                z.append(zeh)
+                radius = (ri ** 2 + zeh ** 2) / (2 * zeh)
+                r.append(radius)
 
         if bplt:
             fig, ax = plt.subplots()

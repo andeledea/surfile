@@ -334,7 +334,7 @@ class Surface:
                 xlab='x [um]',
                 ylab='y [um]'
             )
-            plt.hlines(self.y[yind], self.x[xind], self.x[-1])
+            plt.hlines(self.y[xind], self.x[yind], self.x[-1])
             plt.show()
 
         profile.setValues(self.x[yind:-1], self.Z[xind][yind:-1], bplt=bplt)
@@ -354,7 +354,7 @@ class Surface:
         """
         meas_slope1, meas_slope2 = [], []
         with alive_bar(int(360 / angleStepSize), force_tty=True,
-                       title='Angles', theme='smooth',
+                       title='Slope', theme='smooth',
                        elapsed_end=True, stats_end=True, length=30) as bar:
             for a in range(0, 360, angleStepSize):
                 self.rotate(a)
@@ -377,6 +377,31 @@ class Surface:
             plt.show()
 
         return meas_slope1, meas_slope2
+
+    def sphereRadius(self, angleStepSize, bplt, start='local'):
+        rs = []
+        zs = []
+        fig, ax = plt.subplots()
+
+        with alive_bar(int(360 / angleStepSize), force_tty=True,
+                       title='Radius', theme='smooth',
+                       elapsed_end=True, stats_end=True, length=30) as bar:
+            for a in range(0, 360, angleStepSize):
+                self.rotate(a)
+                slopeprofile = copy.copy(self.sphereMaxProfile(start=start, bplt=False))
+                r, z = slopeprofile.arcRadius(bplt=False)  # 350 um radius
+                rs.append(r)
+                zs.append(z)
+                if bplt: ax.plot(z, r, alpha=0.2)
+                bar()
+
+        yr, error = funct.tolerant_mean(rs)
+        yz, error = funct.tolerant_mean(zs)
+        ax.plot(yz, yr, color='red')
+        ax.set_ylim(0, max(yr))
+        if bplt: plt.show()
+
+        return yr, yz
 
     def sphereFit(self, bplt):
         #   Assemble the A matrix

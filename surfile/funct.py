@@ -1,5 +1,7 @@
 import time
 
+import numpy as np
+
 
 class Bcol:
     HEADER = '\033[95m'
@@ -58,5 +60,14 @@ def timer(func):  # wrapper function
         ret = func(*args, **kwargs)
         print(Bcol.OKCYAN + f"Function {func.__name__} took: {(time.time() - init):.2f} seconds" + Bcol.ENDC)
         return ret
+
     return wrapper
 
+
+def tolerant_mean(arrs):
+    lens = [len(i) for i in arrs]
+    arr = np.ma.empty((np.max(lens), len(arrs)))
+    arr.mask = True
+    for idx, l in enumerate(arrs):
+        arr[:len(l), idx] = l
+    return arr.mean(axis=-1), arr.std(axis=-1)
