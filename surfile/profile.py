@@ -98,8 +98,14 @@ class Profile:
     def setValues(self, X, Y, bplt):
         """
         Sets the values for the profile
-        :param X: x values of profile
-        :param Y: y values of profile
+        Parameters
+        ----------
+        X: []
+            The X values of the profile
+        Y: []
+            The Y values of the profile
+        bplt: bool
+            Plots the profile
         """
         self.X0 = self.X = X
         self.Z0 = self.Z = Y
@@ -109,7 +115,10 @@ class Profile:
     def stepAuto(self, bplt):  # TODO: can you find a way to automate minD calculations?
         """
         Calculates the step height using the auto method
-        :return: steps: array containing all found step heights on profile
+        Parameters
+        ----------
+        bplt: bool
+            Plots the step reconstruction
         """
 
         def calcSteps():
@@ -159,185 +168,26 @@ class Profile:
         if bplt: self.__pltRoi(gr, roi)
         return steps, ok
 
-    def fitLineLS(self):
-        """
-        Least square line fit implementation
-        """
-        # create matrix and Z vector to use lstsq
-        XZ = np.vstack([self.X.reshape(np.size(self.X)),
-                        self.Z.reshape(np.size(self.Z))]).T
-        (rows, cols) = XZ.shape
-        G = np.ones((rows, 2))
-        G[:, 0] = XZ[:, 0]  # X
-        Z = XZ[:, 1]
-        (m, q), resid, rank, s = np.linalg.lstsq(G, Z, rcond=None)  # calculate LS plane
-
-        print(f'LS line method -> Params: m={m:.3f}, q={q:.3f}')
-        self.__removeLine(m, q, -1)
-        return m, q
-
-    def allignWithHist(self, final_m, bplt):
-        m, q = self.fitLineLS()  # preprocess inclination
-        tot_bins = int(np.size(self.X) / 20)
-        # threshold = 50 / tot_bins
-
-        line_m = m / 10  # start incline
-        print(f'Hist method -> Start slope  {line_m}')
-
-        fig = plt.figure()
-        ax_h = fig.add_subplot(211)
-        bx_h = fig.add_subplot(212)
-
-        def calcNBUT():
-            hist, edges = self.histMethod(bins=tot_bins, bplt=False)  # make the hist
-            weights = hist / np.size(self.Z) * 100
-            threshold = np.max(weights) / 20
-            n_bins_under_threshold = np.size(np.where(weights < threshold)[0])  # how many bins under th
-
-            if bplt:
-                ax_h.clear()
-                ax_h.hist(edges[:-1], bins=edges, weights=weights, color='red')
-                ax_h.plot(edges[:-1], integrate.cumtrapz(hist / np.size(self.Z) * 100, edges[:-1], initial=0))
-                ax_h.text(.25, .75, f'NBUT = {n_bins_under_threshold} / {tot_bins}, line_m = {line_m:.3f} -> {final_m}',
-                          horizontalalignment='left', verticalalignment='bottom', transform=ax_h.transAxes)
-                ax_h.axhline(y=threshold, color='b')
-
-                bx_h.clear()
-                bx_h.plot(self.X, self.Z)
-                plt.draw()
-                plt.pause(0.05)
-
-            return n_bins_under_threshold
-
-        param = calcNBUT()
-        n_row = 0
-        # until I have enough bins < th keep loop
-        while np.abs(line_m) > final_m:  # nbut < (tot_bins - tot_bins / 20):
-            self.Z = self.Z - self.X * line_m
-            param_old = param
-            param = calcNBUT()
-
-            if param < param_old:  # invert rotation if we are going the wrong way
-                line_m = -line_m / 2
-
-            if param == param_old:
-                n_row += 1
-                if n_row >= 15: break  # we got stuck for too long
-            else:
-                n_row = 0
-        print(f'Hist method -> End slope    {line_m}')
-
     def histMethod(self, bplt, bins=100):
         """
-        histogram method implementation
-        :return: histogram values, bin edges values
+        Histogram method implementation
+        Parameters
+        ----------
+        bins: int
+            The number of bins of the histogram
+        bplt: bool
+            Plots the histogram of the profile
+        return (hist, edges)
+            The histogram x and y
         """
         hist, edges = np.histogram(self.Z, bins)
         if bplt: self.__pltHist(hist, edges)
         return hist, edges
 
-    def __removeLine(self, m, q, c):
-        z_line = (-self.X * m - q) * 1. / c
-        self.Z = self.Z - z_line
-
-    def __gaussianKernel(self, roi, cutoff, order=0):
-        nsample_cutoff = cutoff / (np.max(self.X) / np.size(self.X))
-
-        alpha = np.sqrt(np.log(2) / np.pi)
-        sigma = nsample_cutoff * (alpha / np.sqrt(2 * np.pi))  # da norma ISO 16610-21  # * (1 - 0.68268949)
-        print(f'Appliyng filter sigma: {sigma}')
-        roi_filtered = ndimage.gaussian_filter1d(roi, sigma=sigma, order=order)
-
-        return roi_filtered
-
-    def removeFormPolynomial(self, degree, bplt, comp=lambda a, b: a < b, bound=None):
-        """
-        Removes the form from the profile calculated as a polynomial fit of the data
-        :param comp: comparison method between comp and profile
-        :param degree: polynomial degree
-        :param bound: if not set the fit uses all points, if set the fit uses all points below the values, if set to
-        True the fit uses only the values below the average value of the profile
-        """
-        if bound is None:
-            coeff = np.polyfit(self.X, self.Z, degree)
-        elif bound:
-            bound = np.mean(self.Z)
-            ind = np.argwhere(comp(self.Z, bound)).ravel()
-            coeff = np.polyfit(self.X[ind], self.Z[ind], degree)
-        else:
-            ind = np.argwhere(comp(self.Z, bound)).ravel()
-            coeff = np.polyfit(self.X[ind], self.Z[ind], degree)
-
-        form = np.polyval(coeff, self.X)
-        if bplt:
-            fig, ax = plt.subplots()
-            ax.plot(self.X, self.Z, self.X, form)
-            plt.show()
-        self.Z -= form
-
-    def gaussianFilter(self, cutoff):
-        self.Z = self.__gaussianKernel(self.Z, cutoff)
-
-    def morphFilter(self, radius):
-        """
-        Apllies a morphological filter as described in ISO-21920,
-        rolls a disk  of radius R (in mm) along the original profile
-        """
-
-        def morph(profile_x, profile_y, radius):
-            spacing = profile_x[1] - profile_x[0]
-            n_radius = int(radius / spacing)
-            n_samples = len(profile_x)
-
-            fig, ax = plt.subplots()
-            ax.axis('equal')
-
-            filler_L = np.ones(n_radius) * profile_y[0]
-            filler_R = np.ones(n_radius) * profile_y[-1]
-
-            profile_x_filled = np.arange(start=profile_x[0] - radius, stop=profile_x[-2] + radius, step=spacing)
-            profile_y_filled = np.concatenate([filler_L, profile_y, filler_R])
-
-            profile_out = profile_y_filled - radius
-
-            with alive_bar(n_samples, force_tty=True,
-                           title='Morph', theme='smooth',
-                           elapsed_end=True, stats_end=True, length=30) as bar:
-                for i in range(n_radius, n_samples + n_radius):
-                    loc_x = np.linspace(profile_x_filled[i - n_radius], profile_x_filled[i + n_radius], 1000)
-                    loc_p = np.interp(loc_x, profile_x_filled[i - n_radius:i + n_radius],
-                                      profile_y_filled[i - n_radius:i + n_radius])
-
-                    alpha = profile_x_filled[i]
-                    beta = profile_out[i]  # start under the profile
-
-                    cerchio = np.sqrt(-(alpha ** 2 - radius ** 2) + 2 * alpha * loc_x - loc_x ** 2) + beta
-
-                    dbeta = -10 * radius
-                    disp = 0
-
-                    bar()
-                    up = len(np.argwhere((cerchio - loc_p) > 0))
-                    if up > 1:
-                        while np.abs(dbeta) > radius / 1000:
-                            cerchio += dbeta
-                            disp -= dbeta
-                            up = len(np.argwhere((cerchio - loc_p) > 0))
-
-                            if (dbeta < 0 and up == 0) or (dbeta > 0 and up != 0):
-                                dbeta = -dbeta / 2
-
-                        profile_out[i] -= disp
-
-            profile_out = profile_out[n_radius: -n_radius]
-            ax.plot(profile_x, profile_y, profile_x, profile_out)
-            plt.show()
-
-            return profile_out
-
-        self.Z = morph(self.X, self.Z, radius)
-
     def cutProfile(self):
+        """
+        Cuts the profile at the margins defined manually by the user
+        """
         def onClose(event):
             xmin, xmax = span.extents
             print(xmin, xmax)
@@ -358,13 +208,19 @@ class Profile:
         fig.canvas.mpl_connect('close_event', onClose)
         plt.show()
 
-    def roughnessParams(self, cutoff, ncutoffs, bplt):  # TODO: check if this works
+    def roughnessParams(self, cutoff, ncutoffs, bplt):  # TODO: adapt to filter class
         """
         Applies the indicated filter and calculates the roughness parameters
-        :param bplt: shows roi plot
-        :param cutoff: co length
-        :param ncutoffs: number of cutoffs to considerate in the center of the profile
-        :return: RA, RQ, RP, RV, RZ, RSK, RKU
+        Parameters
+        ----------
+        cutoff: float
+            cutoff length
+        ncutoffs: int
+            number of cutoffs to considerate in the center of the profile
+        bplt: bool
+            shows roi plot
+        return (RA, RQ, RP, RV, RZ, RSK, RKU): (float, ...)
+            Calculated roughness parameters
         """
         print(f'Applying filter cutoff: {cutoff}')
 
@@ -395,7 +251,13 @@ class Profile:
 
     def findMaxArcSlope(self, R):
         """
-        Used to find the max measured slope of sphere of radius R
+        Used to find the max measured slopes of arc of radius R
+        Parameters
+        ----------
+        R: float
+            The radius of the arc
+        return (phi_max1, phi_max2): (float, float)
+            The 2 slopes calculated at breackpoints 1 and 2 respectively
         """
         try:
             bound_nan = np.argwhere(np.isnan(self.Z))[0][-1] - 1
@@ -408,7 +270,18 @@ class Profile:
         phi_max_2 = np.arcsin(Rms_2 / R)
         return phi_max_1, phi_max_2
 
-    def arcRadius(self, bplt):
+    def arcRadius(self, bplt, skip=0.05):
+        """
+        Calculates the radius of the arc varying the z (top to bottom)
+        Parameters
+        ----------
+        skip: float
+            The first micrometers to skip
+        bplt: bool
+            Plots the calculated radius at all the z values
+        return (r, z): (np.array(), ...)
+            The radius and the respective z values
+        """
         # TODO : check if it works
         r = []
         z = []
@@ -416,7 +289,7 @@ class Profile:
             if np.isnan(p): break
             ri = self.X[i] - self.X[0]
             zeh = np.abs(self.Z[0] - p)
-            if zeh > 0.05:  # skip the first nanometers
+            if zeh > skip:  # skip the first nanometers
                 z.append(zeh)
                 radius = (ri ** 2 + zeh ** 2) / (2 * zeh)
                 r.append(radius)

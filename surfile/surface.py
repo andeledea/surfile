@@ -75,8 +75,6 @@ class Surface:
         if bplt: self.pltC()
 
     def fitPlane3P(self):
-        # TODO: define radius of points and avg
-        # TODO: expand using polygonSelector https://matplotlib.org/stable/gallery/widgets/polygon_selector_simple.html
         """
         3 points plane fit implementation
         Opens a plot figure to choose the 3 points and fids the plane for those points
@@ -130,72 +128,32 @@ class Surface:
 
         plt.show()
 
-    def fitPlaneLS(self):
-        """
-        Least square plane fit implementation
-        """
-        # create matrix and Z vector to use lstsq
-        XYZ = np.vstack([self.X.reshape(np.size(self.X)),
-                         self.Y.reshape(np.size(self.Y)),
-                         self.Z.reshape(np.size(self.Z))]).T
-        (rows, cols) = XYZ.shape
-        G = np.ones((rows, 3))
-        G[:, 0] = XYZ[:, 0]  # X
-        G[:, 1] = XYZ[:, 1]  # Y
-        Z = XYZ[:, 2]
-        (a, b, c), resid, rank, s = np.linalg.lstsq(G, Z, rcond=None)  # calculate LS plane
-
-        print(f'Plane Params: a={a}, b={b}')
-        self.__removePlane(a, b, -1, 0)
-
-    def fitPlaneLS_bound(self, comp, bound=None):
-        """
-        Least square plane only top/bottom points
-        :param comp: comparation method (ex. labda points, bound: points > bound)
-        :param bound: bound level for comparison
-        """
-        if bound is None:
-            bound = np.mean(self.Z)  # set the bound to the mean point
-
-        XYZ = np.vstack([self.X.reshape(np.size(self.X)),
-                         self.Y.reshape(np.size(self.Y)),
-                         self.Z.reshape(np.size(self.Z))]).T
-
-        where = np.argwhere(comp(self.Z.reshape(np.size(self.Z)), bound))
-        XYZ = np.delete(XYZ, where, 0)  # remove unwanted points from fit
-
-        (rows, cols) = XYZ.shape
-        G = np.ones((rows, 3))
-        G[:, 0] = XYZ[:, 0]  # X
-        G[:, 1] = XYZ[:, 1]  # Y
-        Z = XYZ[:, 2]
-        (a, b, c), resid, rank, s = np.linalg.lstsq(G, Z, rcond=None)
-
-        print(f'Plane Params: a={a}, b={b}')
-        self.__removePlane(a, b, -1, 0)
-
     def histMethod(self, bplt, bins=100):
         """
-        histogram method implementation
-        :return: histogram values, bin edges values
+        Histogram method implementation
+        Parameters
+        ----------
+        bins: int
+            The number of bins of the histogram
+        bplt: bool
+            Plots the histogram of the profile
+        return (hist, edges)
+            The histogram x and y
         """
         hist, edges = np.histogram(self.Z, bins)
         if bplt: self.__pltHist(hist, edges)
         return hist, edges
 
-    def __removePlane(self, a, b, c, d):
-        # TODO: put this method at the end of the fit functions
-        """
-        removes the fitted plane from the points
-        """
-        z_plane = (- a * self.X - b * self.Y - d) * 1. / c
-        self.Z = self.Z - z_plane + np.mean(z_plane)
-
     def cutSurface(self, extents):
+        """
+        Cut the surface at the extents
+        Parameters
+        ----------
+        extents (xmin, xmax, ymin, ymax):  (float, ...)
+            The cut borders
+        """
         # TODO: check x and y coord on surface matrix
         xmin, xmax, ymin, ymax = extents
-
-        print(extents)
 
         i_near = lambda arr, val: (np.abs(arr - val)).argmin()  # find the closest index
         start_x, end_x = i_near(self.x, xmin), i_near(self.x, xmax)
@@ -209,6 +167,13 @@ class Surface:
         self.y = self.y[start_y: end_y]
 
     def cutSurfaceRectangle(self):
+        """
+        Cuts the surface with a rectangle drawn by the user
+        Parameters
+        ----------
+        return extents (xmin, xmax, ymin, ymax):  (float, ...)
+            The cut borders
+        """
         def onSelect(eclick, erelease):
             pass
 
@@ -232,8 +197,11 @@ class Surface:
 
     def extractProfile(self) -> prf.Profile:
         """
-        extracts a profile along x or y
-        :return: profile object extracted (use p = copy.copy())
+        Extracts a profile along x or y at the position indicated by the user
+        Parameters
+        ----------
+        return profile: prf.Profile()
+            Profile object exctracted from the topography
         """
         po = {'x': 0, 'y': 0}
         profile = prf.Profile()
@@ -269,6 +237,15 @@ class Surface:
         return profile
 
     def extractMidProfile(self, direction='x') -> prf.Profile:
+        """
+        Extracts a profile along x or y in the center of the topography
+        Parameters
+        ----------
+        direction: str
+            'x' or 'y', indicates the extraction direction
+        return profile: prf.Profile()
+            Profile object exctracted from the topography
+        """
         profile = prf.Profile()
         if direction == 'x':
             profile.setValues(self.x, self.Z[int(np.size(self.x) / 2), :], False)
@@ -280,9 +257,13 @@ class Surface:
 
     def meanProfile(self, direction='x') -> prf.Profile:
         """
-        extracts the mean profile along x or y
-        :param direction: 'x' or 'y'
-        :return: profile object extracted (use p = copy.copy())
+        Extracts the mean profile along x or y
+        Parameters
+        ----------
+        direction: str
+            'x' or 'y', indicates the extraction direction
+        return profile: prf.Profile()
+            Profile object exctracted from the topography
         """
         profile = prf.Profile()
         if direction == 'x':
@@ -295,8 +276,19 @@ class Surface:
 
     def sphereMaxProfile(self, start, bplt) -> prf.Profile:
         """
-        Returns the profile starting from the max of the topo and
-        on the positive x direction
+        Returns the profile starting from the start point on the positive x direction
+        Parameters
+        ----------
+        start : str
+            Method used to find the start (x, y) point on the topography
+                'max': the start point is the maximum Z of the topography
+                'fit': the start point is the center of the best fit sphere
+                'center': the start point is the center of the topography
+                'local': the start point is the local maximum closest to the center of the topography
+        bplt: bool
+            If True plots the topography and the line where the profile is taken from
+        return profile: prof.Profile()
+            The extracted profile
         """
         # TODO : check if xind and yind are inverted
         profile = prf.Profile()
@@ -343,14 +335,31 @@ class Surface:
 
     def rotate(self, angle):
         """
-        rotates the original topography by the specified angle
+        Rotates the original topography by the specified angle
+        Parameters
+        ----------
+        angle: float
+            The angle of rotation
         """
         self.Z = ndimage.rotate(self.Z0, angle, order=0, reshape=False, cval=np.nan)
 
     def maxMeasSlope(self, angleStepSize, bplt, start='center'):
         """
         Returns the maximum measurable slope in every direction
-        (directions are sampled every angleStepSize)
+        Parameters
+        ----------
+        angleStepSize : float
+            The angle used to rotate the image after every iteration
+        start : str
+            Method used to find the start (x, y) point on the topography
+                'max': the start point is the maximum Z of the topography
+                'fit': the start point is the center of the best fit sphere
+                'center': the start point is the center of the topography
+                'local': the start point is the local maximum closest to the center of the topography
+        bplt: bool
+            Plots the slope at the different angles
+        return (phi_max1, phi_max2): (np.array(), ...)
+            The 2 slopes calculated at breackpoints 1 and 2 respectively
         """
         meas_slope1, meas_slope2 = [], []
         with alive_bar(int(360 / angleStepSize), force_tty=True,
@@ -379,6 +388,23 @@ class Surface:
         return meas_slope1, meas_slope2
 
     def sphereRadius(self, angleStepSize, bplt, start='local'):
+        """
+        Returns the radius of the profile in every direction
+        Parameters
+        ----------
+        angleStepSize : float
+            The angle used to rotate the image after every iteration
+        start : str
+            Method used to find the start (x, y) point on the topography
+                'max': the start point is the maximum Z of the topography
+                'fit': the start point is the center of the best fit sphere
+                'center': the start point is the center of the topography
+                'local': the start point is the local maximum closest to the center of the topography
+        bplt: bool
+            Plots the radius at the different angles
+        return (yr, yz): (np.array(), ...)
+            The mean of the radius and the mean of the different heights where the radius is calculated
+        """
         rs = []
         zs = []
         fig, ax = plt.subplots()
@@ -404,6 +430,15 @@ class Surface:
         return yr, yz
 
     def sphereFit(self, bplt):
+        """
+        Calculates the least square sphere
+        Parameters
+        ----------
+        bplt: bool
+            Plots the sphere fitted to the data points
+        return (radius, C): (float, [xc, yc, zc])
+            Radius and sphere center coordinates
+        """
         #   Assemble the A matrix
         spZ = self.Z.flatten()
         spX = self.X.flatten()
@@ -453,6 +488,15 @@ class Surface:
 
     @funct.timer
     def resample(self, newXsize, newYsize):
+        """
+        Resamples the topography and fills the non-measured points
+        Parameters
+        ----------
+        newXsize: int
+            Number of points desired on the x-axis
+        newYsize: int
+            Number of points desired on the y-axis
+        """
         xi = np.linspace(0, self.rangeX, newXsize)
         yi = np.linspace(0, self.rangeY, newYsize)
         Xi, Yi = np.meshgrid(xi, yi)
@@ -469,9 +513,6 @@ class Surface:
         self.X = Xi
         self.Y = Yi
         self.Z = Zi
-
-    # TODO: implementare parametri S
-    # TODO: implementare filtri 2D
 
     #####################################################################################################
     #                                       PLOT SECTION                                                #
