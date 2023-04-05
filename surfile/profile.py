@@ -184,30 +184,6 @@ class Profile:
         if bplt: self.__pltHist(hist, edges)
         return hist, edges
 
-    def cutProfile(self):
-        """
-        Cuts the profile at the margins defined manually by the user
-        """
-        def onClose(event):
-            xmin, xmax = span.extents
-            print(xmin, xmax)
-            i_near = lambda arr, val: (np.abs(arr - val)).argmin()
-            start_x, end_x = i_near(self.X, xmin), i_near(self.X, xmax)
-
-            self.X = self.X[start_x: end_x]
-            self.Z = self.Z[start_x: end_x]
-
-        fig, ax = plt.subplots()
-        span = SpanSelector(ax, lambda a, b: None,
-                            direction='horizontal', useblit=True,
-                            button=[1, 3],  # don't use middle button
-                            interactive=True)
-
-        ax.plot(self.X, self.Z)
-        ax.set_title('Choose region')
-        fig.canvas.mpl_connect('close_event', onClose)
-        plt.show()
-
     def roughnessParams(self, cutoff, ncutoffs, bplt):  # TODO: adapt to filter class
         """
         Applies the indicated filter and calculates the roughness parameters

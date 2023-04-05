@@ -74,60 +74,6 @@ class Surface:
 
         if bplt: self.pltC()
 
-    def fitPlane3P(self):
-        """
-        3 points plane fit implementation
-        Opens a plot figure to choose the 3 points and fids the plane for those points
-        """
-
-        # po = []
-
-        # def pointPick(point, mouseevent):  # called when pick event happens on fig
-        #     if mouseevent.xdata is None:
-        #         return False, dict()
-        #     xdata = mouseevent.xdata
-        #     ydata = mouseevent.ydata
-        #
-        #     # find indexes corresponding to picked values
-        #     xind = np.where(self.X[0, :] <= xdata)[0][-1]
-        #     yind = np.where(self.Y[:, 0] <= ydata)[0][-1]
-        #
-        #     if len(po) < 3:  # find the 3 points to apply the method
-        #         po.append([xdata, ydata, self.Z[yind, xind]])
-        #     return True, dict(pickx=xdata, picky=ydata)
-
-        def onClose(event):  # when fig is closed calculate plane parameters
-            po = []
-            for (a, b) in selector.verts:
-                xind = np.where(self.X[0, :] <= a)[0][-1]
-                yind = np.where(self.Y[:, 0] <= b)[0][-1]
-
-                po.append([a, b, self.Z[yind, xind]])
-
-            print(f"Collected points: {po}")
-            a1 = po[1][0] - po[0][0]  # x2 - x1;
-            b1 = po[1][1] - po[0][1]  # y2 - y1;
-            c1 = po[1][2] - po[0][2]  # z2 - z1;
-            a2 = po[2][0] - po[0][0]  # x3 - x1;
-            b2 = po[2][1] - po[0][1]  # y3 - y1;
-            c2 = po[2][2] - po[0][2]  # z3 - z1;
-            a = b1 * c2 - b2 * c1
-            b = a2 * c1 - a1 * c2
-            c = a1 * b2 - b1 * a2
-            d = 0  # (- self.a * po[0][0] - self.b * po[0][1] - self.c * po[0][2])
-            plt.close(fig)
-
-            self.__removePlane(a, b, c, d)
-
-        fig, ax = plt.subplots()
-        ax.pcolormesh(self.X, self.Y, self.Z, cmap=cm.rainbow)
-        ax.set_title('3 Points plane fit')
-        fig.canvas.mpl_connect('close_event', onClose)
-
-        selector = PolygonSelector(ax, lambda *args: None)
-
-        plt.show()
-
     def histMethod(self, bplt, bins=100):
         """
         Histogram method implementation
@@ -143,57 +89,6 @@ class Surface:
         hist, edges = np.histogram(self.Z, bins)
         if bplt: self.__pltHist(hist, edges)
         return hist, edges
-
-    def cutSurface(self, extents):
-        """
-        Cut the surface at the extents
-        Parameters
-        ----------
-        extents (xmin, xmax, ymin, ymax):  (float, ...)
-            The cut borders
-        """
-        # TODO: check x and y coord on surface matrix
-        xmin, xmax, ymin, ymax = extents
-
-        i_near = lambda arr, val: (np.abs(arr - val)).argmin()  # find the closest index
-        start_x, end_x = i_near(self.x, xmin), i_near(self.x, xmax)
-        start_y, end_y = i_near(self.y, ymin), i_near(self.y, ymax)
-
-        self.X = self.X[start_y: end_y, start_x: end_x]
-        self.Y = self.Y[start_y: end_y, start_x: end_x]
-        self.Z = self.Z[start_y: end_y, start_x: end_x]
-
-        self.x = self.x[start_x: end_x]
-        self.y = self.y[start_y: end_y]
-
-    def cutSurfaceRectangle(self):
-        """
-        Cuts the surface with a rectangle drawn by the user
-        Parameters
-        ----------
-        return extents (xmin, xmax, ymin, ymax):  (float, ...)
-            The cut borders
-        """
-        def onSelect(eclick, erelease):
-            pass
-
-        def onClose(event):
-            self.cutSurface(RS.extents)
-
-        fig, ax = plt.subplots()
-        RS = RectangleSelector(ax, onSelect,
-                               drawtype='box', useblit=True,
-                               button=[1, 3],  # don't use middle button
-                               minspanx=5, minspany=5,
-                               spancoords='pixels',
-                               interactive=True)
-
-        ax.pcolormesh(self.X, self.Y, self.Z, cmap=cm.rainbow)
-        ax.set_title('Choose cut region')
-        fig.canvas.mpl_connect('close_event', onClose)
-
-        plt.show()
-        return RS.extents
 
     def extractProfile(self) -> prf.Profile:
         """
@@ -429,63 +324,6 @@ class Surface:
 
         return yr, yz
 
-    def sphereFit(self, bplt):
-        """
-        Calculates the least square sphere
-        Parameters
-        ----------
-        bplt: bool
-            Plots the sphere fitted to the data points
-        return (radius, C): (float, [xc, yc, zc])
-            Radius and sphere center coordinates
-        """
-        #   Assemble the A matrix
-        spZ = self.Z.flatten()
-        spX = self.X.flatten()
-        spY = self.Y.flatten()
-
-        nanind = ~np.isnan(spZ)
-
-        spZ = spZ[nanind]
-        spX = spX[nanind]
-        spY = spY[nanind]
-
-        A = np.zeros((len(spX), 4))
-        A[:, 0] = spX * 2
-        A[:, 1] = spY * 2
-        A[:, 2] = spZ * 2
-        A[:, 3] = 1
-
-        #   Assemble the f matrix
-        f = np.zeros((len(spX), 1))
-        f[:, 0] = (spX * spX) + (spY * spY) + (spZ * spZ)
-        C, residules, rank, singval = np.linalg.lstsq(A, f, rcond=None)
-
-        #   solve for the radius
-        t = (C[0] * C[0]) + (C[1] * C[1]) + (C[2] * C[2]) + C[3]
-        radius = np.sqrt(t)
-
-        if bplt:
-            u, v = np.mgrid[0:2 * np.pi:20j, 0:np.pi:10j]
-            x = np.cos(u) * np.sin(v) * radius
-            y = np.sin(u) * np.sin(v) * radius
-            z = np.cos(v) * radius
-            x = x + C[0]
-            y = y + C[1]
-            z = z + C[2]
-
-            #   3D plot of Sphere
-            fig = plt.figure()
-            ax = fig.add_subplot(111, projection='3d')
-            ax.plot_surface(self.X, self.Y, self.Z, cmap=cm.rainbow)
-            ax.plot_wireframe(x, y, z, color="r", alpha=0.2)
-            ax.set_xlabel('$x$', fontsize=16)
-            ax.set_ylabel('\n$y$', fontsize=16)
-            zlabel = ax.set_zlabel('\n$z$', fontsize=16)
-            plt.show()
-
-        return radius[0], C
-
     @funct.timer
     def resample(self, newXsize, newYsize):
         """
@@ -535,8 +373,10 @@ class Surface:
 
     def pltCompare(self):
         fig, (ax, bx) = plt.subplots(nrows=1, ncols=2)
-        ax.pcolormesh(self.X0, self.Y0, self.Z0, cmap=cm.jet)  # hot, viridis, rainbow
-        bx.pcolormesh(self.X, self.Y, self.Z, cmap=cm.jet)  # hot, viridis, rainbow
+        p1 = ax.pcolormesh(self.X0, self.Y0, self.Z0, cmap=cm.jet)  # hot, viridis, rainbow
+        p2 = bx.pcolormesh(self.X, self.Y, self.Z, cmap=cm.jet)  # hot, viridis, rainbow
+        fig.colorbar(p1, ax=ax)
+        fig.colorbar(p2, ax=bx)
         funct.persFig(
             [ax, bx],
             gridcol='grey',

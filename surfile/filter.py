@@ -1,10 +1,9 @@
 from alive_progress import alive_bar
 from matplotlib import cm
 from scipy import ndimage, sparse, special, signal
-from abc import ABC, abstractmethod
 import numpy as np
 
-from surfile import profile, surface, funct
+from surfile import profile, surface
 
 import matplotlib.pyplot as plt
 
@@ -38,7 +37,7 @@ import matplotlib.pyplot as plt
 # Part 89 - Areal Scale space technique
 
 
-class Filter(ABC):
+class Filter:
     @staticmethod
     def plotEnvelope(X, Z, envelope):
         fig, ax = plt.subplots()
@@ -58,13 +57,13 @@ class Filter(ABC):
 
 class ProfileGaussian(Filter):
     @staticmethod
-    def filter(obj: profile.Profile(), cutoff, bplt=False):
+    def filter(obj: profile.Profile, cutoff, bplt=False):
         """
         Applies to a profile object a gaussian filter ISO 16610-21.
         The resulting profile is cut at the borders to avoid border effects.
         Parameters
         ----------
-        obj : profile.Profile()
+        obj : profile.Profile
             The profile object on wich the filter is applied
         cutoff: float
             The cutoff of the gaussian filter
@@ -92,13 +91,13 @@ class ProfileGaussian(Filter):
 
 class ProfileSpline(Filter):
     @staticmethod
-    def filter(obj: profile.Profile(), cutoff, beta=0.5, bplt=False):
+    def filter(obj: profile.Profile, cutoff, beta=0.5, bplt=False):
         """
         Applies to a profile object a gaussian filter ISO 16610-22.
         The resulting profile is cut at the borders to avoid border effects.
         Parameters
         ----------
-        obj : profile.Profile()
+        obj : profile.Profile
             The profile object on wich the filter is applied
         cutoff: float
             The cutoff of the spline filter
@@ -148,7 +147,7 @@ class ProfileSpline(Filter):
 
 class ProfileRobust(Filter):
     @staticmethod
-    def filter_matrix(obj: profile.Profile(), cutoff, bplt=False):
+    def filter_matrix(obj: profile.Profile, cutoff, bplt=False):
         z = obj.Z
         n = obj.Z.size
         deltaX = np.max(obj.X) / np.size(obj.X)
@@ -188,12 +187,12 @@ class ProfileRobust(Filter):
             Filter.plotEnvelope(obj.X0, obj.Z0, w)
 
     @staticmethod
-    def filter(obj: profile.Profile(), cutoff, bplt=False):
+    def filter(obj: profile.Profile, cutoff, bplt=False):
         """
         Applies to a profile object a gaussian robust filter ISO 16610-31.
         Parameters
         ----------
-        obj : profile.Profile()
+        obj : profile.Profile
             The profile object on wich the filter is applied
         cutoff: float
             The cutoff of the gaussian filter
@@ -260,13 +259,13 @@ class ProfileRobust(Filter):
 
 class ProfileMorph(Filter):
     @staticmethod
-    def filter(obj: profile.Profile(), radius, bplt=False):
+    def filter(obj: profile.Profile, radius, bplt=False):
         """
         Apllies a morphological filter as described in ISO-21920,
         rolls a disk  of radius R (in mm) along the original profile
         Parameters
         ----------
-        obj: profile.Profile()
+        obj: profile.Profile
             The profile object on wich the filter is applied
         radius: float
             The radius of the sphere of the contact instrument
@@ -330,13 +329,13 @@ class ProfileMorph(Filter):
 
 class SurfaceGaussian(Filter):
     @staticmethod
-    def filter(obj: surface.Surface(), cutoff, bplt=False):
+    def filter(obj: surface.Surface, cutoff, bplt=False):
         """
         Applies to a profile object a gaussian filter ISO 16610-21.
         The resulting profile is cut at the borders to avoid border effects.
         Parameters
         ----------
-        obj : surface.Surface()
+        obj : surface.Surface
             The surface object on wich the filter is applied
         cutoff: float
             The cutoff of the gaussian filter
