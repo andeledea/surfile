@@ -61,6 +61,7 @@ class ProfileGaussian(Filter):
         """
         Applies to a profile object a gaussian filter ISO 16610-21.
         The resulting profile is cut at the borders to avoid border effects.
+
         Parameters
         ----------
         obj : profile.Profile
@@ -95,6 +96,7 @@ class ProfileSpline(Filter):
         """
         Applies to a profile object a gaussian filter ISO 16610-22.
         The resulting profile is cut at the borders to avoid border effects.
+
         Parameters
         ----------
         obj : profile.Profile
@@ -190,6 +192,7 @@ class ProfileRobust(Filter):
     def filter(obj: profile.Profile, cutoff, bplt=False):
         """
         Applies to a profile object a gaussian robust filter ISO 16610-31.
+
         Parameters
         ----------
         obj : profile.Profile
@@ -263,6 +266,7 @@ class ProfileMorph(Filter):
         """
         Apllies a morphological filter as described in ISO-21920,
         rolls a disk  of radius R (in mm) along the original profile
+
         Parameters
         ----------
         obj: profile.Profile
@@ -333,6 +337,7 @@ class SurfaceGaussian(Filter):
         """
         Applies to a profile object a gaussian filter ISO 16610-21.
         The resulting profile is cut at the borders to avoid border effects.
+
         Parameters
         ----------
         obj : surface.Surface

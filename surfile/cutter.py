@@ -12,6 +12,11 @@ from tkinter import filedialog
 
 
 class Cutter(ABC):
+    """
+    Class that provides methods for profile / surface cutting
+    static methods are used to work directly on profiles / surfaces, extractor objects
+    can be instantiated to apply the same extraction to multiple profiles / surfaces
+    """
     def __init__(self):
         self.extents = None
 
@@ -53,6 +58,7 @@ class ProfileCutter(Cutter, ABC):
         """
         Applies the cut to the object passed using the extents
         defined previously by the user, see templateExtents()
+
         Parameters
         ----------
         obj: profile.Profile
@@ -60,8 +66,11 @@ class ProfileCutter(Cutter, ABC):
         finalize: bool
             If False the cut is not finalized on the profile object
             the method returns the cut vectors
-        return cuts: [np.array, np.array]
-            Lists of cut arrays x and z respectively
+
+        Returns
+        ----------
+        cuts: tuple
+            tuple of cut arrays x and z respectively
         """
         if self.extents is None:
             raise Exception('Cut extents are not defined')
@@ -83,6 +92,7 @@ class ProfileCutter(Cutter, ABC):
     def cut(obj: profile.Profile, finalize=True):
         """
         Cuts the profile at the margins defined manually by the user
+
         Parameters
         ----------
         obj : profile.Profile
@@ -90,6 +100,13 @@ class ProfileCutter(Cutter, ABC):
         finalize: bool
             If set to False the cut will not alter the profile,
             the method will only return the extents chosen by the user
+
+        Returns
+        ----------
+        extents: tuple
+            The cut span selected left and right x values
+        cuts: list
+            The x and z arrays obtained after the cut
         """
 
         def onClose(event):
@@ -140,6 +157,7 @@ class SurfaceCutter(Cutter, ABC):
         """
         Applies the cut to the object passed using the extents
         defined previously by the user, see templateExtents()
+
         Parameters
         ----------
         obj: profile.Profile
@@ -147,8 +165,11 @@ class SurfaceCutter(Cutter, ABC):
         finalize: bool
             If False the cut is not finalized on the profile object
             the method returns the cut vectors
-        return cuts: (np.array, np.array, np.array)
-            Lists of cut arrays x y and z respectively
+
+        Returns
+        ----------
+        cuts: (np.array, np.array, np.array)
+            Tuple of cut arrays x y and z respectively
         """
         if self.extents is None:
             raise Exception('Cut extents are not defined')
@@ -176,6 +197,7 @@ class SurfaceCutter(Cutter, ABC):
     def cut(obj: surface.Surface, finalize=True):
         """
         Cuts the surface with a rectangle drawn by the user
+
         Parameters
         ----------
         obj : surface.Surface
@@ -183,8 +205,13 @@ class SurfaceCutter(Cutter, ABC):
         finalize: bool
             If set to False the cut will not alter the profile,
             the method will only return the extents chosen by the user
-        return extents (xmin, xmax, ymin, ymax):  (float, ...)
+
+        Returns
+        ----------
+        extents (xmin, xmax, ymin, ymax):  (float, ...)
             The cut borders
+        cuts: list
+            The x, y, z, arrays obtained after the cut
         """
         def onSelect(eclick, erelease):
             pass

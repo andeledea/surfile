@@ -4,7 +4,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import cm, lines
 import os
-from matplotlib.widgets import RectangleSelector, PolygonSelector
 from scipy import interpolate, ndimage
 from alive_progress import alive_bar
 
@@ -77,13 +76,17 @@ class Surface:
     def histMethod(self, bplt, bins=100):
         """
         Histogram method implementation
+
         Parameters
         ----------
         bins: int
             The number of bins of the histogram
         bplt: bool
             Plots the histogram of the profile
-        return (hist, edges)
+
+        Returns
+        ----------
+        (hist, edges)
             The histogram x and y
         """
         hist, edges = np.histogram(self.Z, bins)
@@ -93,9 +96,10 @@ class Surface:
     def extractProfile(self) -> prf.Profile:
         """
         Extracts a profile along x or y at the position indicated by the user
-        Parameters
+
+        Returns
         ----------
-        return profile: prf.Profile()
+        profile: prf.Profile()
             Profile object exctracted from the topography
         """
         po = {'x': 0, 'y': 0}
@@ -134,11 +138,15 @@ class Surface:
     def extractMidProfile(self, direction='x') -> prf.Profile:
         """
         Extracts a profile along x or y in the center of the topography
+
         Parameters
         ----------
         direction: str
             'x' or 'y', indicates the extraction direction
-        return profile: prf.Profile()
+
+        Returns
+        ----------
+        profile: prf.Profile()
             Profile object exctracted from the topography
         """
         profile = prf.Profile()
@@ -150,28 +158,10 @@ class Surface:
 
         return profile
 
-    def meanProfile(self, direction='x') -> prf.Profile:
-        """
-        Extracts the mean profile along x or y
-        Parameters
-        ----------
-        direction: str
-            'x' or 'y', indicates the extraction direction
-        return profile: prf.Profile()
-            Profile object exctracted from the topography
-        """
-        profile = prf.Profile()
-        if direction == 'x':
-            profile.setValues(self.x, np.mean(self.Z, axis=0), False)
-
-        if direction == 'y':
-            profile.setValues(self.y, np.mean(self.Z, axis=1), False)
-
-        return profile
-
     def sphereMaxProfile(self, start, bplt) -> prf.Profile:
         """
         Returns the profile starting from the start point on the positive x direction
+
         Parameters
         ----------
         start : str
@@ -182,7 +172,10 @@ class Surface:
                 'local': the start point is the local maximum closest to the center of the topography
         bplt: bool
             If True plots the topography and the line where the profile is taken from
-        return profile: prof.Profile()
+
+        Returns
+        ----------
+        profile: prof.Profile()
             The extracted profile
         """
         # TODO : check if xind and yind are inverted
@@ -193,7 +186,9 @@ class Surface:
             xind = unraveled[0]
             yind = unraveled[1]
         elif start == 'fit':
-            r, C = self.sphereFit(bplt=False)
+            from surfile.form import sphere
+
+            r, C = sphere.form(self, bplt=False)
             yc = C[0][0]
             xc = C[1][0]
             xind = np.argwhere(self.x > xc)[0][0]
@@ -231,6 +226,7 @@ class Surface:
     def rotate(self, angle):
         """
         Rotates the original topography by the specified angle
+
         Parameters
         ----------
         angle: float
@@ -241,9 +237,10 @@ class Surface:
     def maxMeasSlope(self, angleStepSize, bplt, start='center'):
         """
         Returns the maximum measurable slope in every direction
+
         Parameters
         ----------
-        angleStepSize : float
+        angleStepSize : int
             The angle used to rotate the image after every iteration
         start : str
             Method used to find the start (x, y) point on the topography
@@ -253,7 +250,10 @@ class Surface:
                 'local': the start point is the local maximum closest to the center of the topography
         bplt: bool
             Plots the slope at the different angles
-        return (phi_max1, phi_max2): (np.array(), ...)
+
+        Returns
+        ----------
+        (phi_max1, phi_max2): (np.array(), ...)
             The 2 slopes calculated at breackpoints 1 and 2 respectively
         """
         meas_slope1, meas_slope2 = [], []
@@ -285,9 +285,10 @@ class Surface:
     def sphereRadius(self, angleStepSize, bplt, start='local'):
         """
         Returns the radius of the profile in every direction
+
         Parameters
         ----------
-        angleStepSize : float
+        angleStepSize : int
             The angle used to rotate the image after every iteration
         start : str
             Method used to find the start (x, y) point on the topography
@@ -297,7 +298,10 @@ class Surface:
                 'local': the start point is the local maximum closest to the center of the topography
         bplt: bool
             Plots the radius at the different angles
-        return (yr, yz): (np.array(), ...)
+
+        Returns
+        ----------
+        (yr, yz): (np.array(), ...)
             The mean of the radius and the mean of the different heights where the radius is calculated
         """
         rs = []
@@ -328,6 +332,7 @@ class Surface:
     def resample(self, newXsize, newYsize):
         """
         Resamples the topography and fills the non-measured points
+
         Parameters
         ----------
         newXsize: int
@@ -355,7 +360,6 @@ class Surface:
     #####################################################################################################
     #                                       PLOT SECTION                                                #
     #####################################################################################################
-    # TODO: move graphics to respective method
     def plt3D(self):
         fig = plt.figure()
         ax_3d = fig.add_subplot(111, projection='3d')

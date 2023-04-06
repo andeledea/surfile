@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 from matplotlib.widgets import PolygonSelector
 
 
-def poly2d(x, y, coeffs):
+def polyval2d(x, y, coeffs):
     # https://sofia-usra.github.io/sofia_redux/_modules/sofia_redux/toolkit/fitting/polynomial.html#poly2d
     """
     Evaluate 2D polynomial coefficients
@@ -60,7 +60,7 @@ class Form:
 
     @staticmethod
     def plot3DForm(x, y, z, coeff):
-        form = poly2d(x, y, coeff)
+        form = polyval2d(x, y, coeff)
         fig, ax = plt.subplots(subplot_kw={'projection': '3d'})
         ax.plot_surface(x, y, z, cmap=cm.Greys, alpha=0.4)
         ax.plot_surface(x, y, form, cmap=cm.rainbow)
@@ -69,7 +69,7 @@ class Form:
 
     @staticmethod
     def remove3DForm(x, y, z, coeff):
-        form = poly2d(x, y, coeff)
+        form = polyval2d(x, y, coeff)
         z_final = z - form
         return z_final
 
@@ -79,13 +79,17 @@ class ProfileLSLine(Form):
     def form(obj: profile.Profile, bplt=False):
         """
         Least square line fit implementation
+
         Parameters
         ----------
         obj: profile.Profile
             The profile object on wich the form is removed
         bplt: bool
             If True plots the line overimposed on the profile
-        return (m, q): (float, ...)
+
+        Returns
+        ----------
+        (m, q): (float, ...)
             The line equation coefficients
         """
         # create matrix and Z vector to use lstsq
@@ -109,6 +113,7 @@ class ProfilePolynomial(Form):
     def form(obj: profile.Profile, degree, comp=lambda a, b: a < b, bound=None, cutter=None, bplt=False):
         """
         Plynomial fit implementation
+
         Parameters
         ----------
         obj: profile.Profile
@@ -128,7 +133,10 @@ class ProfilePolynomial(Form):
              and then applied on the whole profile
         bplt: bool
             If True plots the polynomial form overimposed on the profile
-        return coeff: np.array()
+
+        Returns
+        ----------
+        coeff: np.array()
             The polynomial form coefficients
         """
 
@@ -164,6 +172,7 @@ class ProfileHistogram(Form):  # Still not working well
         """
         Alligns the profile using the recursive histogram method, stops when
         the tilt correction is less than the parameter final_m
+
         Parameters
         ----------
         obj: profile.Profile
@@ -229,13 +238,17 @@ class SurfaceLSPlane(Form):
     def form(obj: surface.Surface, bplt=False):
         """
         Least square plane fit implementation
+
         Parameters
         ----------
         obj: surface.Surface
             The surface object on wich the LS plane is applied
         bplt: bool
             If True plots the plane overimposed on the surface
-        return sol: np.ndarray
+
+        Returns
+        ----------
+        sol: np.ndarray
             Array of polynomial coefficients.
         """
 
@@ -247,6 +260,7 @@ class SurfacePolynomial(Form):
     def form(obj: surface.Surface, kx=3, ky=3, full=False, comp=lambda a, b: a < b, bound=None, cutter=None, bplt=False):
         """
         Least square polynomial fit implementation
+
         Parameters
         ----------
         obj: surface.Surface
@@ -271,7 +285,10 @@ class SurfacePolynomial(Form):
              and then applied on the whole profile
         bplt: bool, optional
             If True plots the plane overimposed on the surface
-        return sol: np.ndarray
+
+        Returns
+        ----------
+        sol: np.ndarray
             Array of polynomial coefficients.
         """
         if cutter is True:
@@ -332,6 +349,7 @@ class Surface3Points(Form):
         """
         3 points plane fit implementation
         Opens a plot figure to choose the 3 points and fids the plane for those points
+
         Parameters
         ----------
         obj: surface.Surface
@@ -382,6 +400,7 @@ class sphere(Form):
     def form(obj: surface.Surface, finalize=True,  bplt=False):
         """
         Calculates the least square sphere
+
         Parameters
         ----------
         obj: surface.Surface
@@ -391,7 +410,10 @@ class sphere(Form):
             the method will only return the center and the radius
         bplt: bool
             Plots the sphere fitted to the data points
-        return (radius, C): (float, [xc, yc, zc])
+
+        Returns
+        ----------
+        (radius, C): (float, [xc, yc, zc])
             Radius and sphere center coordinates
         """
         #   Assemble the A matrix

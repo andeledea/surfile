@@ -1,12 +1,10 @@
 import os
 import numpy as np
 import matplotlib.pyplot as plt
-from matplotlib.widgets import SpanSelector
 from dataclasses import dataclass
-from alive_progress import alive_bar
 
 from surfile import funct
-from scipy import signal, ndimage, integrate
+from scipy import signal
 
 
 @dataclass
@@ -98,6 +96,7 @@ class Profile:
     def setValues(self, X, Y, bplt):
         """
         Sets the values for the profile
+
         Parameters
         ----------
         X: []
@@ -115,15 +114,24 @@ class Profile:
     def stepAuto(self, bplt):  # TODO: can you find a way to automate minD calculations?
         """
         Calculates the step height using the auto method
+
         Parameters
         ----------
         bplt: bool
             Plots the step reconstruction
+
+        Returns
+        ----------
+        steps: list
+            The calculated step heights
+        definedPeaks: bool
+            False if the standard deviation of the flats is greater than step / 200
+            it gives an indication on how well the steps are defined
         """
 
         def calcSteps():
             st = []
-            definedPeaks = True
+            defined = True
             for j in range(len(roi) - 2):  # consider j, j+1, j+2
                 outerMeanL = np.mean(roi[j].Z)
                 outerMeanR = np.mean(roi[j + 2].Z)
@@ -137,13 +145,13 @@ class Profile:
                 st.append(step)
 
                 if outerStdL > abs(step) / 200 or outerStdR > abs(step) / 200 or innerStd > abs(step) / 200:
-                    definedPeaks = False
+                    defined = False
 
-            if not definedPeaks:
+            if not defined:
                 print(funct.Bcol.WARNING + 'STEP HEIGHT MIGHT BE INCORRECT (PEAKS ARE POURLY DEFINED)' +
                       funct.Bcol.ENDC)
 
-            return st, definedPeaks
+            return st, defined
 
         gr = np.gradient(self.Z)
 
@@ -163,21 +171,25 @@ class Profile:
             roi_end = p_v[i + 1] - locRange
             roi.append(Roi(self.X[roi_start: roi_end],  # append to roi X and Y values of roi
                            self.Z[roi_start: roi_end]))
-        steps, ok = calcSteps()
+        steps, definedPeaks = calcSteps()
 
         if bplt: self.__pltRoi(gr, roi)
-        return steps, ok
+        return steps, definedPeaks
 
     def histMethod(self, bplt, bins=100):
         """
         Histogram method implementation
+
         Parameters
         ----------
         bins: int
             The number of bins of the histogram
         bplt: bool
             Plots the histogram of the profile
-        return (hist, edges)
+
+        Returns
+        ----------
+        (hist, edges)
             The histogram x and y
         """
         hist, edges = np.histogram(self.Z, bins)
@@ -187,6 +199,7 @@ class Profile:
     def roughnessParams(self, cutoff, ncutoffs, bplt):  # TODO: adapt to filter class
         """
         Applies the indicated filter and calculates the roughness parameters
+
         Parameters
         ----------
         cutoff: float
@@ -195,7 +208,10 @@ class Profile:
             number of cutoffs to considerate in the center of the profile
         bplt: bool
             shows roi plot
-        return (RA, RQ, RP, RV, RZ, RSK, RKU): (float, ...)
+
+        Returns
+        ----------
+        (RA, RQ, RP, RV, RZ, RSK, RKU): (float, ...)
             Calculated roughness parameters
         """
         print(f'Applying filter cutoff: {cutoff}')
@@ -208,7 +224,7 @@ class Profile:
             border = round((np.size(self.Z) - nsample_region) / 2)
             roi_I = self.Z[border: -border]  # la roi sono i cutoff in mezzo
 
-            envelope = self.__gaussianKernel(self.Z, cutoff)
+            envelope = self.__gaussianKernel(self.Z, cutoff)  # TODO: move method to roughness module
             roi_F = roi_I - envelope[border: -border]  # applico il filtro per il calcolo
 
             if bplt: self.__pltRoughness(ncutoffs, cutoff, border, roi_I, roi_F, envelope)
@@ -228,12 +244,18 @@ class Profile:
     def findMaxArcSlope(self, R):
         """
         Used to find the max measured slopes of arc of radius R
+
         Parameters
         ----------
         R: float
             The radius of the arc
-        return (phi_max1, phi_max2): (float, float)
-            The 2 slopes calculated at breackpoints 1 and 2 respectively
+
+        Returns
+        ----------
+        phi_max1: float
+            The slope calculated at breackpoint 1 (first nan value)
+        phi_max2: float
+            The slope calculated at breackpoint 2 (last measured point)
         """
         try:
             bound_nan = np.argwhere(np.isnan(self.Z))[0][-1] - 1
@@ -249,13 +271,17 @@ class Profile:
     def arcRadius(self, bplt, skip=0.05):
         """
         Calculates the radius of the arc varying the z (top to bottom)
+
         Parameters
         ----------
         skip: float
             The first micrometers to skip
         bplt: bool
             Plots the calculated radius at all the z values
-        return (r, z): (np.array(), ...)
+
+        Returns
+        ----------
+        (r, z): (np.array(), ...)
             The radius and the respective z values
         """
         # TODO : check if it works
