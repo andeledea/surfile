@@ -42,7 +42,7 @@ def polyval2d(x, y, coeffs):
     return z
 
 
-class Form:
+class Remover:
     @staticmethod
     def plotForm(x, z, coeff):
         form = np.polyval(coeff, x)
@@ -74,9 +74,9 @@ class Form:
         return z_final
 
 
-class ProfileLSLine(Form):
+class ProfileLSLine(Remover):
     @staticmethod
-    def form(obj: profile.Profile, bplt=False):
+    def remove(obj: profile.Profile, bplt=False):
         """
         Least square line fit implementation
 
@@ -102,15 +102,15 @@ class ProfileLSLine(Form):
         (m, q), resid, rank, s = np.linalg.lstsq(G, Z, rcond=None)  # calculate LS plane
 
         if bplt:
-            Form.plotForm(obj.X, obj.Z, [m, q])
+            Remover.plotForm(obj.X, obj.Z, [m, q])
 
-        obj.Z = Form.removeForm(obj.X, obj.Z, [m, q])
+        obj.Z = Remover.removeForm(obj.X, obj.Z, [m, q])
         return m, q
 
 
-class ProfilePolynomial(Form):
+class ProfilePolynomial(Remover):
     @staticmethod
-    def form(obj: profile.Profile, degree, comp=lambda a, b: a < b, bound=None, cutter=None, bplt=False):
+    def remove(obj: profile.Profile, degree, comp=lambda a, b: a < b, bound=None, cutter=None, bplt=False):
         """
         Plynomial fit implementation
 
@@ -159,16 +159,16 @@ class ProfilePolynomial(Form):
             coeff = np.polyfit(x[ind], z[ind], degree)
 
         if bplt:
-            Form.plotForm(obj.X, obj.Z, coeff)
+            Remover.plotForm(obj.X, obj.Z, coeff)
 
-        obj.Z = Form.removeForm(obj.X, obj.Z, coeff)
+        obj.Z = Remover.removeForm(obj.X, obj.Z, coeff)
         return coeff
 
 
-# TODO
-class ProfileHistogram(Form):  # Still not working well
+# TODO: this class does not work, is it even useful??
+class ProfileHistogram(Remover):  # Still not working well
     @staticmethod
-    def form(obj: profile.Profile, final_m, bplt=False):
+    def remove(obj: profile.Profile, final_m, bplt=False):
         """
         Alligns the profile using the recursive histogram method, stops when
         the tilt correction is less than the parameter final_m
@@ -233,9 +233,10 @@ class ProfileHistogram(Form):  # Still not working well
         print(f'Hist method -> End slope {line_m}')
 
 
-class SurfaceLSPlane(Form):
+class SurfaceLSPlane(Remover):
+    # shortcut class to surface poly of degree 1 (implemented for simmetry)
     @staticmethod
-    def form(obj: surface.Surface, bplt=False):
+    def remove(obj: surface.Surface, bplt=False):
         """
         Least square plane fit implementation
 
@@ -252,12 +253,12 @@ class SurfaceLSPlane(Form):
             Array of polynomial coefficients.
         """
 
-        return SurfacePolynomial.form(obj, kx=1, ky=1, bplt=bplt)
+        return SurfacePolynomial.remove(obj, kx=1, ky=1, bplt=bplt)
 
 
-class SurfacePolynomial(Form):
+class SurfacePolynomial(Remover):
     @staticmethod
-    def form(obj: surface.Surface, kx=3, ky=3, full=False, comp=lambda a, b: a < b, bound=None, cutter=None, bplt=False):
+    def remove(obj: surface.Surface, kx=3, ky=3, full=False, comp=lambda a, b: a < b, bound=None, cutter=None, bplt=False):
         """
         Least square polynomial fit implementation
 
@@ -337,15 +338,15 @@ class SurfacePolynomial(Form):
                 coeffs[j, i] = c
 
         if bplt:
-            Form.plot3DForm(obj.X, obj.Y, obj.Z, coeffs)
+            Remover.plot3DForm(obj.X, obj.Y, obj.Z, coeffs)
 
-        obj.Z = Form.remove3DForm(obj.X, obj.Y, obj.Z, coeffs)
+        obj.Z = Remover.remove3DForm(obj.X, obj.Y, obj.Z, coeffs)
         return sol
 
 
-class Surface3Points(Form):
+class Surface3Points(Remover):
     @staticmethod
-    def form(obj: surface.Surface, bplt=False):
+    def remove(obj: surface.Surface, bplt=False):
         """
         3 points plane fit implementation
         Opens a plot figure to choose the 3 points and fids the plane for those points
@@ -380,9 +381,9 @@ class Surface3Points(Form):
             sol = np.array([-d/c, -a/c, -b/c, 0]).reshape((2, 2))
 
             if bplt:
-                Form.plot3DForm(obj.X, obj.Y, obj.Z, sol)
+                Remover.plot3DForm(obj.X, obj.Y, obj.Z, sol)
 
-            obj.Z = Form.remove3DForm(obj.X, obj.Y, obj.Z, sol)
+            obj.Z = Remover.remove3DForm(obj.X, obj.Y, obj.Z, sol)
             plt.close(fig)
 
         fig, ax = plt.subplots()
@@ -395,9 +396,9 @@ class Surface3Points(Form):
         plt.show()
 
 
-class sphere(Form):
+class sphere(Remover):
     @staticmethod
-    def form(obj: surface.Surface, finalize=True,  bplt=False):
+    def remove(obj: surface.Surface, finalize=True, bplt=False):
         """
         Calculates the least square sphere
 

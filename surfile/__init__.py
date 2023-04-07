@@ -1,14 +1,26 @@
 """
-surfile
-_______
+Surfile (better name???)
+________
+Package for surface and profile processing
 
-Provides
+Containers
+________
     - profile
     - surface
 
-    - levelling and form removal operations
-    - filters
-    - cutters
+Utilities
+________
+    - remover: levelling and form removal operations
+    - filter: filtering of profile and surfaces
+    - cutter: cutting edges and sections of topographies
+    - extractor: profile extraction from surface
+
+Processings
+________
+    - roughness: PSD / roughness
+    - morph: morphological features
+
+GitHub: @andeledea
 """
 
 # from . import cutter
@@ -17,4 +29,4 @@ Provides
 # from . import profile
 # from . import surface
 
-__all__ = ['cutter', 'form', 'filter', 'extractor', 'surface', 'profile']
+__all__ = ['cutter', 'remover.py', 'filter', 'extractor', 'surface', 'profile']

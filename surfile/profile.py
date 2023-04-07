@@ -21,7 +21,6 @@ class Profile:
 
         self.name = 'Profile'
 
-    # @funct.timer
     def openPrf(self, fname, bplt):
         z = []
         xs = 0
@@ -111,7 +110,7 @@ class Profile:
 
         if bplt: self.__pltPrf()
 
-    def stepAuto(self, bplt):  # TODO: can you find a way to automate minD calculations?
+    def stepAuto(self, bplt):
         """
         Calculates the step height using the auto method
 
@@ -284,7 +283,6 @@ class Profile:
         (r, z): (np.array(), ...)
             The radius and the respective z values
         """
-        # TODO : check if it works
         r = []
         z = []
         for i, p in enumerate(self.Z[0:-1]):

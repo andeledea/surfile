@@ -673,7 +673,7 @@ def read_microscopedata(filename, userscalecorr, interpolflag):
 
     weight_map, num_invalid = invalid_data_weight(height_map)
     print('num_invalid: ', num_invalid)
-    if (num_invalid > 0) and (interpolflag > 0):
+    if (num_invalid > 0) and interpolflag:
         height_map, weight_map = interpol_csaps(height_map, weight_map, dx, dy, 0.7)
     print('userscalecorr: ', userscalecorr)
     dx *= userscalecorr[0]

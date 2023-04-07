@@ -15,7 +15,6 @@ from surfile import measfile_io
 # plu classes
 
 class Surface:
-    # TODO: remove meshgrids for x and y.
     def __init__(self):
         self.X0, self.Y0, self.Z0 = None, None, None
         self.Z = None
@@ -55,12 +54,12 @@ class Surface:
 
         if bplt: self.pltC()
 
-    def openFile(self, fname, bplt):
+    def openFile(self, fname, bplt, interp=False):
         self.name = os.path.basename(fname)
 
         userscalecorrections = [1.0, 1.0, 1.0]
         dx, dy, z_map, weights, magnification, measdate = \
-            measfile_io.read_microscopedata(fname, userscalecorrections, 0)
+            measfile_io.read_microscopedata(fname, userscalecorrections, interp)
         (n_y, n_x) = z_map.shape
         self.rangeX = n_x * dx
         self.rangeY = n_y * dy
@@ -92,136 +91,6 @@ class Surface:
         hist, edges = np.histogram(self.Z, bins)
         if bplt: self.__pltHist(hist, edges)
         return hist, edges
-
-    def extractProfile(self) -> prf.Profile:
-        """
-        Extracts a profile along x or y at the position indicated by the user
-
-        Returns
-        ----------
-        profile: prf.Profile()
-            Profile object exctracted from the topography
-        """
-        po = {'x': 0, 'y': 0}
-        profile = prf.Profile()
-
-        def pointPick(point, mouseevent):  # called when pick event on fig
-            if mouseevent.xdata is None:
-                return False, dict()
-            xdata = mouseevent.xdata
-            ydata = mouseevent.ydata
-
-            xind = np.where(self.X[0, :] <= xdata)[0][-1]
-            yind = np.where(self.Y[:, 0] <= ydata)[0][-1]
-            print(f'Chosen point {xind}, {yind}')  # print the point the user chose
-
-            po['x'] = xind
-            po['y'] = yind
-            return True, dict(pickx=xind, picky=yind)
-
-        def onClose(event):  # called when fig is closed
-            choice = input('Extract [x/y] profile?')
-            if choice == 'x':  # the user chooses the direction of extraction
-                profile.setValues(self.X[po[choice]], self.Z[po[choice]], False)
-            else:
-                profile.setValues(self.Y[po[choice]], self.Z[po[choice]], False)  # TODO: extract y profile
-            plt.close(fig)
-
-        fig, ax = plt.subplots()  # create the fig for profile selection
-        ax.pcolormesh(self.X, self.Y, self.Z, cmap=cm.rainbow, picker=pointPick)
-        ax.set_title('Extract profile')
-        fig.canvas.mpl_connect('close_event', onClose)
-
-        plt.show()
-        return profile
-
-    def extractMidProfile(self, direction='x') -> prf.Profile:
-        """
-        Extracts a profile along x or y in the center of the topography
-
-        Parameters
-        ----------
-        direction: str
-            'x' or 'y', indicates the extraction direction
-
-        Returns
-        ----------
-        profile: prf.Profile()
-            Profile object exctracted from the topography
-        """
-        profile = prf.Profile()
-        if direction == 'x':
-            profile.setValues(self.x, self.Z[int(np.size(self.x) / 2), :], False)
-
-        if direction == 'y':
-            profile.setValues(self.y, self.Z[:, int(np.size(self.y) / 2)], False)
-
-        return profile
-
-    def sphereMaxProfile(self, start, bplt) -> prf.Profile:
-        """
-        Returns the profile starting from the start point on the positive x direction
-
-        Parameters
-        ----------
-        start : str
-            Method used to find the start (x, y) point on the topography
-                'max': the start point is the maximum Z of the topography
-                'fit': the start point is the center of the best fit sphere
-                'center': the start point is the center of the topography
-                'local': the start point is the local maximum closest to the center of the topography
-        bplt: bool
-            If True plots the topography and the line where the profile is taken from
-
-        Returns
-        ----------
-        profile: prof.Profile()
-            The extracted profile
-        """
-        # TODO : check if xind and yind are inverted
-        profile = prf.Profile()
-        if start == 'max':
-            raveled = np.nanargmax(self.Z)
-            unraveled = np.unravel_index(raveled, self.Z.shape)
-            xind = unraveled[0]
-            yind = unraveled[1]
-        elif start == 'fit':
-            from surfile.form import sphere
-
-            r, C = sphere.form(self, bplt=False)
-            yc = C[0][0]
-            xc = C[1][0]
-            xind = np.argwhere(self.x > xc)[0][0]
-            yind = np.argwhere(self.y > yc)[0][0]
-        elif start == 'center':
-            xind = int(len(self.x) / 2)
-            yind = int(len(self.y) / 2)
-        elif start == 'local':
-            maxima = (self.Z == ndimage.filters.maximum_filter(self.Z, 5))
-            mid = np.asarray(self.Z.shape) / 2
-            maxinds = np.argwhere(maxima)  # find all maxima indices
-            center_max = maxinds[np.argmin(np.linalg.norm(maxinds - mid, axis=1))]
-
-            xind = center_max[0]
-            yind = center_max[1]
-        else:
-            raise Exception(f'{start} is not a valid start method')
-
-        if bplt:
-            fig, ax = plt.subplots()
-            ax.pcolormesh(self.X, self.Y, self.Z, cmap=cm.viridis)  # hot, viridis, rainbow
-            funct.persFig(
-                [ax],
-                gridcol='grey',
-                xlab='x [um]',
-                ylab='y [um]'
-            )
-            plt.hlines(self.y[xind], self.x[yind], self.x[-1])
-            plt.show()
-
-        profile.setValues(self.x[yind:-1], self.Z[xind][yind:-1], bplt=bplt)
-
-        return profile
 
     def rotate(self, angle):
         """
@@ -328,7 +197,6 @@ class Surface:
 
         return yr, yz
 
-    @funct.timer
     def resample(self, newXsize, newYsize):
         """
         Resamples the topography and fills the non-measured points

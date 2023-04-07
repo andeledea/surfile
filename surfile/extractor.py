@@ -33,12 +33,12 @@ class Extractor(ABC):
         self.points = None  # used only in the complex estraction method
 
     @staticmethod
-    def _openTopo():
+    def _openTopo():  # protected method
         root = tk.Tk()
         root.withdraw()
         fname = filedialog.askopenfilename(
             parent=root,
-            title='Choose template extraction surface'
+            title='Choose template surface for extraction'
         )
 
         sur = surface.Surface()
@@ -51,7 +51,7 @@ class Extractor(ABC):
         Asks the user to open a template topography
         plots the template and asks how to extract a profile.
         The parameters are saved and used everytime the extractor is
-        applied to a topography obj
+        applied to a topography obj, see apply()
         """
         self._openTopo()
         pass
@@ -358,9 +358,9 @@ class SphereExtractor(Extractor, ABC):
             xind = unraveled[0]
             yind = unraveled[1]
         elif startP == 'fit':
-            from surfile.form import sphere
+            from surfile.remover import sphere
 
-            r, C = sphere.form(obj, bplt=False)
+            r, C = sphere.remove(obj, bplt=False)
             yc = C[0][0]
             xc = C[1][0]
             xind = np.argwhere(obj.x > xc)[0][0]

@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 import numpy as np
 
-from surfile import profile, surface
+from surfile import profile, surface, funct
 
 import matplotlib.pyplot as plt
 from matplotlib.widgets import RectangleSelector, SpanSelector
@@ -14,8 +14,8 @@ from tkinter import filedialog
 class Cutter(ABC):
     """
     Class that provides methods for profile / surface cutting
-    static methods are used to work directly on profiles / surfaces, extractor objects
-    can be instantiated to apply the same extraction to multiple profiles / surfaces
+    static methods are used to work directly on profiles / surfaces, cutter objects
+    can be instantiated to apply the same cut to multiple profiles / surfaces
     """
     def __init__(self):
         self.extents = None
@@ -26,7 +26,7 @@ class Cutter(ABC):
         Asks the user to open a template profile / topography
         plots the template and asks where the user wants to cut.
         The edges are saved and used everytime the cutter is
-        applied to a profile / topography obj
+        applied to a profile / topography obj, see applyCut()
         """
         pass
 
