@@ -1,16 +1,9 @@
 import os
 import numpy as np
 import matplotlib.pyplot as plt
-from dataclasses import dataclass
 
 from surfile import funct
 from scipy import signal
-
-
-@dataclass
-class Roi:
-    X: list
-    Z: list
 
 
 class Profile:
@@ -48,7 +41,7 @@ class Profile:
             self.Z0 = self.Z = np.array(z)
             self.X0 = self.X = np.linspace(0, (len(z)) * xs, len(z))
 
-            if bplt: self.__pltPrf()
+            if bplt: self.pltPrf()
 
     def openTS(self, fname, bplt):
         with open(fname, 'rb') as tsfile:
@@ -85,7 +78,7 @@ class Profile:
         self.X = self.X0 = np.linspace(0, Ncutoffs * Lcutoff, Npoints)
         self.Z = self.Z0 = np.frombuffer(s[920: 920 + 2 * Npoints], dtype=dt) / Factor
 
-        if bplt: self.__pltPrf()
+        if bplt: self.pltPrf()
 
     def savecsv(self):
         name = input('Choose filename: ')
@@ -108,92 +101,7 @@ class Profile:
         self.X0 = self.X = X
         self.Z0 = self.Z = Y
 
-        if bplt: self.__pltPrf()
-
-    def stepAuto(self, bplt):
-        """
-        Calculates the step height using the auto method
-
-        Parameters
-        ----------
-        bplt: bool
-            Plots the step reconstruction
-
-        Returns
-        ----------
-        steps: list
-            The calculated step heights
-        definedPeaks: bool
-            False if the standard deviation of the flats is greater than step / 200
-            it gives an indication on how well the steps are defined
-        """
-
-        def calcSteps():
-            st = []
-            defined = True
-            for j in range(len(roi) - 2):  # consider j, j+1, j+2
-                outerMeanL = np.mean(roi[j].Z)
-                outerMeanR = np.mean(roi[j + 2].Z)
-                innerMean = np.mean(roi[j + 1].Z)
-
-                outerStdL = np.std(roi[j].Z)
-                outerStdR = np.std(roi[j + 2].Z)
-                innerStd = np.std(roi[j + 1].Z)
-
-                step = innerMean - (outerMeanL + outerMeanR) / 2
-                st.append(step)
-
-                if outerStdL > abs(step) / 200 or outerStdR > abs(step) / 200 or innerStd > abs(step) / 200:
-                    defined = False
-
-            if not defined:
-                print(funct.Bcol.WARNING + 'STEP HEIGHT MIGHT BE INCORRECT (PEAKS ARE POURLY DEFINED)' +
-                      funct.Bcol.ENDC)
-
-            return st, defined
-
-        gr = np.gradient(self.Z)
-
-        thresh = np.max(gr[30:-30]) / 1.5  # derivative threshold to detect peak, avoid border samples
-        zero_cross = np.where(np.diff(np.sign(self.Z - np.mean(self.Z))))[0]
-        spacing = (zero_cross[1] - zero_cross[0]) / 1.5
-
-        peaks, _ = signal.find_peaks(gr, height=thresh, distance=spacing)
-        valle, _ = signal.find_peaks(-gr, height=thresh, distance=spacing)
-
-        roi = []  # regions of interest points
-        p_v = np.sort(np.concatenate((peaks, valle)))  # every point of interest (INDEXES of x array)
-
-        for i in range(len(p_v) - 1):
-            locRange = round((p_v[i + 1] - p_v[i]) / 3)  # profile portion is 1/3 of region
-            roi_start = p_v[i] + locRange
-            roi_end = p_v[i + 1] - locRange
-            roi.append(Roi(self.X[roi_start: roi_end],  # append to roi X and Y values of roi
-                           self.Z[roi_start: roi_end]))
-        steps, definedPeaks = calcSteps()
-
-        if bplt: self.__pltRoi(gr, roi)
-        return steps, definedPeaks
-
-    def histMethod(self, bplt, bins=100):
-        """
-        Histogram method implementation
-
-        Parameters
-        ----------
-        bins: int
-            The number of bins of the histogram
-        bplt: bool
-            Plots the histogram of the profile
-
-        Returns
-        ----------
-        (hist, edges)
-            The histogram x and y
-        """
-        hist, edges = np.histogram(self.Z, bins)
-        if bplt: self.__pltHist(hist, edges)
-        return hist, edges
+        if bplt: self.pltPrf()
 
     def roughnessParams(self, cutoff, ncutoffs, bplt):  # TODO: adapt to filter class
         """
@@ -240,76 +148,10 @@ class Profile:
         RKU = (np.sum(roi ** 4) / np.size(roi)) / (RQ ** 4)
         return RA, RQ, RP, RV, RT, RSK, RKU
 
-    def findMaxArcSlope(self, R):
-        """
-        Used to find the max measured slopes of arc of radius R
-
-        Parameters
-        ----------
-        R: float
-            The radius of the arc
-
-        Returns
-        ----------
-        phi_max1: float
-            The slope calculated at breackpoint 1 (first nan value)
-        phi_max2: float
-            The slope calculated at breackpoint 2 (last measured point)
-        """
-        try:
-            bound_nan = np.argwhere(np.isnan(self.Z))[0][-1] - 1
-        except IndexError:
-            bound_nan = 0
-
-        Rms_1 = self.X[bound_nan - 1] - self.X[0]
-        Rms_2 = self.X[np.nanargmin(self.Z)] - self.X[0]  # find the furthest max point
-        phi_max_1 = np.arcsin(Rms_1 / R)
-        phi_max_2 = np.arcsin(Rms_2 / R)
-        return phi_max_1, phi_max_2
-
-    def arcRadius(self, bplt, skip=0.05):
-        """
-        Calculates the radius of the arc varying the z (top to bottom)
-
-        Parameters
-        ----------
-        skip: float
-            The first micrometers to skip
-        bplt: bool
-            Plots the calculated radius at all the z values
-
-        Returns
-        ----------
-        (r, z): (np.array(), ...)
-            The radius and the respective z values
-        """
-        r = []
-        z = []
-        for i, p in enumerate(self.Z[0:-1]):
-            if np.isnan(p): break
-            ri = self.X[i] - self.X[0]
-            zeh = np.abs(self.Z[0] - p)
-            if zeh > skip:  # skip the first nanometers
-                z.append(zeh)
-                radius = (ri ** 2 + zeh ** 2) / (2 * zeh)
-                r.append(radius)
-
-        if bplt:
-            fig, ax = plt.subplots()
-            ax.plot(z, r)
-            funct.persFig(
-                [ax],
-                gridcol='grey',
-                xlab='Depth',
-                ylab='Radius'
-            )
-            plt.show()
-        return r, z
-
-    #####################################################################################################
-    #                                       PLOT SECTION                                                #
-    #####################################################################################################
-    def __pltPrf(self):  # plots the profile
+    #################
+    # PLOT SECTION  #
+    #################
+    def pltPrf(self):  # plots the profile
         fig, ax = plt.subplots(nrows=1, ncols=1)
         ax.plot(self.X, self.Z, color='teal')
         funct.persFig(
@@ -332,49 +174,6 @@ class Profile:
             ylab='z [um]'
         )
         ax.set_title(self.name)
-        plt.show()
-
-    def __pltRoi(self, gr, rois):
-        fig, ax = plt.subplots(nrows=1, ncols=1)
-        ax.plot(self.X, self.Z, color='teal')
-        ax.plot(self.X, gr, color='blue')
-
-        for roi in rois:
-            ax.plot(roi.X, roi.Z, color='red')
-            ax.plot(self.X, gr, color='blue', linewidth=0.2)
-
-        funct.persFig(
-            [ax],
-            gridcol='grey',
-            xlab='x [mm]',
-            ylab='z [um]'
-        )
-        plt.show()
-
-    # def linePlot(self):
-    #     ax_lin = self.fig.add_subplot(self.gs[2, 0])
-    #     ax_lin.plot(self.X, self.Z0, color='teal')
-    #
-    #     z_line = (- self.m * self.X - self.q) * 1. / self.c
-    #     ax_lin.plot(self.X, z_line, color='red')
-    #
-    #     funct.persFig(
-    #         [ax_lin],
-    #         gridcol='grey',
-    #         xlab='x [mm]',
-    #         ylab='z [um]'
-    #     )
-
-    def __pltHist(self, hist, edges):
-        fig = plt.figure()
-        ax_ht = fig.add_subplot(111)
-        ax_ht.hist(edges[:-1], bins=edges, weights=hist / np.size(self.Z) * 100, color='red')
-        funct.persFig(
-            [ax_ht],
-            gridcol='grey',
-            xlab='z [nm]',
-            ylab='pixels %'
-        )
         plt.show()
 
     def __pltRoughness(self, ncutoffs, cutoff, border, roi_I, roi_F, envelope):
