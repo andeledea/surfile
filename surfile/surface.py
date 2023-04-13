@@ -1,4 +1,5 @@
 import copy
+import profile
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -7,9 +8,7 @@ import os
 from scipy import interpolate, ndimage
 from alive_progress import alive_bar
 
-from surfile import profile as prf
-from surfile import funct
-from surfile import measfile_io
+from surfile import profile, funct, measfile_io
 
 
 # plu classes
@@ -31,6 +30,7 @@ class Surface:
     def openTxt(self, fname, bplt):
         with open(fname, 'r') as fin:
             self.name = os.path.basename(fin.name)
+            self.name = os.path.splitext(self.name)[0]
 
             line = fin.readline().split()
             sx = int(line[0])  # read number of x points
@@ -56,6 +56,7 @@ class Surface:
 
     def openFile(self, fname, bplt, interp=False):
         self.name = os.path.basename(fname)
+        self.name = os.path.splitext(self.name)[0]
 
         userscalecorrections = [1.0, 1.0, 1.0]
         dx, dy, z_map, weights, magnification, measdate = \
@@ -71,6 +72,30 @@ class Surface:
         self.Z0 = self.Z = z_map
 
         if bplt: self.pltC()
+
+    def saveAsc(self, path):
+        """
+        Saves the topography in the .asc file format
+
+        Parameters
+        ----------
+        path: str
+            The path to the save directory
+        """
+        def saveLine(line):
+            line.tofile(fout, sep='\t', format='%.4f')
+            fout.write('\n')
+
+        print(self.Z.shape)
+        with open(os.path.join(path, self.name + '.asc'), 'w') as fout:
+            fout.write(f'{self.name}\n')
+            fout.write(f'X - length:\t{max(self.x) - min(self.x)}\n')
+            fout.write(f'Y - length:\t{max(self.y) - min(self.y)}\n')
+            fout.write(f'X - pixel number:\t{len(self.x)}\n')
+            fout.write(f'Y - pixel number:\t{len(self.y)}\n\n')
+            fout.write(f'Z - data array start:\n')
+
+            np.apply_along_axis(saveLine, axis=1, arr=self.Z)
 
     def rotate(self, angle):
         """
@@ -110,6 +135,31 @@ class Surface:
         self.X = Xi
         self.Y = Yi
         self.Z = Zi
+
+    def toProfiles(self, axis='x'):
+        """
+        Splits the topography into vertical or horizontal profiles
+
+        Parameters
+        ----------
+        axis: str
+            'x' or 'y', the axis on which the f is applied
+
+        Returns
+        -------
+        res: []
+            The resulting profiles
+        """
+        if axis not in ['x', 'y']: raise Exception(f'{axis} is not a valid axis')
+
+        def toPrf(vals):
+            prof = profile.Profile()
+            prof.setValues(np.linspace(0, 10, len(vals)), vals, bplt=False)
+            return prof
+
+        profiles = np.apply_along_axis(toPrf, arr=self.Z, axis=1 if axis == 'x' else 0)
+
+        return profiles
 
     #################
     # PLOT SECTION  #

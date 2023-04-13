@@ -391,6 +391,6 @@ class SphereExtractor(Extractor, ABC):
             plt.hlines(obj.y[xind], obj.x[yind], obj.x[-1])
             plt.show()
 
-        profile.setValues(obj.x[yind:-1], obj.Z[xind][yind:-1], bplt=bplt)
+        prf.setValues(obj.x[yind:-1], obj.Z[xind][yind:-1], bplt=bplt)
 
-        return profile
+        return prf

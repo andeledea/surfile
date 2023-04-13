@@ -56,6 +56,9 @@ def options(**param):
     """
     # TODO now every function asks the user to define a bplt parameter
     # TODO this decorator implements global options, how can we implement both solutions
+    # Solution: the bplt can be defaulted to False in every function, the plt.show()
+    # should not be called in the function but only in the decorator and only if there
+    # are pending graphs to be shown. Try this and see...
     def outer(func):
         def inner(*args, **kwargs):
             init = time.time()

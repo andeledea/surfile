@@ -16,7 +16,7 @@ class Roi:
     Z: list
 
 
-def findHfromHist(hist, edges):
+def _findHfromHist(hist, edges):
     """
     Finds the 2 maximum values in the histogram and calculates the distance of
     the peaks -> gives info about sample step height
@@ -55,7 +55,7 @@ def findHfromHist(hist, edges):
     return binh - binl
 
 
-class ProfileForm:
+class ProfileMorph:
     @staticmethod
     def stepAuto(obj: profile.Profile, bplt=False):
         """
@@ -161,7 +161,7 @@ class ProfileForm:
             The histogram x and y
         """
         hist, edges = np.histogram(obj.Z, bins)
-        height = findHfromHist(hist=hist, edges=edges)
+        height = _findHfromHist(hist=hist, edges=edges)
         if bplt:
             fig = plt.figure()
             ax_ht = fig.add_subplot(111)
@@ -248,7 +248,7 @@ class ProfileForm:
         return r, z
 
 
-class SurfaceForm:
+class SurfaceMorph:
     @staticmethod
     def histHeight(obj: surface.Surface, bins=100, bplt=False):
         """
@@ -271,7 +271,7 @@ class SurfaceForm:
             The histogram x and y
         """
         hist, edges = np.histogram(obj.Z, bins)
-        height = findHfromHist(hist=hist, edges=edges)
+        height = _findHfromHist(hist=hist, edges=edges)
         if bplt:
             fig = plt.figure()
             ax_ht = fig.add_subplot(111)
@@ -318,8 +318,8 @@ class SurfaceForm:
                        elapsed_end=True, stats_end=True, length=30) as bar:
             for a in range(0, 360, angleStep):
                 obj.rotate(a)
-                slopeprofile = copy.copy(extractor.SphereExtractor.sphereProfile(startP=start, bplt=False))
-                ms1, ms2 = ProfileForm.arcSlope(slopeprofile, R)  # 350 um radius
+                slopeprofile = copy.copy(extractor.SphereExtractor.sphereProfile(obj, startP=start, bplt=False))
+                ms1, ms2 = ProfileMorph.arcSlope(slopeprofile, R)  # 350 um radius
                 meas_slope1.append(np.rad2deg(ms1))
                 meas_slope2.append(np.rad2deg(ms2))
                 bar()
@@ -372,8 +372,8 @@ class SurfaceForm:
                        elapsed_end=True, stats_end=True, length=30) as bar:
             for a in range(0, 360, angleStepSize):
                 obj.rotate(a)
-                radiusprofile = copy.copy(extractor.SphereExtractor.sphereProfile(startP=start, bplt=False))
-                r, z = ProfileForm.arcRadius(radiusprofile, bplt=False)  # 350 um radius
+                radiusprofile = copy.copy(extractor.SphereExtractor.sphereProfile(obj, startP=start, bplt=False))
+                r, z = ProfileMorph.arcRadius(radiusprofile, bplt=False)  # 350 um radius
                 rs.append(r)
                 zs.append(z)
                 if bplt: ax.plot(z, r, alpha=0.2)

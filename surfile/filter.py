@@ -38,6 +38,11 @@ import matplotlib.pyplot as plt
 
 
 class Filter:
+    cutoff: float
+
+    def applyFilter(self, obj, bplt=False):
+        pass
+
     @staticmethod
     def plotEnvelope(X, Z, envelope):
         fig, ax = plt.subplots()
@@ -56,6 +61,12 @@ class Filter:
 
 
 class ProfileGaussian(Filter):
+    def __init__(self, cutoff):
+        self.cutoff = cutoff
+
+    def applyFilter(self, obj: profile.Profile, bplt=False):
+        self.filter(obj, cutoff=self.cutoff, bplt=bplt)
+
     @staticmethod
     def filter(obj: profile.Profile, cutoff, bplt=False):
         """
@@ -91,6 +102,13 @@ class ProfileGaussian(Filter):
 
 
 class ProfileSpline(Filter):
+    def __init__(self, cutoff, beta):
+        self.cutoff = cutoff
+        self.beta = beta  # tension parameter
+
+    def applyFilter(self, obj: profile.Profile, bplt=False):
+        self.filter(obj, cutoff=self.cutoff, beta=self.beta, bplt=bplt)
+
     @staticmethod
     def filter(obj: profile.Profile, cutoff, beta=0.5, bplt=False):
         """
@@ -148,6 +166,13 @@ class ProfileSpline(Filter):
 
 
 class ProfileRobust(Filter):
+    def __init__(self, cutoff):
+        self.cutoff = cutoff
+
+    def applyFilter(self, obj: profile.Profile, bplt=False):
+        self.filter(obj, cutoff=self.cutoff, bplt=bplt)
+
+    # TODO: this is still too slow even with sparse calculations
     @staticmethod
     def filter_matrix(obj: profile.Profile, cutoff, bplt=False):
         z = obj.Z
@@ -332,6 +357,12 @@ class ProfileMorph(Filter):
 
 
 class SurfaceGaussian(Filter):
+    def __init__(self, cutoff):
+        self.cutoff = cutoff
+
+    def applyFilter(self, obj: surface.Surface, bplt=False):
+        self.filter(obj, cutoff=self.cutoff, bplt=bplt)
+
     @staticmethod
     def filter(obj: surface.Surface, cutoff, bplt=False):
         """

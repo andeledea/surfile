@@ -3,7 +3,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from surfile import funct
-from scipy import signal
 
 
 class Profile:
@@ -98,11 +97,12 @@ class Profile:
         bplt: bool
             Plots the profile
         """
-        self.X0 = self.X = X
-        self.Z0 = self.Z = Y
+        self.X0 = self.X = np.asarray(X)
+        self.Z0 = self.Z = np.asarray(Y)
 
         if bplt: self.pltPrf()
 
+    # TODO: move to roughness
     def roughnessParams(self, cutoff, ncutoffs, bplt):  # TODO: adapt to filter class
         """
         Applies the indicated filter and calculates the roughness parameters
@@ -174,24 +174,4 @@ class Profile:
             ylab='z [um]'
         )
         ax.set_title(self.name)
-        plt.show()
-
-    def __pltRoughness(self, ncutoffs, cutoff, border, roi_I, roi_F, envelope):
-        fig, ax = plt.subplots()
-
-        twin = ax.twinx()
-        twin.set_ylabel('Filtered roi')
-
-        ax.set_title(f'Gaussian filter: cutoffs: {ncutoffs}, cutoff length: {cutoff}')
-        ax.plot(self.X, self.Z, alpha=0.2, label='Data')
-        ax.plot(self.X[border: -border], roi_I, alpha=0.3, label='roi unfiltered')
-
-        twin.set_ylim(np.min(roi_F) - 0.7 * (np.max(roi_F) - np.min(roi_F)),
-                      np.max(roi_F) + 0.7 * (np.max(roi_F) - np.min(roi_F)))
-        rF, = twin.plot(self.X[border: -border], roi_F, color='green', alpha=0.6, label='roi filtered')
-        twin.tick_params(axis='y', colors=rF.get_color())
-
-        ax.plot(self.X, envelope, color='red', label='filter envelope')
-
-        ax.legend()
         plt.show()

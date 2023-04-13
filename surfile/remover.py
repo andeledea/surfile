@@ -43,6 +43,9 @@ def polyval2d(x, y, coeffs):
 
 
 class Remover:
+    def applyRemover(self, obj, bplt=False):
+        pass
+
     @staticmethod
     def plotForm(x, z, coeff):
         form = np.polyval(coeff, x)
@@ -75,6 +78,10 @@ class Remover:
 
 
 class ProfileLSLine(Remover):
+    # shortcut class to profile poly of degree 1 (implemented for simmetry)
+    def applyRemover(self, obj: profile.Profile, bplt=False):
+        return self.remove(obj, bplt=bplt)
+
     @staticmethod
     def remove(obj: profile.Profile, bplt=False):
         """
@@ -109,6 +116,15 @@ class ProfileLSLine(Remover):
 
 
 class ProfilePolynomial(Remover):
+    def __init__(self, degree, comp=lambda a, b: a < b, bound=None, cutter=None):
+        self.degree = degree
+        self.comp = comp
+        self.bound = bound
+        self.cutter = cutter
+
+    def applyRemover(self, obj: profile.Profile, bplt=False):
+        return self.remove(obj, self.degree, self.comp, self.bound, self.cutter, bplt=bplt)
+
     @staticmethod
     def remove(obj: profile.Profile, degree, comp=lambda a, b: a < b, bound=None, cutter=None, bplt=False):
         """
@@ -235,6 +251,9 @@ class ProfileHistogram(Remover):  # Still not working well
 
 class SurfaceLSPlane(Remover):
     # shortcut class to surface poly of degree 1 (implemented for simmetry)
+    def applyRemover(self, obj: surface.Surface, bplt=False):
+        return self.remove(obj, bplt=bplt)
+
     @staticmethod
     def remove(obj: surface.Surface, bplt=False):
         """
@@ -257,6 +276,17 @@ class SurfaceLSPlane(Remover):
 
 
 class SurfacePolynomial(Remover):
+    def __init__(self, kx=3, ky=3, full=False, comp=lambda a, b: a < b, bound=None, cutter=None):
+        self.kx = kx
+        self.ky = ky
+        self.full = full
+        self.comp = comp
+        self.bound = bound
+        self.cutter = cutter
+
+    def applyRemover(self, obj: surface.Surface, bplt=False):
+        return self.remove(obj, self.kx, self.ky, self.full, self.comp, self.bound, self.cutter)
+
     @staticmethod
     def remove(obj: surface.Surface, kx=3, ky=3, full=False, comp=lambda a, b: a < b, bound=None, cutter=None, bplt=False):
         """

@@ -22,11 +22,3 @@ ________
 
 GitHub: @andeledea
 """
-
-# from . import cutter
-# from . import filter
-# from . import form
-# from . import profile
-# from . import surface
-
-__all__ = ['cutter', 'remover.py', 'filter', 'extractor', 'surface', 'profile']

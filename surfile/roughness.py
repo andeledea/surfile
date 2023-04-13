@@ -1,7 +1,8 @@
 from matplotlib import cm
 import numpy as np
+from dataclasses import dataclass
 
-from surfile import profile, surface
+from surfile import profile, surface, filter, remover
 
 import matplotlib.pyplot as plt
 
@@ -116,10 +117,10 @@ class Psd:
             ax.imshow(np.log10(RePSD), extent=[fx[0], fx[-1], fy[0], fy[-1]])
 
             fig2, (ax, bx) = plt.subplots(nrows=1, ncols=2)
-            ax.imshow(np.log10(self.psdx), extent=[fx[0], fx[-1], 0, Ny*self.deltaY],
-                      aspect=2*fx[-1]/(Ny*self.deltaY))
-            bx.imshow(np.log10(self.psdy), extent=[0, Nx*self.deltaX, fy[0], fy[-1]],
-                      aspect=0.5*Nx*self.deltaX/(fy[-1]))
+            ax.imshow(np.log10(self.psdx), extent=[fx[0], fx[-1], 0, Ny * self.deltaY],
+                      aspect=2 * fx[-1] / (Ny * self.deltaY))
+            bx.imshow(np.log10(self.psdy), extent=[0, Nx * self.deltaX, fy[0], fy[-1]],
+                      aspect=0.5 * Nx * self.deltaX / (fy[-1]))
 
             plt.show()
         return RePSD, fx, RePSDx, fy, RePSDy
@@ -255,3 +256,59 @@ class Psd:
 
         return PSDxmean, PSDymean
 
+
+@dataclass
+class Roi:
+    X: np.array
+    Z: np.array
+
+
+class Parameters:
+    @staticmethod
+    def calc(obj: profile.Profile, rem: remover.Remover = None, fil: filter.Filter = None, bplt=False):
+        """
+        Calculates the roughness parameters of a profile
+
+        Parameters
+        ----------
+        obj: profile.Profile
+            The profile on which the parameters are calculates
+        rem: remover.Remover
+            - if None, the low frequency components are not filtered
+        fil: filter.Filter
+            The filter that is applied before the calculations. The cutoff
+            of the filter is used to select the central region of the profile,
+            half cutof is not condsidered at the adges of the rofile
+        bplt: bool
+            If true plots the profile after the pre-proocessing
+
+        Returns
+        -------
+        RA, RQ, RP, RV, RZ, RSK, RKU: (float, ...)
+            Calculated roughness parameters
+        """
+        border = 0
+
+        if rem is not None:
+            rem.applyRemover(obj)
+        if fil is not None:
+            fil.applyFilter(obj)
+            cutoff = fil.cutoff
+            nsample_cutoff = cutoff / (np.max(obj.X) / np.size(obj.X))
+            border = nsample_cutoff / 2
+
+        roi = Roi(obj.X[border: -border], obj.Z[border: -border])
+
+        if bplt:
+            fig, ax = plt.subplots()
+            ax.plot(obj.X0, obj.Z0, obj.X, obj.Z, alpha=0.5)
+            ax.plot(roi.X, roi.Z)
+
+        RA = np.sum(abs(roi.Z)) / np.size(roi.Z)
+        RQ = np.sqrt(np.sum(abs(roi.Z ** 2)) / np.size(roi.Z))
+        RP = abs(np.max(roi.Z))
+        RV = abs(np.min(roi.Z))
+        RT = RP + RV
+        RSK = (np.sum(roi.Z ** 3) / np.size(roi.Z)) / (RQ ** 3)
+        RKU = (np.sum(roi.Z ** 4) / np.size(roi.Z)) / (RQ ** 4)
+        return RA, RQ, RP, RV, RT, RSK, RKU
