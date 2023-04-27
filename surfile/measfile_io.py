@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
-"""module to read data output of microscopes:
+"""
+'surfile.measfile_io'
+Module to read data output of microscopes:
 - Olympus Lext
 - Sensofar plu
 - Asylum Cypher ibw
@@ -12,6 +14,7 @@ Created 2019-10-03
 last edit 2021-04-02
 @author: Dorothee Hueser
 """
+
 import numpy as np
 from PIL import Image
 import pathlib

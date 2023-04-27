@@ -1,3 +1,11 @@
+"""
+'surfile.funct'
+- utility functions
+- decorators for automation and code reusage
+
+@author: Andrea Giura
+"""
+
 import time
 
 import numpy as np
@@ -91,6 +99,7 @@ def options(**param):
 
 
 def tolerant_mean(arrs: list):
+    # TODO : maybe move to arc radius as _protected
     """
     Calculates the average between multiple arrays of different length
 

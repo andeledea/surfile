@@ -1,3 +1,12 @@
+"""
+'surfile.roughness'
+- analysis of roughness features for:
+    - Profiles
+    - Surfaces
+
+@author: Dorothee Hueser, Andrea Giura
+"""
+
 from matplotlib import cm
 import numpy as np
 from dataclasses import dataclass

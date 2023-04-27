@@ -1,3 +1,13 @@
+"""
+'surfile.extractor'
+- Creates a profile from a surface provides:
+    - SimpleExtractor: profile parallel to x or y direction
+    - ComplexExtractor: profile can be any (even pieceWise defined)
+    - SphereExtractor: profile starting from the maximum point of the surface
+
+@author: Andrea Giura
+"""
+
 from abc import ABC, abstractmethod
 
 import numpy as np
@@ -139,7 +149,7 @@ class SimpleExtractor(Extractor, ABC):
 
         Returns
         ----------
-        profile: prf.Profile()
+        profile: prf.Profile
             Profile object exctracted from the topography
         options: dict
             The position selected by the user and the direction of extraction

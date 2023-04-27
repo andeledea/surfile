@@ -1,7 +1,16 @@
+"""
+'surfile.remover'
+- form removal operations, implements:
+    - least square polynomial fits with bounded domain
+    - spherical fit
+
+@author: Andrea Giura
+"""
+
 import itertools
 
 from matplotlib import cm
-from scipy import integrate
+from scipy import integrate, optimize
 import numpy as np
 
 from surfile import profile, surface, cutter as cutr
@@ -11,7 +20,7 @@ from matplotlib.widgets import PolygonSelector
 
 
 def polyval2d(x, y, coeffs):
-    # https://sofia-usra.github.io/sofia_redux/_modules/sofia_redux/toolkit/fitting/polynomial.html#poly2d
+    # https://sofia-usra.github.io/sofia_redux/license.html
     """
     Evaluate 2D polynomial coefficients
     ONLY USED INTERNALLY FOR SURFACE RECONSTRUCTION
@@ -65,7 +74,7 @@ class Remover:
     def plot3DForm(x, y, z, coeff):
         form = polyval2d(x, y, coeff)
         fig, ax = plt.subplots(subplot_kw={'projection': '3d'})
-        ax.plot_surface(x, y, z, cmap=cm.Greys, alpha=0.4)
+        ax.plot_surface(x, y, z, cmap=cm.Greys, alpha=0.7)
         ax.plot_surface(x, y, form, cmap=cm.rainbow)
 
         plt.show()
@@ -426,7 +435,7 @@ class Surface3Points(Remover):
         plt.show()
 
 
-class sphere(Remover):
+class Sphere(Remover):
     @staticmethod
     def remove(obj: surface.Surface, finalize=True, bplt=False):
         """
@@ -467,7 +476,7 @@ class sphere(Remover):
         #   Assemble the f matrix
         f = np.zeros((len(spX), 1))
         f[:, 0] = (spX * spX) + (spY * spY) + (spZ * spZ)
-        C, residules, rank, singval = np.linalg.lstsq(A, f, rcond=None)
+        C, _, _, _ = np.linalg.lstsq(A, f, rcond=None)
 
         #   solve for the radius
         t = (C[0] * C[0]) + (C[1] * C[1]) + (C[2] * C[2]) + C[3]
@@ -478,7 +487,7 @@ class sphere(Remover):
             obj.Z = obj.Z - sph
 
         if bplt:
-            u, v = np.mgrid[0:2 * np.pi:20j, 0:np.pi:10j]
+            u, v = np.mgrid[0:2*np.pi:20j, 0:np.pi:10j]
             x = np.cos(u) * np.sin(v) * radius
             y = np.sin(u) * np.sin(v) * radius
             z = np.cos(v) * radius
@@ -495,3 +504,90 @@ class sphere(Remover):
 
         return radius[0], C
 
+
+class Cylinder(Remover):
+    @staticmethod
+    def remove(obj: surface.Surface, radius, alphaZ=0, alphaY=0, concavity='convex', finalize=True, bplt=False):
+        """
+        This is a fitting for a horizontal along x cylinder fitting
+        uses the following parameters to find the best cylinder fit
+
+        Parameters
+        ----------
+        obj: surface.Surface
+            The surface object on wich the polynomial fit is applied
+        radius: float
+            The cylinder nominal radius
+        alphaY:
+            An estimate ot the cylinder rotation about the y-axis (radian)
+        alphaZ:
+            An estimate ot the cylinder rotation about the z-axis (radian)
+        concavity: str
+            Can be either 'convex' or 'concave'
+        finalize: bool
+            If set to False the fit will not alter the surface,
+            the method will only return the center and the radius
+        bplt: bool
+            Plots the sphere fitted to the data points
+
+        Returns
+        ----------
+        est_p: np.array
+            P[0] = r, radius of the cylinder
+            p[1] = Yc, y coordinate of the cylinder centre
+            P[2] = Zc, z coordinate of the cylinder centre
+            P[3] = alpha_z, rotation angle (radian) about the z-axis
+            P[4] = alpha_y, rotation angle (radian) about the y-axis
+        """
+
+        X = obj.X.flatten()
+        Y = obj.Y.flatten()
+        Z = obj.Z.flatten()
+
+        nanind = ~np.isnan(Z)
+
+        X = X[nanind]
+        Y = Y[nanind]
+        Z = Z[nanind]
+
+        def fitfunc(p, x, y, z):
+            l = np.cos(p[3]) * np.cos(p[4])
+            m = np.sin(p[3])
+            n = np.cos(p[3]) * np.sin(p[4])
+
+            return x ** 2 + (y - p[1]) ** 2 + (z - p[2]) ** 2 - (l * x + m * (y - p[1]) + n * (z - p[2])) ** 2
+
+        errfunc = lambda p, x, y, z: fitfunc(p, x, y, z) - p[0] ** 2  # error function
+
+        p_init = np.array([radius, 0, 0, alphaZ, alphaY])
+        est_p, success = optimize.leastsq(errfunc, p_init, args=(X, Y, Z))
+
+        print(f'Cylinder fit: {est_p}')
+
+        l = np.cos(est_p[3]) * np.cos(est_p[4])
+        m = np.sin(est_p[3])
+        n = np.cos(est_p[3]) * np.sin(est_p[4])
+
+        A = 1 - n ** 2
+        B = -2 * n * (l * obj.X + m * (obj.Y - est_p[1]))
+        C = (1 - l ** 2) * obj.X ** 2 + \
+            (1 - m ** 2) * (obj.Y - est_p[1]) ** 2 - \
+            2 * obj.X * l * m * (obj.Y - est_p[1]) - est_p[0] ** 2
+
+        delta = np.sqrt(B ** 2 - 4 * A * C) if concavity == 'convex' else -np.sqrt(B ** 2 - 4 * A * C)
+
+        z_cyl = (-B + delta) / (2 * A) + est_p[2]
+
+        if bplt:
+            fig = plt.figure()
+            ax = fig.add_subplot(111, projection='3d')
+            ax.plot_surface(obj.X, obj.Y, obj.Z, cmap=cm.Reds, alpha=0.8)
+
+            ax.plot_surface(obj.X, obj.Y, z_cyl, cmap=cm.rainbow, alpha=0.3)
+            ax.set_box_aspect((np.ptp(obj.X), np.ptp(obj.Y), np.ptp(z_cyl)))
+            plt.show()
+
+        if finalize:
+            obj.Z = obj.Z - z_cyl
+
+        return est_p

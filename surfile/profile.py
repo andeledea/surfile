@@ -1,3 +1,12 @@
+"""
+'surfile.profile'
+- data structure for profile objects
+- plots of the profile
+- io operation for data storage
+
+@author: Andrea Giura
+"""
+
 import os
 import numpy as np
 import matplotlib.pyplot as plt
@@ -101,52 +110,6 @@ class Profile:
         self.Z0 = self.Z = np.asarray(Y)
 
         if bplt: self.pltPrf()
-
-    # TODO: move to roughness
-    def roughnessParams(self, cutoff, ncutoffs, bplt):  # TODO: adapt to filter class
-        """
-        Applies the indicated filter and calculates the roughness parameters
-
-        Parameters
-        ----------
-        cutoff: float
-            cutoff length
-        ncutoffs: int
-            number of cutoffs to considerate in the center of the profile
-        bplt: bool
-            shows roi plot
-
-        Returns
-        ----------
-        (RA, RQ, RP, RV, RZ, RSK, RKU): (float, ...)
-            Calculated roughness parameters
-        """
-        print(f'Applying filter cutoff: {cutoff}')
-
-        # samples preparation for calculation of params
-        def prepare_roi():
-            nsample_cutoff = cutoff / (np.max(self.X) / np.size(self.X))
-            nsample_region = nsample_cutoff * ncutoffs
-
-            border = round((np.size(self.Z) - nsample_region) / 2)
-            roi_I = self.Z[border: -border]  # la roi sono i cutoff in mezzo
-
-            envelope = self.__gaussianKernel(self.Z, cutoff)  # TODO: move method to roughness module
-            roi_F = roi_I - envelope[border: -border]  # applico il filtro per il calcolo
-
-            if bplt: self.__pltRoughness(ncutoffs, cutoff, border, roi_I, roi_F, envelope)
-            return roi_F  # cutoff roi
-
-        roi = prepare_roi()
-
-        RA = np.sum(abs(roi)) / np.size(roi)
-        RQ = np.sqrt(np.sum(abs(roi ** 2)) / np.size(roi))
-        RP = abs(np.max(roi))
-        RV = abs(np.min(roi))
-        RT = RP + RV
-        RSK = (np.sum(roi ** 3) / np.size(roi)) / (RQ ** 3)
-        RKU = (np.sum(roi ** 4) / np.size(roi)) / (RQ ** 4)
-        return RA, RQ, RP, RV, RT, RSK, RKU
 
     #################
     # PLOT SECTION  #

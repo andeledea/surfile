@@ -1,11 +1,20 @@
+"""
+'surfile.morph'
+- analysis of morphological features for:
+    - Profiles
+    - Surfaces
+
+@author: Andrea Giura, Dorothee Hueser
+"""
+
 import copy
 
 import numpy as np
 from dataclasses import dataclass
 
 from alive_progress import alive_bar
-from matplotlib import pyplot as plt
-from scipy import signal
+from matplotlib import pyplot as plt, cm
+from scipy import signal, optimize
 
 from surfile import profile, surface, funct, extractor
 
@@ -162,15 +171,28 @@ class ProfileMorph:
         """
         hist, edges = np.histogram(obj.Z, bins)
         height = _findHfromHist(hist=hist, edges=edges)
+
+        perc_hist = hist / np.size(obj.Z) * 100
+        af_curve = np.zeros(bins)  # abbott firestone curve
+        af_curve[0] = perc_hist[0]
+        for i, ele in enumerate(np.flip(perc_hist[1:])):
+            af_curve[i + 1] = af_curve[i] + ele
+
         if bplt:
-            fig = plt.figure()
-            ax_ht = fig.add_subplot(111)
-            ax_ht.hist(edges[:-1], bins=edges, weights=hist / np.size(obj.Z) * 100, color='red')
+            fig, (ax_ht, bx_af) = plt.subplots(nrows=1, ncols=2)
+            ax_ht.hist(edges[:-1], bins=edges, weights=perc_hist, color='red')
+            bx_af.plot(af_curve, np.flip(edges[:-1]))
             funct.persFig(
                 [ax_ht],
                 gridcol='grey',
                 xlab='z [nm]',
                 ylab='pixels %'
+            )
+            funct.persFig(
+                [bx_af],
+                gridcol='grey',
+                xlab='pixels %',
+                ylab='z [nm]'
             )
             plt.show()
         return height, hist, edges
@@ -247,6 +269,37 @@ class ProfileMorph:
             plt.show()
         return r, z
 
+    @staticmethod
+    def lateral(obj: profile.Profile, nom_pitch, bplt=False):
+        # cosine fit for the whole profile
+        _cos = lambda p: 0.5 * p[0] * np.cos(np.pi * (obj.X - p[1]) / p[2]) + p[3] + p[4] * obj.X
+
+        zmax = np.max(obj.Z)
+        zmin = np.min(obj.Z)
+        p_init = np.array([zmax - zmin, 0, 0.5 * nom_pitch, 0.5 * (zmax + zmin), 0])
+        popt = optimize.leastsq(lambda p: _cos(p) - obj.Z, p_init)[0]
+        print(f'Cosine period (sample pitch approx): {2 * popt[2]}')
+
+        # first maximum is in p1, the following are in p1 + 2p2 * ip
+        period = 2 * popt[2]
+        for ip in range(1, int(max(obj.X) / period)):
+            xip = popt[1] + period * ip
+            boolbox = (xip - 3 / 2 * popt[2] < obj.X) & (obj.X < xip + 3 / 2 * popt[2])
+            xbox = obj.X[boolbox]  # x of the single box
+            zbox = obj.Z[boolbox]  # z of the single box
+
+            # now we can fit the sigmoid
+            _fs = lambda p, s, xsw: 1 / (1 + np.exp(s(p[1] - xbox) - xsw))
+
+            fig, ax = plt.subplots()
+            ax.plot(obj.X, obj.Z, obj.X, _cos(popt), xbox, zbox)
+            plt.show()
+
+        if bplt:
+            fig, ax = plt.subplots()
+            ax.plot(obj.X, obj.Z, obj.X, _cos(popt))
+            plt.show()
+
 
 class SurfaceMorph:
     @staticmethod
@@ -309,7 +362,8 @@ class SurfaceMorph:
 
         Returns
         ----------
-        (phi_max1, phi_max2): (np.array(), ...)
+        phi_max1 : np.array
+        phi_max2 : np.array
             The 2 slopes calculated at breackpoints 1 and 2 respectively
         """
         meas_slope1, meas_slope2 = [], []
@@ -386,3 +440,62 @@ class SurfaceMorph:
         if bplt: plt.show()
 
         return yr, yz
+
+    @staticmethod
+    def cylinder(obj: surface.Surface, radius, concavity='convex', bplt=False):
+        """
+        This is a fitting for a horizontal along x cylinder fitting
+
+        P[0] = r, radius of the cylinder
+        p[1] = Yc, y coordinate of the cylinder centre
+        P[2] = Zc, z coordinate of the cylinder centre
+        P[3] = alpha_z, rotation angle (radian) about the z-axis
+        P[4] = alpha_y, rotation angle (radian) about the y-axis
+        """
+
+        X = obj.X.flatten()
+        Y = obj.Y.flatten()
+        Z = obj.Z.flatten()
+
+        nanind = ~np.isnan(Z)
+
+        X = X[nanind]
+        Y = Y[nanind]
+        Z = Z[nanind]
+
+        def fitfunc(p, x, y, z):
+            l = np.cos(p[3]) * np.cos(p[4])
+            m = np.sin(p[3])
+            n = np.cos(p[3]) * np.sin(p[4])
+
+            return x ** 2 + (y - p[1]) ** 2 + (z - p[2]) ** 2 - (l * x + m * (y - p[1]) + n * (z - p[2])) ** 2
+
+        errfunc = lambda p, x, y, z: fitfunc(p, x, y, z) - p[0] ** 2  # error function
+
+        p_init = np.array([radius, 0, 0, 0, 0])
+        est_p, success = optimize.leastsq(errfunc, p_init, args=(X, Y, Z))
+
+        print(f'Cylinder fit: {est_p}')
+
+        l = np.cos(est_p[3]) * np.cos(est_p[4])
+        m = np.sin(est_p[3])
+        n = np.cos(est_p[3]) * np.sin(est_p[4])
+
+        A = 1 - n ** 2
+        B = -2 * n * (l * obj.X + m * (obj.Y - est_p[1]))
+        C = (1 - l ** 2) * obj.X ** 2 + \
+            (1 - m ** 2) * (obj.Y - est_p[1]) ** 2 - \
+            2 * obj.X * l * m * (obj.Y - est_p[1]) - est_p[0] ** 2
+
+        delta = np.sqrt(B ** 2 - 4 * A * C) if concavity == 'convex' else -np.sqrt(B ** 2 - 4 * A * C)
+
+        z_cyl = (-B + delta) / (2 * A) + est_p[2]
+
+        if bplt:
+            fig = plt.figure()
+            ax = fig.add_subplot(111, projection='3d')
+            ax.plot_surface(obj.X, obj.Y, obj.Z, cmap=cm.Reds, alpha=0.8)
+
+            ax.plot_surface(obj.X, obj.Y, z_cyl, cmap=cm.rainbow, alpha=0.3)
+            ax.set_box_aspect((np.ptp(obj.X), np.ptp(obj.Y), np.ptp(z_cyl)))
+            plt.show()

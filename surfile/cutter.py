@@ -1,3 +1,10 @@
+"""
+'surfile.cutter'
+- Cutting operations for profiles and surfaces
+
+@author: Andrea Giura
+"""
+
 from abc import ABC, abstractmethod
 import numpy as np
 

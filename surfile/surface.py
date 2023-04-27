@@ -1,17 +1,23 @@
-import copy
+"""
+'surfile.surface'
+- data structure for surface objects
+- plots of the surface
+- basic transformation methods (resample, rotation)
+- io operation for data storage
+
+@author: Andrea Giura
+"""
+
 import profile
 
 import numpy as np
 import matplotlib.pyplot as plt
-from matplotlib import cm, lines
+from matplotlib import cm
 import os
 from scipy import interpolate, ndimage
-from alive_progress import alive_bar
 
 from surfile import profile, funct, measfile_io
 
-
-# plu classes
 
 class Surface:
     def __init__(self):
@@ -154,7 +160,7 @@ class Surface:
 
         def toPrf(vals):
             prof = profile.Profile()
-            prof.setValues(np.linspace(0, 10, len(vals)), vals, bplt=False)
+            prof.setValues(self.x if axis == 'x' else self.y, vals, bplt=False)
             return prof
 
         profiles = np.apply_along_axis(toPrf, arr=self.Z, axis=1 if axis == 'x' else 0)

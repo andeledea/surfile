@@ -1,3 +1,14 @@
+"""
+'surfile.filter'
+- Applies a filter to a profile or a surface:
+    - gaussian profile
+    - gaussian surface
+    - spline profile
+    - gaussian robust profile
+
+@author: Andrea Giura, Dorothee Hueser
+"""
+
 from alive_progress import alive_bar
 from matplotlib import cm
 from scipy import ndimage, sparse, special, signal
@@ -131,7 +142,6 @@ class ProfileSpline(Filter):
 
         n = obj.Z.size
         deltaX = np.max(obj.X) / np.size(obj.X)
-        iden = np.eye(n)
         alpha = 1 / (2 * np.sin(np.pi * deltaX / cutoff))
 
         M = np.zeros((n, n))
@@ -378,7 +388,6 @@ class SurfaceGaussian(Filter):
         bplt: bool
             Plots the envelope of the filter if true
         """
-        (n, m) = obj.Z.shape
         deltaX = np.max(obj.x) / np.size(obj.x)
         deltaY = np.max(obj.y) / np.size(obj.y)
         #
