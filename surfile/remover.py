@@ -505,6 +505,43 @@ class Sphere(Remover):
         return radius[0], C
 
 
+def evalCyl(obj: surface.Surface, est_p, concavity):
+    """
+    Evaluates the cylinder points given the 5 parameters
+
+    Parameters
+    ----------
+    obj: surface.Surface
+        The surface object on wich the cylinder is calculated
+    est_p: np.array
+        P[0] = r, radius of the cylinder
+        p[1] = Yc, y coordinate of the cylinder centre
+        P[2] = Zc, z coordinate of the cylinder centre
+        P[3] = alpha_z, rotation angle (radian) about the z-axis
+        P[4] = alpha_y, rotation angle (radian) about the y-axis
+    concavity:
+        Either 'concave' or 'convex'
+
+    Returns
+    -------
+        z_cyl: np.ndarray
+            The calculated points
+    """
+    l = np.cos(est_p[3]) * np.cos(est_p[4])
+    m = np.sin(est_p[3])
+    n = np.cos(est_p[3]) * np.sin(est_p[4])
+
+    A = 1 - n ** 2
+    B = -2 * n * (l * obj.X + m * (obj.Y - est_p[1]))
+    C = (1 - l ** 2) * obj.X ** 2 + \
+        (1 - m ** 2) * (obj.Y - est_p[1]) ** 2 - \
+        2 * obj.X * l * m * (obj.Y - est_p[1]) - est_p[0] ** 2
+
+    delta = np.sqrt(B ** 2 - 4 * A * C) if concavity == 'convex' else -np.sqrt(B ** 2 - 4 * A * C)
+
+    return (-B + delta) / (2 * A) + est_p[2]
+
+
 class Cylinder(Remover):
     @staticmethod
     def remove(obj: surface.Surface, radius, alphaZ=0, alphaY=0, concavity='convex', finalize=True, bplt=False):
@@ -515,7 +552,7 @@ class Cylinder(Remover):
         Parameters
         ----------
         obj: surface.Surface
-            The surface object on wich the polynomial fit is applied
+            The surface object on wich the cylinder fit is applied
         radius: float
             The cylinder nominal radius
         alphaY:
@@ -564,19 +601,7 @@ class Cylinder(Remover):
 
         print(f'Cylinder fit: {est_p}')
 
-        l = np.cos(est_p[3]) * np.cos(est_p[4])
-        m = np.sin(est_p[3])
-        n = np.cos(est_p[3]) * np.sin(est_p[4])
-
-        A = 1 - n ** 2
-        B = -2 * n * (l * obj.X + m * (obj.Y - est_p[1]))
-        C = (1 - l ** 2) * obj.X ** 2 + \
-            (1 - m ** 2) * (obj.Y - est_p[1]) ** 2 - \
-            2 * obj.X * l * m * (obj.Y - est_p[1]) - est_p[0] ** 2
-
-        delta = np.sqrt(B ** 2 - 4 * A * C) if concavity == 'convex' else -np.sqrt(B ** 2 - 4 * A * C)
-
-        z_cyl = (-B + delta) / (2 * A) + est_p[2]
+        z_cyl = evalCyl(obj, est_p, concavity)
 
         if bplt:
             fig = plt.figure()

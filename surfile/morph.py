@@ -16,7 +16,7 @@ from alive_progress import alive_bar
 from matplotlib import pyplot as plt, cm
 from scipy import signal, optimize
 
-from surfile import profile, surface, funct, extractor
+from surfile import profile, surface, funct, extractor, remover
 
 
 @dataclass
@@ -442,60 +442,85 @@ class SurfaceMorph:
         return yr, yz
 
     @staticmethod
-    def cylinder(obj: surface.Surface, radius, concavity='convex', bplt=False):
+    def cylinder(obj: surface.Surface, radius, phiCone=None, alphaZ=0, concavity='convex', bplt=False):
         """
-        This is a fitting for a horizontal along x cylinder fitting
+        Evaluates radius and form deviation of a cylinder
 
-        P[0] = r, radius of the cylinder
-        p[1] = Yc, y coordinate of the cylinder centre
-        P[2] = Zc, z coordinate of the cylinder centre
-        P[3] = alpha_z, rotation angle (radian) about the z-axis
-        P[4] = alpha_y, rotation angle (radian) about the y-axis
+        Parameters
+        ----------
+        obj
+        radius
+        phiCone
+        alphaZ
+        concavity
+        bplt
+
+        Returns
+        -------
+
         """
+        def fitCyl():
+            _p = remover.Cylinder.remove(obj, radius, alphaZ=alphaZ, concavity=concavity, finalize=False, bplt=bplt)
+            _r = np.abs(_p[0])
 
-        X = obj.X.flatten()
-        Y = obj.Y.flatten()
-        Z = obj.Z.flatten()
+            _l = np.cos(_p[3]) * np.cos(_p[4])
+            _m = np.sin(_p[3])
+            _n = np.cos(_p[3]) * np.sin(_p[4])
 
-        nanind = ~np.isnan(Z)
+            return _r, _p, _l, _m, _n
 
-        X = X[nanind]
-        Y = Y[nanind]
-        Z = Z[nanind]
+        def calcResid():
+            # calculation of radial distance from fitted cylinder axis
+            d = -(l * obj.X + m * obj.Y + n * obj.Z)
+            t = -(d + m * est_p[1] + n * est_p[2])
 
-        def fitfunc(p, x, y, z):
-            l = np.cos(p[3]) * np.cos(p[4])
-            m = np.sin(p[3])
-            n = np.cos(p[3]) * np.sin(p[4])
+            H = np.array([l * t, est_p[1] + m * t, est_p[2] + n * t])
+            P = np.array([obj.X, obj.Y, obj.Z])
 
-            return x ** 2 + (y - p[1]) ** 2 + (z - p[2]) ** 2 - (l * x + m * (y - p[1]) + n * (z - p[2])) ** 2
+            dist = np.linalg.norm(P - H, axis=0)
 
-        errfunc = lambda p, x, y, z: fitfunc(p, x, y, z) - p[0] ** 2  # error function
+            # calculation of radial residues as dist - fitR
+            _resid = dist - R
 
-        p_init = np.array([radius, 0, 0, 0, 0])
-        est_p, success = optimize.leastsq(errfunc, p_init, args=(X, Y, Z))
+            return _resid, np.mean(_resid[~np.isnan(_resid)]), np.std(_resid[~np.isnan(_resid)])
 
-        print(f'Cylinder fit: {est_p}')
+        # fit the first approx cyl
+        R, est_p, l, m, n = fitCyl()
+        resid, avg, std = calcResid()
 
-        l = np.cos(est_p[3]) * np.cos(est_p[4])
-        m = np.sin(est_p[3])
-        n = np.cos(est_p[3]) * np.sin(est_p[4])
+        below_i = (np.abs(resid) < 2 * std)  # points with residues below 2sigma
 
-        A = 1 - n ** 2
-        B = -2 * n * (l * obj.X + m * (obj.Y - est_p[1]))
-        C = (1 - l ** 2) * obj.X ** 2 + \
-            (1 - m ** 2) * (obj.Y - est_p[1]) ** 2 - \
-            2 * obj.X * l * m * (obj.Y - est_p[1]) - est_p[0] ** 2
+        if phiCone is not None:  # remove points outside cone from topo
+            base = R * np.sin(np.deg2rad(phiCone))
+            # keep only values inside the range +- base centered on the cylinder axis
+            if alphaZ <= 45:
+                discard_i = np.abs(obj.Y - np.tan(est_p[3]) * obj.X - est_p[1]) > (2 * base) / np.cos(est_p[3])
+            else:
+                discard_i = np.abs(obj.X - np.tan(est_p[3]) * obj.Y + est_p[1] * 1/np.tan(est_p[3])) > (2 * base) / np.sin(est_p[3])
+            obj.Z[discard_i] = np.nan
 
-        delta = np.sqrt(B ** 2 - 4 * A * C) if concavity == 'convex' else -np.sqrt(B ** 2 - 4 * A * C)
+            if bplt: obj.pltC()
 
-        z_cyl = (-B + delta) / (2 * A) + est_p[2]
+        # fit the all cyl
+        R, est_p, l, m, n = fitCyl()
+        resid_all, avg_all, std_all = calcResid()
 
-        if bplt:
-            fig = plt.figure()
-            ax = fig.add_subplot(111, projection='3d')
-            ax.plot_surface(obj.X, obj.Y, obj.Z, cmap=cm.Reds, alpha=0.8)
+        # fit the 2sigma cyl
+        obj.Z[~below_i] = np.nan
+        if bplt: obj.pltC()
+        R, est_p, l, m, n = fitCyl()
+        resid_2s, avg_2s, std_2s = calcResid()
 
-            ax.plot_surface(obj.X, obj.Y, z_cyl, cmap=cm.rainbow, alpha=0.3)
-            ax.set_box_aspect((np.ptp(obj.X), np.ptp(obj.Y), np.ptp(z_cyl)))
-            plt.show()
+        resid = resid[~np.isnan(resid)]
+        print(f'Radial cylinder fit residues: mean {avg}, sigma {std}')
+        print(f'FD_all: {np.max(resid) - np.min(resid)}')
+
+        resid_all = resid_all[~np.isnan(resid_all)]
+        print(f'Radial all cylinder fit residues: mean {avg_all}, sigma {std_all}')
+        print(f'FD_all: {np.max(resid_all) - np.min(resid_all)}')
+
+        resid_2s = resid_2s[~np.isnan(resid_2s)]
+        print(f'Radial 2sigma cylinder fit residues: mean {avg_2s}, sigma {std_2s}')
+        print(f'FD_all: {np.max(resid_2s) - np.min(resid_2s)}')
+
+
