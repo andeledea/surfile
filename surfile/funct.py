@@ -97,25 +97,3 @@ def options(**param):
         return inner
     return outer
 
-
-def tolerant_mean(arrs: list):
-    # TODO : maybe move to arc radius as _protected
-    """
-    Calculates the average between multiple arrays of different length
-
-    Parameters
-    ----------
-    arrs: list
-        The arrays to be processed
-
-    Returns
-    -------
-    mean: np.array
-        The mean calculated
-    """
-    lens = [len(i) for i in arrs]
-    arr = np.ma.empty((np.max(lens), len(arrs)))
-    arr.mask = True
-    for idx, l in enumerate(arrs):
-        arr[:len(l), idx] = l
-    return arr.mean(axis=-1), arr.std(axis=-1)

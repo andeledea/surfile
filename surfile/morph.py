@@ -9,6 +9,7 @@
 
 import copy
 
+import numpy
 import numpy as np
 from dataclasses import dataclass
 
@@ -62,6 +63,28 @@ def _findHfromHist(hist, edges):
     print(f'Height: {binh - binl}')
 
     return binh - binl
+
+
+def _tolerant_mean(arrs: list):
+    """
+    Calculates the average between multiple arrays of different length
+
+    Parameters
+    ----------
+    arrs: list
+        The arrays to be processed
+
+    Returns
+    -------
+    mean: np.array
+        The mean calculated
+    """
+    lens = [len(i) for i in arrs]
+    arr = np.ma.empty((np.max(lens), len(arrs)))
+    arr.mask = True
+    for idx, l in enumerate(arrs):
+        arr[:len(l), idx] = l
+    return arr.mean(axis=-1), arr.std(axis=-1)
 
 
 class ProfileMorph:
@@ -271,14 +294,41 @@ class ProfileMorph:
 
     @staticmethod
     def lateral(obj: profile.Profile, nom_pitch, bplt=False):
+        """
+        Evaluate RSM - N parameters with the sigmoid fit method
+        @dorothee_hueser
+
+        Parameters
+        ----------
+        obj: The profile on which the steps are evaluated
+        nom_pitch: the nominal pitch of the sample
+        bplt: if true 
+
+        Returns
+        -------
+        x_c: np.array
+            The center position of the features
+        h_c: np.array
+            The calculated heights of the features
+        """
+        x_c = []  # center positions of features
+        h_c = []  # height of features
+
         # cosine fit for the whole profile
         _cos = lambda p: 0.5 * p[0] * np.cos(np.pi * (obj.X - p[1]) / p[2]) + p[3] + p[4] * obj.X
+        _fs = lambda p, s, xsw, x: 1 / (1 + np.exp(s * (p[1] - x) - xsw))
+        _sigm = lambda p, x: p[0] * (_fs(p, 1, 1 / 2 * p[2], x) * _fs(p, -1, 1 / 2 * p[2], x) -
+                                     _fs(p, 1, 3 / 2 * p[2], x) * _fs(p, -1, 3 / 2 * p[2], x) + 1 / 2) + p[3]
 
         zmax = np.max(obj.Z)
         zmin = np.min(obj.Z)
         p_init = np.array([zmax - zmin, 0, 0.5 * nom_pitch, 0.5 * (zmax + zmin), 0])
         popt = optimize.leastsq(lambda p: _cos(p) - obj.Z, p_init)[0]
-        print(f'Cosine period (sample pitch approx): {2 * popt[2]}')
+        # print(f'Cosine period (sample pitch approx): {2 * popt[2]}')
+
+        if bplt:
+            fig, ax = plt.subplots()
+            ax.plot(obj.X, obj.Z, obj.X, _cos(popt))
 
         # first maximum is in p1, the following are in p1 + 2p2 * ip
         period = 2 * popt[2]
@@ -289,16 +339,20 @@ class ProfileMorph:
             zbox = obj.Z[boolbox]  # z of the single box
 
             # now we can fit the sigmoid
-            _fs = lambda p, s, xsw: 1 / (1 + np.exp(s(p[1] - xbox) - xsw))
+            p_init_sigm = np.array([np.ptp(obj.Z), xip,  period / 2, np.mean(obj.Z)])
+            popt_sigm = optimize.leastsq(lambda p: _sigm(p, xbox) - zbox, p_init_sigm)[0]
 
-            fig, ax = plt.subplots()
-            ax.plot(obj.X, obj.Z, obj.X, _cos(popt), xbox, zbox)
-            plt.show()
+            h = _sigm(popt_sigm, popt_sigm[1]) - _sigm(popt_sigm, popt_sigm[1] + popt_sigm[2])
+            d_form = popt_sigm[0] / h
+            th = 1
+            h_c.append(h if 1 - th < d_form < 1 + th else np.nan)
+            x_c.append(popt_sigm[1])
 
-        if bplt:
-            fig, ax = plt.subplots()
-            ax.plot(obj.X, obj.Z, obj.X, _cos(popt))
-            plt.show()
+            if bplt: ax.plot(xbox, _sigm(popt_sigm, xbox))
+
+        if bplt: plt.show()
+
+        return np.array(x_c), np.abs(np.array(h_c))
 
 
 class SurfaceMorph:
@@ -433,8 +487,8 @@ class SurfaceMorph:
                 if bplt: ax.plot(z, r, alpha=0.2)
                 bar()
 
-        yr, error = funct.tolerant_mean(rs)
-        yz, error = funct.tolerant_mean(zs)
+        yr, error = _tolerant_mean(rs)
+        yz, error = _tolerant_mean(zs)
         ax.plot(yz, yr, color='red')
         ax.set_ylim(0, max(yr))
         if bplt: plt.show()
@@ -444,20 +498,33 @@ class SurfaceMorph:
     @staticmethod
     def cylinder(obj: surface.Surface, radius, phiCone=None, alphaZ=0, concavity='convex', bplt=False):
         """
-        Evaluates radius and form deviation of a cylinder
+        Evaluates radius and form deviation of a cylinder by fitting a least square cylinder
+        to the points
 
         Parameters
         ----------
-        obj
-        radius
-        phiCone
-        alphaZ
-        concavity
-        bplt
+        obj: surface.Surface
+            The surface on which the processing is applied
+        radius: float
+            The nominal radius of the cylinder
+        phiCone: float
+            Angle in degree of the FOV of the instrument
+        alphaZ: rotation of the cylinder axis about the Y axis (radian)
+        concavity: str
+            Can be either 'convex' or 'concave'
+        bplt: bool
+            Plots the sphere fitted to the data points
 
         Returns
         -------
-
+        R_all: float
+            The radius of the best fit cylinder to all points
+        FD_all: float
+            The form deviation of the best fit cylinder to all points
+        R_2s: float
+            The radius of the best fit cylinder to only the points with residue < 2 * sigma
+        FD_2s: float
+            The form deviation of the best fit cylinder to only the points with residue < 2 * sigma
         """
         def fitCyl():
             _p = remover.Cylinder.remove(obj, radius, alphaZ=alphaZ, concavity=concavity, finalize=False, bplt=bplt)
@@ -493,34 +560,80 @@ class SurfaceMorph:
         if phiCone is not None:  # remove points outside cone from topo
             base = R * np.sin(np.deg2rad(phiCone))
             # keep only values inside the range +- base centered on the cylinder axis
-            if alphaZ <= 45:
-                discard_i = np.abs(obj.Y - np.tan(est_p[3]) * obj.X - est_p[1]) > (2 * base) / np.cos(est_p[3])
-            else:
-                discard_i = np.abs(obj.X - np.tan(est_p[3]) * obj.Y + est_p[1] * 1/np.tan(est_p[3])) > (2 * base) / np.sin(est_p[3])
+            discard_i = np.abs(obj.Y - (m / l) * obj.X - est_p[1]) > (2 * base) / np.cos(est_p[3])
             obj.Z[discard_i] = np.nan
 
             if bplt: obj.pltC()
 
         # fit the all cyl
-        R, est_p, l, m, n = fitCyl()
+        R_all, est_p, l, m, n = fitCyl()
         resid_all, avg_all, std_all = calcResid()
+        FD_all = np.ptp(resid_all[~np.isnan(resid_all)])
 
         # fit the 2sigma cyl
         obj.Z[~below_i] = np.nan
         if bplt: obj.pltC()
-        R, est_p, l, m, n = fitCyl()
+        R_2s, est_p, l, m, n = fitCyl()
         resid_2s, avg_2s, std_2s = calcResid()
+        FD_2s = np.ptp(resid_2s[~np.isnan(resid_2s)])
 
-        resid = resid[~np.isnan(resid)]
-        print(f'Radial cylinder fit residues: mean {avg}, sigma {std}')
-        print(f'FD_all: {np.max(resid) - np.min(resid)}')
+        return R_all, FD_all, R_2s, FD_2s
 
-        resid_all = resid_all[~np.isnan(resid_all)]
-        print(f'Radial all cylinder fit residues: mean {avg_all}, sigma {std_all}')
-        print(f'FD_all: {np.max(resid_all) - np.min(resid_all)}')
+    @staticmethod
+    def lateral(obj: surface.Surface, nom_pitch, direction='x', bplt=False):
+        """
+        Performs the 1D sigmoid analysis for each profile in the topography
+        
+        Parameters
+        ----------
+        obj: The surface on which the analysis is carried out
+        nom_pitch: The nominal pitch of the grating
+        direction: Orientation of the features (perpendicular to the steps)
+        bplt: If true plots the 
 
-        resid_2s = resid_2s[~np.isnan(resid_2s)]
-        print(f'Radial 2sigma cylinder fit residues: mean {avg_2s}, sigma {std_2s}')
-        print(f'FD_all: {np.max(resid_2s) - np.min(resid_2s)}')
+        Returns
+        -------
 
+        """
+        xs = None
+        hs = None
+        ys = obj.y
+        for i, p in enumerate(obj.toProfiles(axis=direction).tolist()):
+            if i == 0:
+                xs, hs = ProfileMorph.lateral(p, nom_pitch=nom_pitch, bplt=bplt)
+            else:
+                x_p, h_p = ProfileMorph.lateral(p, nom_pitch=nom_pitch, bplt=False)
+                xs = np.vstack((xs, x_p))
+                hs = np.vstack((hs, h_p))
 
+        ms, qs = [], []
+        for c in xs.T:  # fit the regression lines
+            yx = np.vstack([obj.y, c.T]).T
+            (rows, cols) = yx.shape
+            G = np.ones((rows, 2))
+            G[:, 0] = yx[:, 0]  # X
+            Z = yx[:, 1]
+            (m, q), _, _, _ = np.linalg.lstsq(G, Z, rcond=None)
+            ms.append(m)
+            qs.append(q)
+
+        pitch = np.ediff1d(qs)
+
+        if bplt:
+            Xs, Ys = np.meshgrid(xs[0], ys)
+            fig, (ax, bx) = plt.subplots(nrows=1, ncols=2)
+
+            mcm = copy.copy(cm.Greys)
+            mcm.set_bad(color='r', alpha=1.)
+            mask_h = np.ma.array(hs, mask=numpy.isnan(hs))
+            Min = np.mean(mask_h) - 2 * np.std(mask_h)
+            Max = np.mean(mask_h) + 2 * np.std(mask_h)
+            p = ax.pcolormesh(Ys, xs, hs, vmin=Min, vmax=Max, cmap=mcm)
+            fig.colorbar(p, ax=ax)
+
+            for i, c in enumerate(xs.T):
+                bx.plot(obj.y, c, obj.y, ms[i] * obj.y + qs[i])
+
+            plt.show()
+        
+        return np.mean(hs), np.mean(pitch)

@@ -115,7 +115,7 @@ class ProfileLSLine(Remover):
         G = np.ones((rows, 2))
         G[:, 0] = XZ[:, 0]  # X
         Z = XZ[:, 1]
-        (m, q), resid, rank, s = np.linalg.lstsq(G, Z, rcond=None)  # calculate LS plane
+        (m, q), resid, rank, s = np.linalg.lstsq(G, Z, rcond=None)  # calculate LS line
 
         if bplt:
             Remover.plotForm(obj.X, obj.Z, [m, q])
@@ -609,7 +609,7 @@ class Cylinder(Remover):
             ax.plot_surface(obj.X, obj.Y, obj.Z, cmap=cm.Reds, alpha=0.8)
 
             ax.plot_surface(obj.X, obj.Y, z_cyl, cmap=cm.rainbow, alpha=0.3)
-            ax.set_box_aspect((np.ptp(obj.X), np.ptp(obj.Y), np.ptp(z_cyl)))
+            ax.set_box_aspect((np.ptp(obj.X), np.ptp(obj.Y), np.ptp(z_cyl[~np.isnan(z_cyl)])))
             plt.show()
 
         if finalize:
