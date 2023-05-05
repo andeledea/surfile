@@ -496,7 +496,8 @@ class SurfaceMorph:
         return yr, yz
 
     @staticmethod
-    def cylinder(obj: surface.Surface, radius, phiCone=None, alphaZ=0, concavity='convex', bplt=False):
+    @funct.options(csvPath='out\\try_csv')
+    def cylinder(obj: surface.Surface, radius, phiCone=None, alphaZ=0, concavity='convex', base=False, bplt=False):
         """
         Evaluates radius and form deviation of a cylinder by fitting a least square cylinder
         to the points
@@ -512,6 +513,8 @@ class SurfaceMorph:
         alphaZ: rotation of the cylinder axis about the Y axis (radian)
         concavity: str
             Can be either 'convex' or 'concave'
+        base: bool
+            If true removes the points at the base of the cylinder
         bplt: bool
             Plots the sphere fitted to the data points
 
@@ -527,7 +530,8 @@ class SurfaceMorph:
             The form deviation of the best fit cylinder to only the points with residue < 2 * sigma
         """
         def fitCyl():
-            _p = remover.Cylinder.remove(obj, radius, alphaZ=alphaZ, concavity=concavity, finalize=False, bplt=bplt)
+            _p = remover.Cylinder.remove(obj, radius, alphaZ=alphaZ, concavity=concavity,
+                                         base=base, finalize=False, bplt=bplt)
             _r = np.abs(_p[0])
 
             _l = np.cos(_p[3]) * np.cos(_p[4])
@@ -559,6 +563,7 @@ class SurfaceMorph:
 
         if phiCone is not None:  # remove points outside cone from topo
             base = R * np.sin(np.deg2rad(phiCone))
+            base = base if m / l > 0 else -base  # invert polarity for alphaZ > 90°
             # keep only values inside the range +- base centered on the cylinder axis
             discard_i = np.abs(obj.Y - (m / l) * obj.X - est_p[1]) > (2 * base) / np.cos(est_p[3])
             obj.Z[discard_i] = np.nan

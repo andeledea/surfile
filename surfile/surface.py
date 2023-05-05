@@ -170,10 +170,11 @@ class Surface:
     #################
     # PLOT SECTION  #
     #################
+    @funct.options(bplt=True, save=False)
     def plt3D(self):
         fig = plt.figure()
         ax_3d = fig.add_subplot(111, projection='3d')
-        ax_3d.plot_surface(self.X, self.Y, self.Z, cmap=cm.rainbow)  # hot, viridis, rainbow
+        p = ax_3d.plot_surface(self.X, self.Y, self.Z, cmap=cm.rainbow)  # hot, viridis, rainbow
         funct.persFig(
             [ax_3d],
             gridcol='grey',
@@ -182,9 +183,8 @@ class Surface:
             zlab='z [nm]'
         )
         ax_3d.set_title(self.name)
-        # ax_3d.colorbar(p)
-        plt.show()
 
+    @funct.options(bplt=True, save=False)
     def pltCompare(self):
         fig, (ax, bx) = plt.subplots(nrows=1, ncols=2)
         p1 = ax.pcolormesh(self.X0, self.Y0, self.Z0, cmap=cm.jet)  # hot, viridis, rainbow
@@ -197,8 +197,9 @@ class Surface:
             xlab='x [um]',
             ylab='y [um]'
         )
-        plt.show()
-
+        ax.set_title(self.name)
+    
+    @funct.options(bplt=True, save=False)
     def pltC(self):
         fig = plt.figure()
         ax_2d = fig.add_subplot(111)
@@ -212,4 +213,3 @@ class Surface:
         ax_2d.set_title(self.name)
         ax_2d.grid(False)
         ax_2d.set_aspect('equal')
-        plt.show()

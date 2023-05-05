@@ -3,6 +3,7 @@
 - form removal operations, implements:
     - least square polynomial fits with bounded domain
     - spherical fit
+    - cylinder fit
 
 @author: Andrea Giura
 """
@@ -405,7 +406,7 @@ class Surface3Points(Remover):
 
                 po.append([a, b, obj.Z[yind, xind]])
 
-            print(f"Collected points: {po}")
+            # print(f"Collected points: {po}")
             a1 = po[1][0] - po[0][0]  # x2 - x1;
             b1 = po[1][1] - po[0][1]  # y2 - y1;
             c1 = po[1][2] - po[0][2]  # z2 - z1;
@@ -544,7 +545,7 @@ def evalCyl(obj: surface.Surface, est_p, concavity):
 
 class Cylinder(Remover):
     @staticmethod
-    def remove(obj: surface.Surface, radius, alphaZ=0, alphaY=0, concavity='convex', finalize=True, bplt=False):
+    def remove(obj: surface.Surface, radius, alphaZ=0, alphaY=0, concavity='convex', base=False, finalize=True, bplt=False):
         """
         This is a fitting for a horizontal along x cylinder fitting
         uses the following parameters to find the best cylinder fit
@@ -561,6 +562,8 @@ class Cylinder(Remover):
             An estimate ot the cylinder rotation about the z-axis (radian)
         concavity: str
             Can be either 'convex' or 'concave'
+        base: bool
+            If true removes the points at the base of the cylinder
         finalize: bool
             If set to False the fit will not alter the surface,
             the method will only return the center and the radius
@@ -576,6 +579,16 @@ class Cylinder(Remover):
             P[3] = alpha_z, rotation angle (radian) about the z-axis
             P[4] = alpha_y, rotation angle (radian) about the y-axis
         """
+        # TODO : try masking the points instead of removing
+        if base:  # remove base points
+            if concavity == 'convex':
+                th = np.nanmax(obj.Z) - 9 / 10 * radius
+                obj.Z[obj.Z < th] = np.nan
+            elif concavity == 'concave':
+                th = np.nanmin(obj.Z) + 9 / 10 * radius
+                obj.Z[obj.Z > th] = np.nan
+            else:
+                raise Exception('Concavity is not valid')
 
         X = obj.X.flatten()
         Y = obj.Y.flatten()
@@ -599,7 +612,7 @@ class Cylinder(Remover):
         p_init = np.array([radius, 0, 0, alphaZ, alphaY])
         est_p, success = optimize.leastsq(errfunc, p_init, args=(X, Y, Z))
 
-        print(f'Cylinder fit: {est_p}')
+        # print(f'Cylinder fit: {est_p}')
 
         z_cyl = evalCyl(obj, est_p, concavity)
 
