@@ -14,7 +14,7 @@ from matplotlib import cm
 from scipy import integrate, optimize
 import numpy as np
 
-from surfile import profile, surface, cutter as cutr
+from surfile import funct, profile, surface, cutter as cutr
 
 import matplotlib.pyplot as plt
 from matplotlib.widgets import PolygonSelector
@@ -342,7 +342,7 @@ class SurfacePolynomial(Remover):
         x, y, z,  = x.ravel(), y.ravel(), z.ravel(),
 
         if bound is True:
-            bound = np.mean(obj.Z)  # set the bound to the mean point
+            bound = np.nanmean(obj.Z)  # set the bound to the mean point
 
         nx, ny = kx + 1, ky + 1
         full |= kx != ky  # if they are different -> full matrix
@@ -364,9 +364,9 @@ class SurfacePolynomial(Remover):
         a = a[indexes]
 
         if bound is not None:  # remove z limited values in comp direction
-            where = np.argwhere(comp(z.reshape(np.size(z)), bound))
-            z = np.delete(z, where, 0)
-            a = np.delete(a, where, 1)  # check if 1 is correct
+            keep = comp(z, bound)
+            z = z[keep]
+            a = a[keep]
 
         sol, _, _, _ = np.linalg.lstsq(a, z, rcond=None)
 
@@ -623,6 +623,8 @@ class Cylinder(Remover):
 
             ax.plot_surface(obj.X, obj.Y, z_cyl, cmap=cm.rainbow, alpha=0.3)
             ax.set_box_aspect((np.ptp(obj.X), np.ptp(obj.Y), np.ptp(z_cyl[~np.isnan(z_cyl)])))
+
+            funct.persFig([ax], 'x[um]', 'y[um]', 'z[um]')
             plt.show()
 
         if finalize:

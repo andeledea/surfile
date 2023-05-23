@@ -89,6 +89,7 @@ class Surface:
             The path to the save directory
         """
         def saveLine(line):
+            line = line / 1000  # in um
             line.tofile(fout, sep='\t', format='%.4f')
             fout.write('\n')
 

@@ -25,7 +25,7 @@ class Bcol:
     UNDERLINE = '\033[4m'
 
 
-def persFig(figures, gridcol, xlab, ylab, zlab=None):
+def persFig(figures, xlab, ylab, zlab=None, gridcol='k'):
     """
     Personalize an axis object or multiple
     Parameters
@@ -52,7 +52,7 @@ def options(csvPath=None, save=False, bplt=False, chrono=False):
 
     Parameters
     ----------
-    csv: str
+    csvPath: str
         If not none saves the return parameters of the decorated function to a csv
     save: bool
         If True saves the figures
@@ -76,7 +76,7 @@ def options(csvPath=None, save=False, bplt=False, chrono=False):
             # exec the function
             ret = func(*args, **kwargs)
 
-            if csv is not None:  # save the return parameters
+            if csvPath is not None:  # save the return parameters
                 with open(f"{csvPath}.csv", 'a', newline='') as csvfile:
                     writer = csv.DictWriter(csvfile, fieldnames=range(len(ret)), dialect='excel')
                     writer.writerow(dict(enumerate(ret)))

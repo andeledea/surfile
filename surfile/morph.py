@@ -137,10 +137,10 @@ class ProfileMorph:
 
         thresh = np.max(gr[30:-30]) / 1.5  # derivative threshold to detect peak, avoid border samples
         zero_cross = np.where(np.diff(np.sign(obj.Z - np.mean(obj.Z))))[0]
-        spacing = (zero_cross[1] - zero_cross[0]) / 1.5
+        # spacing = (zero_cross[1] - zero_cross[0]) / 1.5
 
-        peaks, _ = signal.find_peaks(gr, height=thresh, distance=spacing)
-        valle, _ = signal.find_peaks(-gr, height=thresh, distance=spacing)
+        peaks, _ = signal.find_peaks(gr, height=thresh)   # , distance=spacing)
+        valle, _ = signal.find_peaks(-gr, height=thresh)  # , distance=spacing)
 
         rois = []  # regions of interest points
         p_v = np.sort(np.concatenate((peaks, valle)))  # every point of interest (INDEXES of x array)
@@ -377,7 +377,7 @@ class SurfaceMorph:
         (hist, edges)
             The histogram x and y
         """
-        hist, edges = np.histogram(obj.Z, bins)
+        hist, edges = np.histogram(obj.Z[np.isfinite(obj.Z)], bins=bins)
         height = _findHfromHist(hist=hist, edges=edges)
         if bplt:
             fig = plt.figure()
@@ -390,7 +390,7 @@ class SurfaceMorph:
                 ylab='pixels %'
             )
             plt.show()
-        return height, hist, edges
+        return height, (hist, edges)
 
     @staticmethod
     def sphereSlope(obj: surface.Surface, R, angleStep, start='local', bplt=False):
@@ -496,13 +496,13 @@ class SurfaceMorph:
         return yr, yz
 
     @staticmethod
-    @funct.options(csvPath='out\\try_csv')
+    @funct.options(csvPath='out\\20x_CV_135deg')
     def cylinder(obj: surface.Surface, radius, phiCone=None, alphaZ=0, concavity='convex', base=False, bplt=False):
         """
         Evaluates radius and form deviation of a cylinder by fitting a least square cylinder
         to the points
 
-        Parameters
+        Parametersq
         ----------
         obj: surface.Surface
             The surface on which the processing is applied
@@ -563,7 +563,7 @@ class SurfaceMorph:
 
         if phiCone is not None:  # remove points outside cone from topo
             base = R * np.sin(np.deg2rad(phiCone))
-            base = base if m / l > 0 else -base  # invert polarity for alphaZ > 90°
+            base = base if -np.pi/2 < est_p[3] < np.pi/2 else -base  # invert polarity for alphaZ >< +-90°
             # keep only values inside the range +- base centered on the cylinder axis
             discard_i = np.abs(obj.Y - (m / l) * obj.X - est_p[1]) > (2 * base) / np.cos(est_p[3])
             obj.Z[discard_i] = np.nan
