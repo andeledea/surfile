@@ -12,6 +12,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from surfile import funct
+from surfile.funct import options, rcs
 
 
 class Profile:
@@ -88,11 +89,6 @@ class Profile:
 
         if bplt: self.pltPrf()
 
-    def savecsv(self):
-        name = input('Choose filename: ')
-        np.savetxt('c:/monticone/' + name + '.csv',
-                   np.hstack((self.X.reshape(len(self.X), 1), self.Z.reshape(len(self.Z), 1))), delimiter=';')
-
     def setValues(self, X, Y, bplt):
         """
         Sets the values for the profile
@@ -114,6 +110,7 @@ class Profile:
     #################
     # PLOT SECTION  #
     #################
+    @options(bplt=rcs.params['bpPrf'], save=rcs.params['spPrf'])
     def pltPrf(self):  # plots the profile
         fig, ax = plt.subplots(nrows=1, ncols=1)
         ax.plot(self.X, self.Z, color='teal')
@@ -124,8 +121,8 @@ class Profile:
             ylab='z [um]'
         )
         ax.set_title(self.name)
-        plt.show()
 
+    @options(bplt=rcs.params['bpCom'], save=rcs.params['spCom'])
     def pltCompare(self):  # plots the profile
         fig, (ax, bx) = plt.subplots(nrows=1, ncols=2)
         ax.plot(self.X0, self.Z0, color='teal')
@@ -137,4 +134,3 @@ class Profile:
             ylab='z [um]'
         )
         ax.set_title(self.name)
-        plt.show()

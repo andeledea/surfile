@@ -438,7 +438,7 @@ class Surface3Points(Remover):
 
 class Sphere(Remover):
     @staticmethod
-    def remove(obj: surface.Surface, finalize=True, bplt=False):
+    def remove(obj: surface.Surface, finalize=True, radius=None, bplt=False):
         """
         Calculates the least square sphere
 
@@ -449,6 +449,9 @@ class Sphere(Remover):
         finalize: bool
             If set to False the fit will not alter the surface,
             the method will only return the center and the radius
+        radius: float
+            If None the method will use the best fit radius
+            If a radius is passed then the program will use it
         bplt: bool
             Plots the sphere fitted to the data points
 
@@ -480,11 +483,12 @@ class Sphere(Remover):
         C, _, _, _ = np.linalg.lstsq(A, f, rcond=None)
 
         #   solve for the radius
-        t = (C[0] * C[0]) + (C[1] * C[1]) + (C[2] * C[2]) + C[3]
-        radius = np.sqrt(t)
+        if radius is None:
+            t = (C[0] * C[0]) + (C[1] * C[1]) + (C[2] * C[2]) + C[3]
+            radius = np.sqrt(t)
 
         if finalize:
-            sph = np.sqrt(t - (obj.X-C[0])**2 - (obj.Y-C[1])**2) + C[2]
+            sph = np.sqrt(radius**2 - (obj.X-C[0])**2 - (obj.Y-C[1])**2) + C[2]
             obj.Z = obj.Z - sph
 
         if bplt:

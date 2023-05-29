@@ -16,7 +16,8 @@ from matplotlib import cm
 import os
 from scipy import interpolate, ndimage
 
-from surfile import profile, funct, measfile_io
+from surfile import profile, measfile_io, funct
+from surfile.funct import options, rcs
 
 
 class Surface:
@@ -79,22 +80,23 @@ class Surface:
 
         if bplt: self.pltC()
 
-    def saveAsc(self, path):
+    def saveAsc(self, fname):
         """
         Saves the topography in the .asc file format
 
         Parameters
         ----------
-        path: str
-            The path to the save directory
+        fname: str
+            If fname is a folder the file will be saved in that folder with the surface name
+            If fname is not a folder the file will be saved at fname
         """
         def saveLine(line):
             line = line / 1000  # in um
             line.tofile(fout, sep='\t', format='%.4f')
             fout.write('\n')
 
-        print(self.Z.shape)
-        with open(os.path.join(path, self.name + '.asc'), 'w') as fout:
+        name = os.path.join(fname, self.name + '.asc') if os.path.isdir(fname) else os.path.splitext(fname)[0] + '.asc'
+        with open(name, 'w') as fout:
             fout.write(f'{self.name}\n')
             fout.write(f'X - length:\t{max(self.x) - min(self.x)}\n')
             fout.write(f'Y - length:\t{max(self.y) - min(self.y)}\n')
@@ -171,7 +173,7 @@ class Surface:
     #################
     # PLOT SECTION  #
     #################
-    @funct.options(bplt=True, save=False)
+    @options(bplt=rcs.params['bs3_D'], save=rcs.params['ss3_D'])
     def plt3D(self):
         fig = plt.figure()
         ax_3d = fig.add_subplot(111, projection='3d')
@@ -185,7 +187,7 @@ class Surface:
         )
         ax_3d.set_title(self.name)
 
-    @funct.options(bplt=True, save=False)
+    @options(bplt=rcs.params['bsCom'], save=rcs.params['ssCom'])
     def pltCompare(self):
         fig, (ax, bx) = plt.subplots(nrows=1, ncols=2)
         p1 = ax.pcolormesh(self.X0, self.Y0, self.Z0, cmap=cm.jet)  # hot, viridis, rainbow
@@ -200,7 +202,7 @@ class Surface:
         )
         ax.set_title(self.name)
     
-    @funct.options(bplt=True, save=False)
+    @options(bplt=rcs.params['bsCol'], save=rcs.params['ssCol'])
     def pltC(self):
         fig = plt.figure()
         ax_2d = fig.add_subplot(111)

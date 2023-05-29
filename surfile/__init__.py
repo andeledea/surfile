@@ -22,7 +22,7 @@ ________
 Example:
     The utilities can be used in two ways:
         - interactive: the program asks the user the parameters every time
-            extractor.ComplexExtractor.profile(sur, width=2, bplt=True)
+            extractor.ComplexE xtractor.profile(sur, width=2, bplt=True)
         - programmed: the user sets the parameters at the beginning
             ex = extractor.ComplexExtractor()
             ex.template()

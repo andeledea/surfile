@@ -9,7 +9,6 @@
 
 import copy
 
-import numpy
 import numpy as np
 from dataclasses import dataclass
 
@@ -18,6 +17,7 @@ from matplotlib import pyplot as plt, cm
 from scipy import signal, optimize
 
 from surfile import profile, surface, funct, extractor, remover
+from surfile.funct import classOptions, options, rcs
 
 
 @dataclass
@@ -87,6 +87,11 @@ def _tolerant_mean(arrs: list):
     return arr.mean(axis=-1), arr.std(axis=-1)
 
 
+@classOptions(decorator=options(
+    bplt=rcs.params['bpMor'],
+    save=rcs.params['spMor'],
+    csvPath=rcs.params['cpMor'])
+)
 class ProfileMorph:
     @staticmethod
     def stepAuto(obj: profile.Profile, bplt=False):
@@ -168,7 +173,7 @@ class ProfileMorph:
                 xlab='x [mm]',
                 ylab='z [um]'
             )
-            plt.show()
+            ax.set_title(obj.name)
         return steps, definedPeaks
 
     @staticmethod
@@ -217,7 +222,7 @@ class ProfileMorph:
                 xlab='pixels %',
                 ylab='z [nm]'
             )
-            plt.show()
+            ax_ht.set_title(obj.name)
         return height, hist, edges
 
     @staticmethod
@@ -289,7 +294,7 @@ class ProfileMorph:
                 xlab='Depth',
                 ylab='Radius'
             )
-            plt.show()
+            ax.set_title(obj.name)
         return r, z
 
     @staticmethod
@@ -329,6 +334,7 @@ class ProfileMorph:
         if bplt:
             fig, ax = plt.subplots()
             ax.plot(obj.X, obj.Z, obj.X, _cos(popt))
+            ax.set_title(obj.name)
 
         # first maximum is in p1, the following are in p1 + 2p2 * ip
         period = 2 * popt[2]
@@ -350,11 +356,14 @@ class ProfileMorph:
 
             if bplt: ax.plot(xbox, _sigm(popt_sigm, xbox))
 
-        if bplt: plt.show()
-
         return np.array(x_c), np.abs(np.array(h_c))
 
 
+@classOptions(decorator=options(
+    bplt=rcs.params['bsMor'],
+    save=rcs.params['ssMor'],
+    csvPath=rcs.params['csMor'])
+)
 class SurfaceMorph:
     @staticmethod
     def histHeight(obj: surface.Surface, bins=100, bplt=False):
@@ -389,7 +398,7 @@ class SurfaceMorph:
                 xlab='z [nm]',
                 ylab='pixels %'
             )
-            plt.show()
+            ax_ht.set_title(obj.name)
         return height, (hist, edges)
 
     @staticmethod
@@ -437,12 +446,14 @@ class SurfaceMorph:
             ax.plot(range(0, 360, angleStep), meas_slope1, 'r', label='Max slope Rms1')
             ax.plot(range(0, 360, angleStep), meas_slope2, 'b', label='Max slope Rms2')
             ax.legend()
+            funct.persFig([ax], xlab='Radial angle [deg]', ylab="Measured slope [deg]")
+            ax.set_title(obj.name)
 
             fig2, bx = plt.subplots(subplot_kw={'projection': 'polar'})
             bx.plot(np.deg2rad(range(0, 360, angleStep)), meas_slope1, 'r', label='Max slope Rms1')
             bx.plot(np.deg2rad(range(0, 360, angleStep)), meas_slope2, 'b', label='Max slope Rms2')
             bx.legend()
-            plt.show()
+            bx.set_title(obj.name)
 
         return meas_slope1, meas_slope2
 
@@ -489,14 +500,15 @@ class SurfaceMorph:
 
         yr, error = _tolerant_mean(rs)
         yz, error = _tolerant_mean(zs)
-        ax.plot(yz, yr, color='red')
-        ax.set_ylim(0, max(yr))
-        if bplt: plt.show()
+        if bplt:
+            ax.plot(yz, yr, color='red')
+            ax.set_ylim(0, max(yr))
+            funct.persFig([ax], xlab='Z_eh [um]', ylab='R [um]')
+            ax.set_title(obj.name)
 
         return yr, yz
 
     @staticmethod
-    @funct.options(csvPath='out\\20x_CV_135deg')
     def cylinder(obj: surface.Surface, radius, phiCone=None, alphaZ=0, concavity='convex', base=False, bplt=False):
         """
         Evaluates radius and form deviation of a cylinder by fitting a least square cylinder
@@ -630,7 +642,7 @@ class SurfaceMorph:
 
             mcm = copy.copy(cm.Greys)
             mcm.set_bad(color='r', alpha=1.)
-            mask_h = np.ma.array(hs, mask=numpy.isnan(hs))
+            mask_h = np.ma.array(hs, mask=np.isnan(hs))
             Min = np.mean(mask_h) - 2 * np.std(mask_h)
             Max = np.mean(mask_h) + 2 * np.std(mask_h)
             p = ax.pcolormesh(Ys, xs, hs, vmin=Min, vmax=Max, cmap=mcm)
@@ -638,7 +650,8 @@ class SurfaceMorph:
 
             for i, c in enumerate(xs.T):
                 bx.plot(obj.y, c, obj.y, ms[i] * obj.y + qs[i])
-
-            plt.show()
+            
+            funct.persFig([ax], xlab='x [um]', ylab='y [um]')
+            ax.set_title(obj.name)
         
         return np.mean(hs), np.mean(pitch)

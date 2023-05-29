@@ -1,0 +1,21 @@
+{
+  "bs3_D": true,
+  "bsCol": true,
+  "bsCom": true,
+  "ss3_D": null,
+  "ssCol": null,
+  "ssCom": null,
+
+  "bpPrf": true,
+  "bpCom": true,
+  "spPrf": null,
+  "spCom": null,
+
+  "bsMor": true,
+  "ssMor": null,
+  "csMor": null,
+
+  "bpMor": true,
+  "spMor": null,
+  "cpMor": null
+}
