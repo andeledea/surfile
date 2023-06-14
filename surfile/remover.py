@@ -385,6 +385,7 @@ class SurfacePolynomial(Remover):
 
 
 class Surface3Points(Remover):
+    # TODO : add radius of points to pick with a single click
     @staticmethod
     def remove(obj: surface.Surface, bplt=False):
         """

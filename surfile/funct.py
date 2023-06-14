@@ -109,6 +109,9 @@ def options(csvPath=None, save=None, bplt=False, chrono=False):
 
 
 def classOptions(decorator):
+    """
+    Class decorator uset to apply the same @dec to all methods
+    """
     def decorate(cls):
         for attr in cls.__dict__:  # there's propably a better way to do this
             if callable(getattr(cls, attr)):

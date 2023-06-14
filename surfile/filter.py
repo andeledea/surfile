@@ -207,9 +207,7 @@ class ProfileRobust(Filter):
                     slk = 1 / gmco * np.exp(-np.pi * (xlk / gmco)**2)
                     sk[l][l] = slk * deltal
 
-                xk_sp = sparse.csc_matrix(xk)
-                sk_sp = sparse.csc_matrix(sk)
-                M = xk_sp.transpose().multiply(sk_sp).multiply(xk_sp)
+                M = xk.T @ sk @ xk
 
                 T = np.matmul([1, 0, 0], M)
                 T = np.matmul(T, xk.T)

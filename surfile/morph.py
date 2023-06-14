@@ -14,7 +14,7 @@ from dataclasses import dataclass
 
 from alive_progress import alive_bar
 from matplotlib import pyplot as plt, cm
-from scipy import signal, optimize
+from scipy import signal, optimize, stats
 
 from surfile import profile, surface, funct, extractor, remover
 from surfile.funct import classOptions, options, rcs
@@ -177,7 +177,7 @@ class ProfileMorph:
         return steps, definedPeaks
 
     @staticmethod
-    def histHeight(obj: profile.Profile, bins=100, bplt=False):
+    def histHeight(obj: profile.Profile, bins=None, bplt=False):
         """
         Histogram method implementation
 
@@ -197,7 +197,12 @@ class ProfileMorph:
         (hist, edges)
             The histogram x and y
         """
-        hist, edges = np.histogram(obj.Z, bins)
+        b = bins
+        if bins is None:
+            b = 2 * stats.iqr(obj.Z) / (obj.Z.size ** (1 / 3))  # Freedman-Diaconis
+            print(f'Using {b} bins in hist')
+
+        hist, edges = np.histogram(obj.Z, b)
         height = _findHfromHist(hist=hist, edges=edges)
 
         perc_hist = hist / np.size(obj.Z) * 100
@@ -366,7 +371,7 @@ class ProfileMorph:
 )
 class SurfaceMorph:
     @staticmethod
-    def histHeight(obj: surface.Surface, bins=100, bplt=False):
+    def histHeight(obj: surface.Surface, bins=None, bplt=False):
         """
         Histogram method implementation
 
@@ -375,7 +380,8 @@ class SurfaceMorph:
         obj : surface.Surface
             The surface object on wich the height is calculated
         bins: int
-            The number of bins of the histogram
+            The number of bins of the histogram, if set to none the program will calculate
+            automatically the number of bins
         bplt: bool
             Plots the histogram of the profile
 
@@ -386,7 +392,13 @@ class SurfaceMorph:
         (hist, edges)
             The histogram x and y
         """
-        hist, edges = np.histogram(obj.Z[np.isfinite(obj.Z)], bins=bins)
+        b = bins
+        if bins is None:
+            # bw = 2 * stats.iqr(obj.Z[np.isfinite(obj.Z)]) / (obj.Z.size ** (1/3))  # Freedman-Diaconis
+            b = int(np.sqrt(obj.Z.size))
+            print(f'Using {b} bins in hist')
+
+        hist, edges = np.histogram(obj.Z[np.isfinite(obj.Z)], bins=b)
         height = _findHfromHist(hist=hist, edges=edges)
         if bplt:
             fig = plt.figure()

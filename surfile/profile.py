@@ -89,6 +89,10 @@ class Profile:
 
         if bplt: self.pltPrf()
 
+    def saveTxt(self, fname):
+        name = os.path.join(fname, self.name + '.asc') if os.path.isdir(fname) else os.path.splitext(fname)[0] + '.asc'
+        np.savetxt(name, np.c_[self.X.ravel().T, self.Z.ravel().T], fmt='%.4e')
+
     def setValues(self, X, Y, bplt):
         """
         Sets the values for the profile

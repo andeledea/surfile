@@ -106,6 +106,10 @@ class Surface:
 
             np.apply_along_axis(saveLine, axis=1, arr=self.Z)
 
+    def saveTxt(self, fname):
+        name = os.path.join(fname, self.name + '.asc') if os.path.isdir(fname) else os.path.splitext(fname)[0] + '.asc'
+        np.savetxt(name, np.c_[self.X.ravel().T, self.Y.ravel().T, self.Z.ravel().T], fmt='%.4e')
+
     def rotate(self, angle):
         """
         Rotates the original topography by the specified angle
