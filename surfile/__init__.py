@@ -1,5 +1,4 @@
 """
-Surfile (better name???)
 ________
 Package for surface and profile processing
 
@@ -9,6 +8,7 @@ ________
     - surface
 
 Example:
+________
     sur = surface.Surface()
     sur.openFile(fname, interp=False, bplt=True)
 
@@ -20,9 +20,10 @@ ________
     - extractor: profile extraction from surface
 
 Example:
+________
     The utilities can be used in two ways:
         - interactive: the program asks the user the parameters every time
-            extractor.ComplexE xtractor.profile(sur, width=2, bplt=True)
+            extractor.ComplexExtractor.profile(sur, width=2, bplt=True)
         - programmed: the user sets the parameters at the beginning
             ex = extractor.ComplexExtractor()
             ex.template()
@@ -32,6 +33,9 @@ Processings
 ________
     - roughness: PSD / roughness
     - morph: morphological features
+    - slope: slope distribution analysis
 
 GitHub: @andeledea, @...
 """
+
+__docformat__ = 'numpy'

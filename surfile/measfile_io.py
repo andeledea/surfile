@@ -675,7 +675,7 @@ def read_microscopedata(filename, userscalecorr, interpolflag):
             nx, ny, dx, dy, height_map, measdate = read_NMMgaoliang(content.decode('ascii'))
 
     weight_map, num_invalid = invalid_data_weight(height_map)
-    print('num_invalid: ', num_invalid)
+    print(f'num_invalid: {num_invalid} / {height_map.size}')
     if (num_invalid > 0) and interpolflag:
         height_map, weight_map = interpol_csaps(height_map, weight_map, dx, dy, 0.7)
     print('userscalecorr: ', userscalecorr)

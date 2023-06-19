@@ -13,6 +13,8 @@ import matplotlib.pyplot as plt
 import csv
 import json
 
+import numpy as np
+
 
 class Bcol:
     HEADER = '\033[95m'
@@ -36,7 +38,7 @@ def persFig(figures, xlab, ylab, zlab=None, gridcol='k'):
     gridcol: str
         The color of the grid
     xlab: str
-    ylab: str -> labels
+    ylab: str
     zlab: str
     """
     for figure in figures:
@@ -78,17 +80,22 @@ def options(csvPath=None, save=None, bplt=False, chrono=False):
             ret = func(*args, **kwargs)
 
             if csvPath is not None:  # save the return parameters
-                with open(f"{csvPath}.csv", 'a', newline='') as csvfile:
-                    writer = csv.DictWriter(csvfile, fieldnames=range(len(ret)), dialect='excel')
-                    writer.writerow(dict(enumerate(ret)))
+                try:
+                    for i, xy in enumerate(ret):
+                        np.savetxt(f"{csvPath}{func.__name__}_{rcs.currentImage}_{str(i)}.csv", np.c_[xy])
+                except TypeError:
+                    with open(f"{csvPath}.csv", 'a', newline='') as csvfile:
+                        writer = csv.DictWriter(csvfile, fieldnames=range(len(ret)), dialect='excel')
+                        writer.writerow(dict(enumerate(ret)))
 
+            fig_nums = plt.get_fignums()
+            figs = [plt.figure(n) for n in fig_nums]
             if save is not None:  # save the figures
                 if len(plt.get_fignums()) > 0:
                     print(Bcol.OKCYAN + f'Saving images from function {func.__name__}' + Bcol.ENDC)
-                    fig_nums = plt.get_fignums()
-                    figs = [plt.figure(n) for n in fig_nums]
+
                     for i, fig in enumerate(figs):
-                        fig.savefig(f'{save}{func.__name__}_{fig.axes[0].get_title()}_{str(i)}.png', format='png')
+                        fig.savefig(f'{save}{func.__name__}_{rcs.currentImage}_{str(i)}.png', format='png')
                 else:
                     print(Bcol.WARNING + f'Function {func.__name__} has no active figures' + Bcol.ENDC)
 
@@ -98,6 +105,8 @@ def options(csvPath=None, save=None, bplt=False, chrono=False):
                     plt.show()
                 else:
                     print(Bcol.WARNING + f'Function {func.__name__} has no active figures' + Bcol.ENDC)
+            else:
+                plt.close('all')
 
             if chrono:  # time the function
                 print(Bcol.OKCYAN +
@@ -141,6 +150,7 @@ class Rc:
     # and then read the file (json) with this class using only a dictionary
 
     params: dict
+    currentImage: str = 'Image'
 
     def __init__(self):
         import surfile
@@ -171,6 +181,9 @@ class Rc:
         """
         with open(js_fout, 'w') as fout:
             json.dump(self.params, fout)
+
+    def setCurrentImage(self, name):
+        self.currentImage = name
 
 
 rcs = Rc()  # define global Rcs

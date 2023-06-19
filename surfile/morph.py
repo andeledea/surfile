@@ -315,7 +315,7 @@ class ProfileMorph:
         bplt: if true 
 
         Returns
-        -------
+        ----------
         x_c: np.array
             The center position of the features
         h_c: np.array
@@ -526,7 +526,7 @@ class SurfaceMorph:
         Evaluates radius and form deviation of a cylinder by fitting a least square cylinder
         to the points
 
-        Parametersq
+        Parameters
         ----------
         obj: surface.Surface
             The surface on which the processing is applied
@@ -621,8 +621,11 @@ class SurfaceMorph:
         bplt: If true plots the 
 
         Returns
-        -------
-
+        ----------
+        hs: float
+            Calculated mean height
+        pitch: float
+            Calculated mean pitch
         """
         xs = None
         hs = None

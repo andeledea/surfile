@@ -102,7 +102,7 @@ class ProfileCutter(Cutter, ABC):
 
         Parameters
         ----------
-        obj : profile.Profile
+        obj: profile.Profile
             The profile object on wich the cut is applied
         finalize: bool
             If set to False the cut will not alter the profile,

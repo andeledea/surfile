@@ -149,6 +149,16 @@ class Surface:
         self.Y = Yi
         self.Z = Zi
 
+    def fillNM(self):
+        """
+        Fills the surface non measured points
+        """
+        z_ma = np.ma.masked_invalid(self.Z)
+        interpolate.griddata((self.X[~z_ma.mask], self.Y[~z_ma.mask]),
+                             z_ma[~z_ma.mask].ravel(),
+                             (self.X, self.Y),
+                             method='cubic')
+
     def toProfiles(self, axis='x'):
         """
         Splits the topography into vertical or horizontal profiles

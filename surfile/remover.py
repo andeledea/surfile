@@ -38,7 +38,7 @@ def polyval2d(x, y, coeffs):
 
     Returns
     -------
-    numpy.ndarray
+    z : numpy.ndarray
         (shape1) polynomial coefficients evaluated at (y,x).
     """
     s = x.shape
@@ -439,7 +439,7 @@ class Surface3Points(Remover):
 
 class Sphere(Remover):
     @staticmethod
-    def remove(obj: surface.Surface, finalize=True, radius=None, bplt=False):
+    def remove(obj: surface.Surface, finalize=True, radius=None, concavity=None, bplt=False):
         """
         Calculates the least square sphere
 
@@ -453,6 +453,9 @@ class Sphere(Remover):
         radius: float
             If None the method will use the best fit radius
             If a radius is passed then the program will use it
+        concavity: str
+            Can be either 'convex' or 'concave'
+            If set to None the program will find the concavity of the sample
         bplt: bool
             Plots the sphere fitted to the data points
 
@@ -461,6 +464,7 @@ class Sphere(Remover):
         (radius, C): (float, [xc, yc, zc])
             Radius and sphere center coordinates
         """
+        if concavity not in [None, 'concave', 'convex']: raise Exception('Concavity is not valid')
         #   Assemble the A matrix
         spZ = obj.Z.flatten()
         spX = obj.X.flatten()
@@ -483,14 +487,18 @@ class Sphere(Remover):
         f[:, 0] = (spX * spX) + (spY * spY) + (spZ * spZ)
         C, _, _, _ = np.linalg.lstsq(A, f, rcond=None)
 
+        # radius = [radius]
         #   solve for the radius
         if radius is None:
             t = (C[0] * C[0]) + (C[1] * C[1]) + (C[2] * C[2]) + C[3]
-            radius = np.sqrt(t)
+            radius = np.sqrt(t)[0]
 
         if finalize:
-            sph = np.sqrt(radius**2 - (obj.X-C[0])**2 - (obj.Y-C[1])**2) + C[2]
-            obj.Z = obj.Z - sph
+            sph = np.sqrt(radius**2 - (obj.X-C[0])**2 - (obj.Y-C[1])**2)
+            if C[2] < np.mean(obj.Z0): concavity = 'convex'
+            if C[2] > np.mean(obj.Z0): concavity = 'concave'
+            print(f'{concavity=}')
+            obj.Z = obj.Z - sph - C[2] if concavity == 'convex' else obj.Z + sph - C[2]
 
         if bplt:
             u, v = np.mgrid[0:2*np.pi:20j, 0:np.pi:10j]
@@ -508,7 +516,7 @@ class Sphere(Remover):
             ax.plot_wireframe(x, y, z, color="r", alpha=0.2)
             plt.show()
 
-        return radius[0], C
+        return radius, C
 
 
 def evalCyl(obj: surface.Surface, est_p, concavity):
@@ -530,8 +538,8 @@ def evalCyl(obj: surface.Surface, est_p, concavity):
 
     Returns
     -------
-        z_cyl: np.ndarray
-            The calculated points
+    z_cyl: np.ndarray
+        The calculated points
     """
     l = np.cos(est_p[3]) * np.cos(est_p[4])
     m = np.sin(est_p[3])
