@@ -10,25 +10,10 @@ from matplotlib import pyplot as plt
 from surfile import surface, funct
 
 import numpy as np
-from dataclasses import dataclass
-from alive_progress import alive_bar
+import scipy.stats as st
 
 
-@dataclass
-class Triangle:
-    A: np.array
-    B: np.array
-    C: np.array
-
-    def triangleNormal(self):
-        u = self.B - self.A
-        v = self.C - self.B
-
-        n = np.cross(u, v)
-        return n
-
-
-def __makeFacesVectorized1(shape):
+def __makeFacesVectorized(shape):
     Nr = shape[0]
     Nc = shape[1]
 
@@ -57,7 +42,7 @@ def __appendSpherical_np(xyz):
     return thetas, phis
 
 
-def slopeDistribution(obj: surface.Surface, equalSpacing=True, theta_bins=90, phi_bins=360, bplt=False):
+def slopeDistribution(obj: surface.Surface, structured=False, theta_bins=90, phi_bins=360, bplt=False):
     """
     Calculates the slope distribution in angles theta and phi
 
@@ -65,10 +50,10 @@ def slopeDistribution(obj: surface.Surface, equalSpacing=True, theta_bins=90, ph
     ----------
     obj: surface.Surface
         The surface n wich the slope distribution is calculated
-    equalSpacing: bool
+    structured: bool
         If true the method assumes equal spacing along x-axis (dx) and equal spacing along
-        y-axis, this speeds up a lot the calculation
-        If false the method uses a generalized triangle approach which takes longer to process
+        y-axis
+        If false the method uses a generalized triangle approach (recommended)
     theta_bins: int
         The number of bins for the Theta distribution
     phi_bins: int
@@ -87,24 +72,19 @@ def slopeDistribution(obj: surface.Surface, equalSpacing=True, theta_bins=90, ph
     y = obj.Y.ravel()
     z = obj.Z.ravel()
 
-    ind = __makeFacesVectorized1(obj.Z.shape)
+    ind = __makeFacesVectorized(obj.Z.shape)
 
-    def triangleMethod():
-        nor = []
-        with alive_bar(len(ind), force_tty=True,
-                       title='Triangles', theme='smooth',
-                       elapsed_end=True, stats_end=True, length=30) as bar:
-            for i1, i2, i3 in ind:
-                t = Triangle(np.array([x[i1], y[i1], z[i1]]),
-                             np.array([x[i2], y[i2], z[i2]]),
-                             np.array([x[i3], y[i3], z[i3]]))
+    def unstructuredMesh():
+        A = np.array([x[ind[:, 0]], y[ind[:, 0]], z[ind[:, 0]]]).T
+        B = np.array([x[ind[:, 1]], y[ind[:, 1]], z[ind[:, 1]]]).T
+        C = np.array([x[ind[:, 2]], y[ind[:, 2]], z[ind[:, 2]]]).T
 
-                nor.append(t.triangleNormal())
+        u = B - A
+        v = C - B
 
-                bar()
-        return np.array(nor)
+        return np.cross(u, v)
 
-    def fastMethod():
+    def structuredMesh():
         dx, dy = np.max(obj.x) / np.size(obj.x), np.max(obj.y) / np.size(obj.y)
 
         eve_fun = lambda a: np.array([(z[a[0]] - z[a[1]]) * dy, (z[a[0]] - z[a[2]]) * dx, dx * dy])
@@ -118,20 +98,20 @@ def slopeDistribution(obj: surface.Surface, equalSpacing=True, theta_bins=90, ph
 
         return np.vstack((n_eve, n_odd))
 
-    if equalSpacing:
-        normals = fastMethod()
-    else:
-        normals = triangleMethod()
+    if structured: normals = structuredMesh()
+    else:          normals = unstructuredMesh()
 
     thetas, phis = __appendSpherical_np(normals)
 
+    print(f'Slope Distribution:\nTheta:\t{st.describe(thetas)}\nPhi:\t{st.describe(phis)}')
+    
     hist_theta, edges_theta = np.histogram(thetas, bins=theta_bins)
     hist_phi, edges_phi = np.histogram(phis, bins=phi_bins)
 
     if bplt:
         fig = plt.figure()
         (ax_ht, bx_ht) = fig.subplots(nrows=2, ncols=1)
-        ax_ht.hist(edges_theta[:-1], bins=edges_theta, weights=hist_theta / len(ind) * 100, color='darkturquoise')
+        ax_ht.hist(edges_theta[:-1], bins=edges_theta, weights=hist_theta / len(ind) * 100, color='darksalmon')
         bx_ht.hist(edges_phi[:-1], bins=edges_phi, weights=hist_phi / len(ind) * 100, color='darkturquoise')
         funct.persFig(
             [ax_ht, bx_ht],
@@ -141,6 +121,16 @@ def slopeDistribution(obj: surface.Surface, equalSpacing=True, theta_bins=90, ph
         )
         ax_ht.set_title(obj.name + ' Theta')
         bx_ht.set_title(obj.name + ' Phi')
+
+        plt.figure()
+        cx, dx = plt.subplot(121, polar=True), plt.subplot(122, polar=True)
+        cx.bar(np.deg2rad(edges_theta[:-1]), hist_theta / max(hist_theta), width=(2*np.pi) / theta_bins,
+               bottom=0, color='darksalmon', alpha=0.5, label='Theta')
+        dx.bar(np.deg2rad(edges_phi[:-1]), hist_phi / max(hist_phi), width=(2 * np.pi) / phi_bins,
+               bottom=0, color='darkturquoise', alpha=0.5, label='Phi')
+        cx.legend()
+        dx.legend()
+        cx.set_title(obj.name)
         plt.show()
 
-        return (hist_theta, edges_theta), (hist_phi, edges_phi)
+    return (hist_theta, edges_theta), (hist_phi, edges_phi)

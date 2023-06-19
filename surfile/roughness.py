@@ -11,7 +11,7 @@ from matplotlib import cm
 import numpy as np
 from dataclasses import dataclass
 
-from surfile import profile, surface, filter, remover
+from surfile import profile, surface, filter, remover, funct
 
 import matplotlib.pyplot as plt
 
@@ -124,13 +124,15 @@ class Psd:
         if bplt:
             fig, ax = plt.subplots()
             ax.imshow(np.log10(RePSD), extent=[fx[0], fx[-1], fy[0], fy[-1]])
+            funct.persFig([ax], xlab=r'$f_x / \mu m^{-1}$', ylab=r'$f_y / \mu m^{-1}$')
 
             fig2, (ax, bx) = plt.subplots(nrows=1, ncols=2)
             ax.imshow(np.log10(self.psdx), extent=[fx[0], fx[-1], 0, Ny * self.deltaY],
                       aspect=2 * fx[-1] / (Ny * self.deltaY))
             bx.imshow(np.log10(self.psdy), extent=[0, Nx * self.deltaX, fy[0], fy[-1]],
                       aspect=0.5 * Nx * self.deltaX / (fy[-1]))
-
+            funct.persFig([ax], xlab=r'$f_x / \mu m^{-1}$', ylab=r'$y / \mu m$')
+            funct.persFig([bx], xlab=r'$x / \mu m$', ylab=r'$f_y / \mu m^{-1}$')
             plt.show()
         return RePSD, fx, RePSDx, fy, RePSDy
 
@@ -239,6 +241,7 @@ class Psd:
 
         return PSDr, PSDav, fr, fr0
 
+    @funct.options(bplt=False, save='exports\\', csvPath='out\\')
     def averageSpectra(self, bplt=False):
         """
         Calculate the average specra in the x and y directions
@@ -260,10 +263,11 @@ class Psd:
             fig, (ax, bx) = plt.subplots(nrows=2, ncols=1)
             ax.loglog(self.fx, PSDxmean, 'rx-', markersize=3, label='mean 1d PSDx in x dir')
             bx.loglog(self.fy, PSDymean, 'kx-', markersize=3, label='mean 1d PSDy in y dir')
+            
+            funct.persFig([ax, bx], xlab=r'$f$ in $\frac{1}{\mu m}$', ylab=r'PSD in $\mu m^3$')
             fig.legend()
-            plt.show()
 
-        return PSDxmean, PSDymean
+        return (self.fx[self.fx >= 0], PSDxmean[self.fx >= 0]), (self.fy[self.fy >= 0], PSDymean[self.fy >= 0])
 
 
 @dataclass
