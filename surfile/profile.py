@@ -10,6 +10,7 @@
 import os
 import numpy as np
 import matplotlib.pyplot as plt
+import copy
 
 from surfile import funct
 from surfile.funct import options, rcs
@@ -51,6 +52,39 @@ class Profile:
             self.X0 = self.X = np.linspace(0, (len(z)) * xs, len(z))
 
             if bplt: self.pltPrf()
+
+    def openCHR(self, dirname, bplt):
+        data = np.loadtxt(dirname + '/data.CHRdat')
+        stitch = np.loadtxt(dirname + '/stitching.CHRdat')
+        yB = data[:, 1]
+
+        self.name = os.path.basename(dirname)
+
+        self.X = np.array(data[:, 0]) * 1000  # bring it in um
+        self.Z = np.array([-i for i in yB])
+
+        self.X0 = copy.copy(self.X)
+        self.Z0 = copy.copy(self.Z)
+
+        if bplt:
+            fig, ax = plt.subplots()
+            ax.axis('equal')
+            ax.plot(self.X, self.Z, 'r')
+            ax.set_title(self.name)
+
+            ax.set_xlabel('x [um]')
+            ax.set_ylabel('y [um]')
+
+            try:
+                xF = np.array(stitch[:, 0]) * 1000
+                yF = stitch[:, 1]
+                yF = np.array([-i for i in yF])
+
+                ax.plot(xF, yF, 'o')
+            except:
+                print("No stitching needed")
+
+            plt.show()
 
     def openTS(self, fname, bplt):
         with open(fname, 'rb') as tsfile:

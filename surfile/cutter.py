@@ -122,6 +122,8 @@ class ProfileCutter(Cutter, ABC):
             i_near = lambda arr, val: (np.abs(arr - val)).argmin()
             start_x, end_x = i_near(obj.X, xmin), i_near(obj.X, xmax)
 
+            if end_x < start_x: start_x, end_x = end_x, start_x
+
             x_cut = obj.X[start_x: end_x]
             z_cut = obj.Z[start_x: end_x]
             if finalize:

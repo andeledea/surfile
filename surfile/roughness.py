@@ -266,7 +266,7 @@ class Psd:
 
             cx.plot(self.fx, PSDxmean, 'rx-', markersize=3, label='mean 1d PSDx in x dir')
             dx.plot(self.fy, PSDymean, 'kx-', markersize=3, label='mean 1d PSDy in y dir')
-            
+
             funct.persFig([ax, bx], xlab=r'$f$ in $\frac{1}{\mu m}$', ylab=r'PSD in $\mu m^3$')
             fig.legend()
 

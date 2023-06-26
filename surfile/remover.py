@@ -13,6 +13,7 @@ import itertools
 from matplotlib import cm
 from scipy import integrate, optimize
 import numpy as np
+import circle_fit
 
 from surfile import funct, profile, surface, cutter as cutr
 
@@ -189,6 +190,60 @@ class ProfilePolynomial(Remover):
 
         obj.Z = Remover.removeForm(obj.X, obj.Z, coeff)
         return coeff
+
+
+class Circle(Remover):
+    @staticmethod
+    def remove(obj: profile.Profile, cutter=None, finalize=True, bplt=False):
+        """
+
+        Parameters
+        ----------
+        obj
+        cutter
+        finalize
+        bplt
+
+        Returns
+        -------
+
+        """
+        if cutter is True:  # if the fit is only on part of the profile the user chooses
+            _, (x, z) = cutr.ProfileCutter.cut(obj, finalize=False)
+        elif cutter is not None:
+            x, z = cutter.applyCut(obj, finalize=False)
+        else:  # use the whole profile
+            x = obj.X
+            z = obj.Z
+
+        cords = np.vstack((x, z)).T
+        xc, zc, r, dev = (circle_fit.hyperLSQ(cords))
+
+        if bplt:
+            fig, ax = plt.subplots()
+            ax.axis('equal')
+            ax.plot(obj.X, obj.Z, 'r')
+            circle = plt.Circle((xc, zc), r, alpha=0.6, fill=False)
+            ax.add_patch(circle)
+
+            funct.persFig([ax], 'x [um]', 'y [um]')
+
+            ax.set_title(obj.name)
+            plt.show()
+
+        if finalize:
+            if np.mean(obj.Z) > zc:  # convex case
+                cirz = np.sqrt(r**2 - (obj.X - xc)**2) + zc
+            else:
+                cirz = - np.sqrt(r**2 - (obj.X - xc)**2) - zc
+
+            fig, ax = plt.subplots()
+            ax.axis('equal')
+            ax.plot(obj.X, obj.Z, obj.X, cirz)
+            plt.show()
+
+            obj.Z -= cirz
+        return r, dev
 
 
 # TODO: this class does not work, is it even useful??
