@@ -242,11 +242,11 @@
 </span><span id="L-138"><a href="#L-138"><span class="linenos">138</span></a>
 </span><span id="L-139"><a href="#L-139"><span class="linenos">139</span></a>    <span class="k">def</span> <span class="nf">polarSpectra</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">df_fct</span><span class="p">,</span> <span class="n">bplt</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 </span><span id="L-140"><a href="#L-140"><span class="linenos">140</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="L-141"><a href="#L-141"><span class="linenos">141</span></a><span class="sd">        Calculate the spectra in polar coordinates</span>
-</span><span id="L-142"><a href="#L-142"><span class="linenos">142</span></a>
-</span><span id="L-143"><a href="#L-143"><span class="linenos">143</span></a><span class="sd">        Parameters</span>
-</span><span id="L-144"><a href="#L-144"><span class="linenos">144</span></a><span class="sd">        ----------</span>
-</span><span id="L-145"><a href="#L-145"><span class="linenos">145</span></a><span class="sd">        df_fct: float</span>
+</span><span id="L-141"><a href="#L-141"><span class="linenos">141</span></a><span class="sd">        df_fct: float</span>
+</span><span id="L-142"><a href="#L-142"><span class="linenos">142</span></a><span class="sd">        Calculate the spectra in polar coordinates</span>
+</span><span id="L-143"><a href="#L-143"><span class="linenos">143</span></a>
+</span><span id="L-144"><a href="#L-144"><span class="linenos">144</span></a><span class="sd">        Parameters</span>
+</span><span id="L-145"><a href="#L-145"><span class="linenos">145</span></a><span class="sd">        ----------</span>
 </span><span id="L-146"><a href="#L-146"><span class="linenos">146</span></a><span class="sd">        bplt: bool</span>
 </span><span id="L-147"><a href="#L-147"><span class="linenos">147</span></a><span class="sd">            If true the spectra is plotted in a 3d projection axis</span>
 </span><span id="L-148"><a href="#L-148"><span class="linenos">148</span></a>
@@ -370,7 +370,7 @@
 </span><span id="L-266"><a href="#L-266"><span class="linenos">266</span></a>
 </span><span id="L-267"><a href="#L-267"><span class="linenos">267</span></a>            <span class="n">cx</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fx</span><span class="p">,</span> <span class="n">PSDxmean</span><span class="p">,</span> <span class="s1">&#39;rx-&#39;</span><span class="p">,</span> <span class="n">markersize</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;mean 1d PSDx in x dir&#39;</span><span class="p">)</span>
 </span><span id="L-268"><a href="#L-268"><span class="linenos">268</span></a>            <span class="n">dx</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fy</span><span class="p">,</span> <span class="n">PSDymean</span><span class="p">,</span> <span class="s1">&#39;kx-&#39;</span><span class="p">,</span> <span class="n">markersize</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;mean 1d PSDy in y dir&#39;</span><span class="p">)</span>
-</span><span id="L-269"><a href="#L-269"><span class="linenos">269</span></a>            
+</span><span id="L-269"><a href="#L-269"><span class="linenos">269</span></a>
 </span><span id="L-270"><a href="#L-270"><span class="linenos">270</span></a>            <span class="n">funct</span><span class="o">.</span><span class="n">persFig</span><span class="p">([</span><span class="n">ax</span><span class="p">,</span> <span class="n">bx</span><span class="p">],</span> <span class="n">xlab</span><span class="o">=</span><span class="sa">r</span><span class="s1">&#39;$f$ in $\frac</span><span class="si">{1}</span><span class="s1">{\mu m}$&#39;</span><span class="p">,</span> <span class="n">ylab</span><span class="o">=</span><span class="sa">r</span><span class="s1">&#39;PSD in $\mu m^3$&#39;</span><span class="p">)</span>
 </span><span id="L-271"><a href="#L-271"><span class="linenos">271</span></a>            <span class="n">fig</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
 </span><span id="L-272"><a href="#L-272"><span class="linenos">272</span></a>
@@ -584,11 +584,11 @@
 </span><span id="Psd-139"><a href="#Psd-139"><span class="linenos">139</span></a>
 </span><span id="Psd-140"><a href="#Psd-140"><span class="linenos">140</span></a>    <span class="k">def</span> <span class="nf">polarSpectra</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">df_fct</span><span class="p">,</span> <span class="n">bplt</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 </span><span id="Psd-141"><a href="#Psd-141"><span class="linenos">141</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="Psd-142"><a href="#Psd-142"><span class="linenos">142</span></a><span class="sd">        Calculate the spectra in polar coordinates</span>
-</span><span id="Psd-143"><a href="#Psd-143"><span class="linenos">143</span></a>
-</span><span id="Psd-144"><a href="#Psd-144"><span class="linenos">144</span></a><span class="sd">        Parameters</span>
-</span><span id="Psd-145"><a href="#Psd-145"><span class="linenos">145</span></a><span class="sd">        ----------</span>
-</span><span id="Psd-146"><a href="#Psd-146"><span class="linenos">146</span></a><span class="sd">        df_fct: float</span>
+</span><span id="Psd-142"><a href="#Psd-142"><span class="linenos">142</span></a><span class="sd">        df_fct: float</span>
+</span><span id="Psd-143"><a href="#Psd-143"><span class="linenos">143</span></a><span class="sd">        Calculate the spectra in polar coordinates</span>
+</span><span id="Psd-144"><a href="#Psd-144"><span class="linenos">144</span></a>
+</span><span id="Psd-145"><a href="#Psd-145"><span class="linenos">145</span></a><span class="sd">        Parameters</span>
+</span><span id="Psd-146"><a href="#Psd-146"><span class="linenos">146</span></a><span class="sd">        ----------</span>
 </span><span id="Psd-147"><a href="#Psd-147"><span class="linenos">147</span></a><span class="sd">        bplt: bool</span>
 </span><span id="Psd-148"><a href="#Psd-148"><span class="linenos">148</span></a><span class="sd">            If true the spectra is plotted in a 3d projection axis</span>
 </span><span id="Psd-149"><a href="#Psd-149"><span class="linenos">149</span></a>
@@ -712,7 +712,7 @@
 </span><span id="Psd-267"><a href="#Psd-267"><span class="linenos">267</span></a>
 </span><span id="Psd-268"><a href="#Psd-268"><span class="linenos">268</span></a>            <span class="n">cx</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fx</span><span class="p">,</span> <span class="n">PSDxmean</span><span class="p">,</span> <span class="s1">&#39;rx-&#39;</span><span class="p">,</span> <span class="n">markersize</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;mean 1d PSDx in x dir&#39;</span><span class="p">)</span>
 </span><span id="Psd-269"><a href="#Psd-269"><span class="linenos">269</span></a>            <span class="n">dx</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fy</span><span class="p">,</span> <span class="n">PSDymean</span><span class="p">,</span> <span class="s1">&#39;kx-&#39;</span><span class="p">,</span> <span class="n">markersize</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;mean 1d PSDy in y dir&#39;</span><span class="p">)</span>
-</span><span id="Psd-270"><a href="#Psd-270"><span class="linenos">270</span></a>            
+</span><span id="Psd-270"><a href="#Psd-270"><span class="linenos">270</span></a>
 </span><span id="Psd-271"><a href="#Psd-271"><span class="linenos">271</span></a>            <span class="n">funct</span><span class="o">.</span><span class="n">persFig</span><span class="p">([</span><span class="n">ax</span><span class="p">,</span> <span class="n">bx</span><span class="p">],</span> <span class="n">xlab</span><span class="o">=</span><span class="sa">r</span><span class="s1">&#39;$f$ in $\frac</span><span class="si">{1}</span><span class="s1">{\mu m}$&#39;</span><span class="p">,</span> <span class="n">ylab</span><span class="o">=</span><span class="sa">r</span><span class="s1">&#39;PSD in $\mu m^3$&#39;</span><span class="p">)</span>
 </span><span id="Psd-272"><a href="#Psd-272"><span class="linenos">272</span></a>            <span class="n">fig</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
 </span><span id="Psd-273"><a href="#Psd-273"><span class="linenos">273</span></a>
@@ -854,11 +854,11 @@ The psd along the given axis</li>
     <a class="headerlink" href="#Psd.polarSpectra"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="Psd.polarSpectra-140"><a href="#Psd.polarSpectra-140"><span class="linenos">140</span></a>    <span class="k">def</span> <span class="nf">polarSpectra</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">df_fct</span><span class="p">,</span> <span class="n">bplt</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 </span><span id="Psd.polarSpectra-141"><a href="#Psd.polarSpectra-141"><span class="linenos">141</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="Psd.polarSpectra-142"><a href="#Psd.polarSpectra-142"><span class="linenos">142</span></a><span class="sd">        Calculate the spectra in polar coordinates</span>
-</span><span id="Psd.polarSpectra-143"><a href="#Psd.polarSpectra-143"><span class="linenos">143</span></a>
-</span><span id="Psd.polarSpectra-144"><a href="#Psd.polarSpectra-144"><span class="linenos">144</span></a><span class="sd">        Parameters</span>
-</span><span id="Psd.polarSpectra-145"><a href="#Psd.polarSpectra-145"><span class="linenos">145</span></a><span class="sd">        ----------</span>
-</span><span id="Psd.polarSpectra-146"><a href="#Psd.polarSpectra-146"><span class="linenos">146</span></a><span class="sd">        df_fct: float</span>
+</span><span id="Psd.polarSpectra-142"><a href="#Psd.polarSpectra-142"><span class="linenos">142</span></a><span class="sd">        df_fct: float</span>
+</span><span id="Psd.polarSpectra-143"><a href="#Psd.polarSpectra-143"><span class="linenos">143</span></a><span class="sd">        Calculate the spectra in polar coordinates</span>
+</span><span id="Psd.polarSpectra-144"><a href="#Psd.polarSpectra-144"><span class="linenos">144</span></a>
+</span><span id="Psd.polarSpectra-145"><a href="#Psd.polarSpectra-145"><span class="linenos">145</span></a><span class="sd">        Parameters</span>
+</span><span id="Psd.polarSpectra-146"><a href="#Psd.polarSpectra-146"><span class="linenos">146</span></a><span class="sd">        ----------</span>
 </span><span id="Psd.polarSpectra-147"><a href="#Psd.polarSpectra-147"><span class="linenos">147</span></a><span class="sd">        bplt: bool</span>
 </span><span id="Psd.polarSpectra-148"><a href="#Psd.polarSpectra-148"><span class="linenos">148</span></a><span class="sd">            If true the spectra is plotted in a 3d projection axis</span>
 </span><span id="Psd.polarSpectra-149"><a href="#Psd.polarSpectra-149"><span class="linenos">149</span></a>
@@ -902,14 +902,14 @@ The psd along the given axis</li>
 </span></pre></div>
 
 
-            <div class="docstring"><p>Calculate the spectra in polar coordinates</p>
+            <div class="docstring"><p>df_fct: float
+Calculate the spectra in polar coordinates</p>
 
 <h6 id="parameters">Parameters</h6>
 
 <ul>
-<li><p><strong>df_fct</strong> (float):</p></li>
-<li><p><strong>bplt</strong> (bool):
-If true the spectra is plotted in a 3d projection axis</p></li>
+<li><strong>bplt</strong> (bool):
+If true the spectra is plotted in a 3d projection axis</li>
 </ul>
 
 <h6 id="returns">Returns</h6>

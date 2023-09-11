@@ -118,7 +118,6 @@ class ProfileCutter(Cutter, ABC):
 
         def onClose(event):
             xmin, xmax = span.extents
-            print(xmin, xmax)
             i_near = lambda arr, val: (np.abs(arr - val)).argmin()
             start_x, end_x = i_near(obj.X, xmin), i_near(obj.X, xmax)
 

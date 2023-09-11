@@ -34,30 +34,21 @@ class Surface:
 
         self.name = 'Figure'
 
-    def openTxt(self, fname, bplt):
-        with open(fname, 'r') as fin:
-            self.name = os.path.basename(fin.name)
-            self.name = os.path.splitext(self.name)[0]
+    def openTxt(self, fname, bplt, typ=None):
+        self.name = os.path.basename(fname)
+        self.name = os.path.splitext(self.name)[0]
 
-            line = fin.readline().split()
-            sx = int(line[0])  # read number of x points
-            sy = int(line[1])  # read number of y points
-            print(f'Pixels: {sx} x {sy}')
+        if typ is None:
+            typ = input("choose txt type [Xyz, Spacez, ...]")
+            typ = typ.lower()
+        if typ == 'x':
+            self.X, self.Y, self.Z, self.x, self.y = measfile_io.read_xyztxt(fname)
+        if typ == 's':
+            self.X, self.Y, self.Z, self.x, self.y = measfile_io.read_spaceZtxt(fname)
 
-            spacex = float(line[2])  # read x spacing
-            spacey = float(line[3])  # read y spacing
-
-        plu = np.loadtxt(fname, usecols=range(sy), skiprows=1)
-        plu = (plu - np.mean(plu)) * (10 ** 6)  # 10^6 from mm to nm
-
-        self.rangeX = sx * spacex
-        self.rangeY = sy * spacey
-        self.x = np.linspace(0, sx * spacex, num=sx)
-        self.y = np.linspace(0, sy * spacey, num=sy)
-
-        # create main XYZ and backup of original points in Z0
-        self.X0, self.Y0 = self.X, self.Y = np.meshgrid(self.x, self.y)
-        self.Z0 = self.Z = np.transpose(plu)
+        self.X0 = self.X
+        self.Y0 = self.Y
+        self.Z0 = self.Z
 
         if bplt: self.pltC()
 

@@ -53,6 +53,48 @@ def extract_tag(sdata, tagkey):
     tagcontent = sdata[i1 + len(tagkey) + 2:i2]
     return tagcontent
 
+# TXT file readings ############################
+
+def read_spaceZtxt(fname):
+    with open(fname, 'r') as fin:
+        line = fin.readline().split()
+        sx = int(line[0])  # read number of x points
+        sy = int(line[1])  # read number of y points
+        print(f'Pixels: {sx} x {sy}')
+
+        spacex = float(line[2])  # read x spacing
+        spacey = float(line[3])  # read y spacing
+
+    plu = np.loadtxt(fname, usecols=range(sy), skiprows=1)
+    plu = (plu - np.mean(plu)) * (10 ** 6)  # 10^6 from mm to nm
+
+    rangeX = sx * spacex
+    rangeY = sy * spacey
+    x = np.linspace(0, sx * spacex, num=sx)
+    y = np.linspace(0, sy * spacey, num=sy)
+
+    # create main XYZ and backup of original points in Z0
+    X, Y = np.meshgrid(self.x, self.y)
+    Z = np.transpose(plu)
+
+    return X, Y, Z, x, y
+
+def read_xyztxt(fname):
+    X, Y, Z = np.genfromtxt(fname, unpack=True, usecols=(0, 1, 2), delimiter=';')
+
+    # find size of array
+    i = np.argwhere(Y > 0)[0][0]
+
+    X = np.reshape(X, (i, i))
+    Y = np.reshape(Y, (i, i))
+    Z = np.reshape(Z, (i, i))
+
+    x = X[0,:]
+    y = Y[:,0]
+
+    return X, Y, Z, x, y
+################################################
+
 
 #
 def read_lextinfo(filecontent):
@@ -169,7 +211,6 @@ def read_lextimg(filename, nx, ny, endheightmap, heightflag):
             print('there does not exist any intenstiy map!')
             the_map = []
     return the_map
-
 
 #
 # Sensofar

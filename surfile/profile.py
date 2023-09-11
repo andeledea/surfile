@@ -53,7 +53,7 @@ class Profile:
 
             if bplt: self.pltPrf()
 
-    def openCHR(self, dirname, bplt):
+    def openCHR(self, dirname: str, bplt):
         data = np.loadtxt(dirname + '/data.CHRdat')
         stitch = np.loadtxt(dirname + '/stitching.CHRdat')
         yB = data[:, 1]
@@ -68,12 +68,10 @@ class Profile:
 
         if bplt:
             fig, ax = plt.subplots()
-            ax.axis('equal')
             ax.plot(self.X, self.Z, 'r')
             ax.set_title(self.name)
 
-            ax.set_xlabel('x [um]')
-            ax.set_ylabel('y [um]')
+            funct.persFig([ax], 'x [um]', 'y[um]')
 
             try:
                 xF = np.array(stitch[:, 0]) * 1000
@@ -85,6 +83,7 @@ class Profile:
                 print("No stitching needed")
 
             plt.show()
+        return stitch[:, 0] * 1000  # return the stitching positions
 
     def openTS(self, fname, bplt):
         with open(fname, 'rb') as tsfile:

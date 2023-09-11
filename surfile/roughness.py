@@ -138,11 +138,11 @@ class Psd:
 
     def polarSpectra(self, df_fct, bplt=False):
         """
+        df_fct: float
         Calculate the spectra in polar coordinates
 
         Parameters
         ----------
-        df_fct: float
         bplt: bool
             If true the spectra is plotted in a 3d projection axis
 

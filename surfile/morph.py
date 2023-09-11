@@ -177,6 +177,49 @@ class ProfileMorph:
         return steps, definedPeaks
 
     @staticmethod
+    def wireParams(obj: profile.Profile, bplt=False):
+        """
+        Given a nanowire cross section calculates max value
+        height of the wire, width of the wire
+
+        Parameters
+        ----------
+        obj : profile.Profile
+            The nanowire cross section
+        bplt : bool
+            If true plots the profile and the section used for
+            the height and width calculation
+
+        Returns
+        -------
+        height : float
+            The heigth of the nanowire
+        width : float
+            The width of the nanowire
+        max : float
+            The maximum value of the cross section
+        max_i : int
+            The index of the max
+        """
+        bound = np.min(obj.Z) + np.ptp(obj.Z) / 2
+
+        top = np.max(obj.Z)
+        bot = np.mean(obj.Z[obj.Z < bound])
+
+        height = top - bot
+        bound = bot + 0.1 * height
+        width = obj.X[obj.Z > bound][-1] - obj.X[obj.Z > bound][0]
+
+        if bplt:
+            fig, ax = plt.subplots()
+            ax.plot(obj.X, obj.Z)
+            ax.plot(obj.X[obj.Z > bound], obj.Z[obj.Z > bound], 'r')
+
+            ax.set_title(obj.name)
+
+        return height, width, np.max(obj.Z), np.argmax(obj.Z)
+
+    @staticmethod
     def histHeight(obj: profile.Profile, bins=None, bplt=False):
         """
         Histogram method implementation
@@ -414,6 +457,47 @@ class SurfaceMorph:
         return height, (hist, edges)
 
     @staticmethod
+    def wireParams(obj: surface.Surface, bplt=False):
+        """
+        Given a nanowire topography extracts all the cross sections
+        and calculates the parameters explained in ProfileMorph.wireParams
+
+        Parameters
+        ----------
+        obj : surface.Surface
+            the nanowire topography
+        bplt : bool
+            if true plots the results of the processing
+        """
+        prfs = obj.toProfiles('x')
+
+        hs = []
+        ws = []
+        ts = []
+
+        mZ = np.ma.masked_array(obj.Z)
+
+        for i, p in enumerate(prfs):
+            h, w, t, ti = ProfileMorph.wireParams(p, bplt=False)
+
+            mZ[i, ti] = np.ma.masked
+
+            hs.append(h)
+            ws.append(w)
+            ts.append(t)
+
+        fig1, (ax, bx) = plt.subplots(nrows=1, ncols=2)
+        ax.pcolormesh(obj.X, obj.Y, mZ, cmap=cm.viridis)  # hot, viridis, rainbow
+        bx.plot(obj.y, ts, label='top_profile')
+
+        fig2, (ax, bx) = plt.subplots(nrows=1, ncols=2)
+        ax.plot(obj.y, hs, label='height')
+        bx.plot(obj.y, ws, label='width')
+
+        ax.legend()
+        bx.legend()
+
+    @staticmethod
     def sphereSlope(obj: surface.Surface, R, angleStep, start='local', bplt=False):
         """
         Returns the maximum measurable slope in every direction
@@ -534,7 +618,8 @@ class SurfaceMorph:
             The nominal radius of the cylinder
         phiCone: float
             Angle in degree of the FOV of the instrument
-        alphaZ: rotation of the cylinder axis about the Y axis (radian)
+        alphaZ: float
+            Rotation of the cylinder axis about the Y axis (radian)
         concavity: str
             Can be either 'convex' or 'concave'
         base: bool
@@ -553,6 +638,7 @@ class SurfaceMorph:
         FD_2s: float
             The form deviation of the best fit cylinder to only the points with residue < 2 * sigma
         """
+        # TODO: if alphaZ = 90 deg the method is really slow (whyyy??)
         def fitCyl():
             _p = remover.Cylinder.remove(obj, radius, alphaZ=alphaZ, concavity=concavity,
                                          base=base, finalize=False, bplt=bplt)
@@ -579,13 +665,29 @@ class SurfaceMorph:
 
             return _resid, np.mean(_resid[~np.isnan(_resid)]), np.std(_resid[~np.isnan(_resid)])
 
+        def findPhiCone():
+            masknan = np.isfinite(obj.Z)
+            a = m / l
+            b = -1
+            c = est_p[1]
+
+            dists = np.abs(a * obj.X[masknan] + b * obj.Y[masknan] + c) / (a ** 2 + b ** 2)
+            maxd = np.max(dists)
+            return np.rad2deg(np.arcsin(maxd / R))
+
         # fit the first approx cyl
         R, est_p, l, m, n = fitCyl()
         resid, avg, std = calcResid()
 
         below_i = (np.abs(resid) < 2 * std)  # points with residues below 2sigma
+        outliers_i = (np.abs(resid) > 10 * std)
+        obj.Z[outliers_i] = np.nan  # remove the evident outliers
 
         if phiCone is not None:  # remove points outside cone from topo
+            if phiCone is True:
+                phiCone = findPhiCone()
+                print(f'Using {phiCone=}')
+
             base = R * np.sin(np.deg2rad(phiCone))
             base = base if -np.pi/2 < est_p[3] < np.pi/2 else -base  # invert polarity for alphaZ >< +-90°
             # keep only values inside the range +- base centered on the cylinder axis
@@ -606,7 +708,7 @@ class SurfaceMorph:
         resid_2s, avg_2s, std_2s = calcResid()
         FD_2s = np.ptp(resid_2s[~np.isnan(resid_2s)])
 
-        return R_all, FD_all, R_2s, FD_2s
+        return R_all, FD_all, R_2s, FD_2s, avg_all, std_all, avg_2s, std_2s
 
     @staticmethod
     def lateral(obj: surface.Surface, nom_pitch, direction='x', bplt=False):

@@ -8,6 +8,9 @@
 @author: Andrea Giura
 """
 
+# TODO: classes are not needed for some methods because there are no user propts
+#  reshape the code without classes
+
 import itertools
 
 from matplotlib import cm
@@ -21,7 +24,7 @@ import matplotlib.pyplot as plt
 from matplotlib.widgets import PolygonSelector
 
 
-def polyval2d(x, y, coeffs):
+def _polyval2d(x, y, coeffs):
     # https://sofia-usra.github.io/sofia_redux/license.html
     """
     Evaluate 2D polynomial coefficients
@@ -74,7 +77,7 @@ class Remover:
 
     @staticmethod
     def plot3DForm(x, y, z, coeff):
-        form = polyval2d(x, y, coeff)
+        form = _polyval2d(x, y, coeff)
         fig, ax = plt.subplots(subplot_kw={'projection': '3d'})
         ax.plot_surface(x, y, z, cmap=cm.Greys, alpha=0.7)
         ax.plot_surface(x, y, form, cmap=cm.rainbow)
@@ -83,7 +86,7 @@ class Remover:
 
     @staticmethod
     def remove3DForm(x, y, z, coeff):
-        form = polyval2d(x, y, coeff)
+        form = _polyval2d(x, y, coeff)
         z_final = z - form
         return z_final
 
@@ -196,17 +199,29 @@ class Circle(Remover):
     @staticmethod
     def remove(obj: profile.Profile, cutter=None, finalize=True, bplt=False):
         """
+        Circle fit implementation
 
         Parameters
         ----------
-        obj
-        cutter
-        finalize
-        bplt
+        obj: profile.Profile
+            The profile object on wich the form is removed
+        cutter: cutter.Cutter
+            -if not set, the fit uses all points
+            -if true allows the user to select manually the region of interest
+            -if a cutter obj is passed the fit is done only on the cutted profile points
+             and then applied on the whole profile
+        finalize: bool
+            If set to False the fit will not alter the surface,
+            the method will only return the radius and the form deviation
+        bplt: bool
+            Plots the sphere fitted to the data points
 
         Returns
         -------
-
+        r: float
+            The radius of the fitted circle
+        dev: float
+            The form deviation of the points
         """
         if cutter is True:  # if the fit is only on part of the profile the user chooses
             _, (x, z) = cutr.ProfileCutter.cut(obj, finalize=False)
@@ -237,13 +252,44 @@ class Circle(Remover):
             else:
                 cirz = - np.sqrt(r**2 - (obj.X - xc)**2) - zc
 
-            fig, ax = plt.subplots()
-            ax.axis('equal')
-            ax.plot(obj.X, obj.Z, obj.X, cirz)
-            plt.show()
-
             obj.Z -= cirz
         return r, dev
+
+
+class ProfileStitchError(Remover):
+    @staticmethod
+    def remove(obj: profile.Profile, stitchPos, bplt=False):
+        """
+        Adjust the profile to preserve the derivative in the stitching points
+
+        Parameters
+        ----------
+        obj: profile.Profile
+            The profile on wich the correction is calculated
+        stitchPos: np.array
+            The x positions of the stitching
+        bplt: bool
+            Plots the comparison between the corrected profile and the original
+        """
+        posind = np.array([np.argwhere(obj.X == pos)[0] for pos in stitchPos])
+        for i in posind:
+            i = i[0]
+            dl = obj.Z[i-1] - obj.Z[i]
+            dr = obj.Z[i+1] - obj.Z[i+2]
+            di = obj.Z[i] - obj.Z[i+1]
+
+            err = (dl + dr) / 2 - di
+            obj.Z[i+1:-1] -= err  # make the derivative the same
+
+        if bplt:
+            fig, ax = plt.subplots()
+            ax.plot(obj.X, obj.Z, label='Corrected stitching')
+            ax.plot(obj.X, obj.Z0, label='Orignal data')
+            # ax.plot(obj.X[posind], obj.Z[posind], 'o')
+
+            ax.legend()
+            funct.persFig([ax], 'x [um]', 'y[um]')
+            plt.show()
 
 
 # TODO: this class does not work, is it even useful??
@@ -574,7 +620,7 @@ class Sphere(Remover):
         return radius, C
 
 
-def evalCyl(obj: surface.Surface, est_p, concavity):
+def _evalCyl(obj: surface.Surface, est_p, concavity):
     """
     Evaluates the cylinder points given the 5 parameters
 
@@ -682,7 +728,7 @@ class Cylinder(Remover):
 
         # print(f'Cylinder fit: {est_p}')
 
-        z_cyl = evalCyl(obj, est_p, concavity)
+        z_cyl = _evalCyl(obj, est_p, concavity)
 
         if bplt:
             fig = plt.figure()
