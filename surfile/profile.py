@@ -53,37 +53,40 @@ class Profile:
 
             if bplt: self.pltPrf()
 
-    def openCHR(self, dirname: str, bplt):
-        data = np.loadtxt(dirname + '/data.CHRdat')
-        stitch = np.loadtxt(dirname + '/stitching.CHRdat')
-        yB = data[:, 1]
+    def openCHR(self, dirname, bplt):
+        data = np.genfromtxt(dirname + '/data.CHRdat', delimiter=',')
+        print(data.shape)
+        # stitch = np.loadtxt(dirname + '/stitching.py.CHRdat')
+        yB = np.array(data[:, 2])
+        yC = np.array(data[:, 3])
 
         self.name = os.path.basename(dirname)
 
-        self.X = np.array(data[:, 0]) * 1000  # bring it in um
-        self.Z = np.array([-i for i in yB])
+        self.X = np.array(data[:, 0])
+        self.Z = (yB - yC)
 
         self.X0 = copy.copy(self.X)
         self.Z0 = copy.copy(self.Z)
 
         if bplt:
             fig, ax = plt.subplots()
+            ax.axis('equal')
             ax.plot(self.X, self.Z, 'r')
             ax.set_title(self.name)
 
-            funct.persFig([ax], 'x [um]', 'y[um]')
+            ax.set_xlabel('x [um]')
+            ax.set_ylabel('y [um]')
 
-            try:
-                xF = np.array(stitch[:, 0]) * 1000
-                yF = stitch[:, 1]
-                yF = np.array([-i for i in yF])
-
-                ax.plot(xF, yF, 'o')
-            except:
-                print("No stitching needed")
+            # try:
+            #     xF = np.array(stitch[:, 0]) * 1000
+            #     yF = stitch[:, 2]
+            #     yF = np.array([-i for i in yF])
+            #
+            #     ax.plot(xF, yF, 'o')
+            # except:
+            #     print("No stitching.py needed")
 
             plt.show()
-        return stitch[:, 0] * 1000  # return the stitching positions
 
     def openTS(self, fname, bplt):
         with open(fname, 'rb') as tsfile:
@@ -122,6 +125,12 @@ class Profile:
 
         if bplt: self.pltPrf()
 
+    def openTxt(self, fname, bplt, header=0):
+        self.name = os.path.basename(fname)
+        self.X, self.Z = np.genfromtxt(fname, delimiter=';', skip_header=header, usecols=[0, 1], unpack=True)
+
+        if bplt: self.pltPrf()
+    
     def saveTxt(self, fname):
         name = os.path.join(fname, self.name + '.asc') if os.path.isdir(fname) else os.path.splitext(fname)[0] + '.asc'
         np.savetxt(name, np.c_[self.X.ravel().T, self.Z.ravel().T], fmt='%.4e')

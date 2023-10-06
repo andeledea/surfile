@@ -103,14 +103,14 @@ class ProfileLSLine(Remover):
 
         Parameters
         ----------
-        obj: profile.Profile
+        obj : profile.Profile
             The profile object on wich the form is removed
-        bplt: bool
+        bplt : bool
             If True plots the line overimposed on the profile
 
         Returns
         ----------
-        (m, q): (float, ...)
+        (m, q) : (float, ...)
             The line equation coefficients
         """
         # create matrix and Z vector to use lstsq
@@ -260,14 +260,14 @@ class ProfileStitchError(Remover):
     @staticmethod
     def remove(obj: profile.Profile, stitchPos, bplt=False):
         """
-        Adjust the profile to preserve the derivative in the stitching points
+        Adjust the profile to preserve the derivative in the stitching.py points
 
         Parameters
         ----------
         obj: profile.Profile
             The profile on wich the correction is calculated
         stitchPos: np.array
-            The x positions of the stitching
+            The x positions of the stitching.py
         bplt: bool
             Plots the comparison between the corrected profile and the original
         """
@@ -283,7 +283,7 @@ class ProfileStitchError(Remover):
 
         if bplt:
             fig, ax = plt.subplots()
-            ax.plot(obj.X, obj.Z, label='Corrected stitching')
+            ax.plot(obj.X, obj.Z, label='Corrected stitching.py')
             ax.plot(obj.X, obj.Z0, label='Orignal data')
             # ax.plot(obj.X[posind], obj.Z[posind], 'o')
 
@@ -482,7 +482,7 @@ class SurfacePolynomial(Remover):
             Remover.plot3DForm(obj.X, obj.Y, obj.Z, coeffs)
 
         obj.Z = Remover.remove3DForm(obj.X, obj.Y, obj.Z, coeffs)
-        return sol
+        return coeffs
 
 
 class Surface3Points(Remover):
@@ -589,15 +589,15 @@ class Sphere(Remover):
         C, _, _, _ = np.linalg.lstsq(A, f, rcond=None)
 
         # radius = [radius]
-        #   solve for the radius
+        # solve for the radius
         if radius is None:
             t = (C[0] * C[0]) + (C[1] * C[1]) + (C[2] * C[2]) + C[3]
             radius = np.sqrt(t)[0]
 
         if finalize:
             sph = np.sqrt(radius**2 - (obj.X-C[0])**2 - (obj.Y-C[1])**2)
-            if C[2] < np.mean(obj.Z0): concavity = 'convex'
-            if C[2] > np.mean(obj.Z0): concavity = 'concave'
+            if C[2][0] <= np.nanmean(obj.Z0): concavity = 'convex'
+            if C[2] > np.nanmean(obj.Z0): concavity = 'concave'
             print(f'{concavity=}')
             obj.Z = obj.Z - sph - C[2] if concavity == 'convex' else obj.Z + sph - C[2]
 

@@ -42,6 +42,7 @@ def __appendSpherical_np(xyz):
     return thetas, phis
 
 
+@funct.options(bplt=True, save='exports\\', csvPath='out\\')
 def slopeDistribution(obj: surface.Surface, structured=False, theta_bins=90, phi_bins=360, bplt=False):
     """
     Calculates the slope distribution in angles theta and phi
@@ -131,6 +132,6 @@ def slopeDistribution(obj: surface.Surface, structured=False, theta_bins=90, phi
         cx.legend()
         dx.legend()
         cx.set_title(obj.name)
-        plt.show()
+        # plt.show()
 
-    return (hist_theta, edges_theta), (hist_phi, edges_phi)
+    return (hist_theta, edges_theta[:-1]), (hist_phi, edges_phi[:-1])

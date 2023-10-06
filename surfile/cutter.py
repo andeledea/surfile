@@ -248,8 +248,9 @@ class SurfaceCutter(Cutter, ABC):
             cuts.append(z_cut)
 
         fig, ax = plt.subplots()
+        # rectangle selector drawtype is deprecated
         RS = RectangleSelector(ax, onSelect,
-                               drawtype='box', useblit=True,
+                               useblit=True,
                                button=[1, 3],  # don't use middle button
                                minspanx=5, minspany=5,
                                spancoords='pixels',

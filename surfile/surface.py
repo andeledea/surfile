@@ -14,7 +14,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import cm
 import os
-from scipy import interpolate, ndimage
+from scipy import interpolate, ndimage, special
 
 from surfile import profile, measfile_io, funct
 from surfile.funct import options, rcs
@@ -81,6 +81,7 @@ class Surface:
             If fname is a folder the file will be saved in that folder with the surface name
             If fname is not a folder the file will be saved at fname
         """
+
         def saveLine(line):
             line = line / 1000  # in um
             line.tofile(fout, sep='\t', format='%.4f')
@@ -88,12 +89,12 @@ class Surface:
 
         name = os.path.join(fname, self.name + '.asc') if os.path.isdir(fname) else os.path.splitext(fname)[0] + '.asc'
         with open(name, 'w') as fout:
-            fout.write(f'{self.name}\n')
-            fout.write(f'X - length:\t{max(self.x) - min(self.x)}\n')
-            fout.write(f'Y - length:\t{max(self.y) - min(self.y)}\n')
-            fout.write(f'X - pixel number:\t{len(self.x)}\n')
-            fout.write(f'Y - pixel number:\t{len(self.y)}\n\n')
-            fout.write(f'Z - data array start:\n')
+            fout.write(f'# {self.name}\n')
+            fout.write(f'# X - length:\t{max(self.x) - min(self.x)}\n')
+            fout.write(f'# Y - length:\t{max(self.y) - min(self.y)}\n')
+            fout.write(f'# X - pixel number:\t{len(self.x)}\n')
+            fout.write(f'# Y - pixel number:\t{len(self.y)}\n\n')
+            fout.write(f'# Z - data array start:\n')
 
             np.apply_along_axis(saveLine, axis=1, arr=self.Z)
 
@@ -140,15 +141,58 @@ class Surface:
         self.Y = Yi
         self.Z = Zi
 
-    def fillNM(self):
+    def fillNM(self, method='cubic'):
         """
         Fills the surface non measured points
         """
         z_ma = np.ma.masked_invalid(self.Z)
-        interpolate.griddata((self.X[~z_ma.mask], self.Y[~z_ma.mask]),
-                             z_ma[~z_ma.mask].ravel(),
-                             (self.X, self.Y),
-                             method='cubic')
+        self.Z = interpolate.griddata((self.X[~z_ma.mask], self.Y[~z_ma.mask]),
+                                      z_ma[~z_ma.mask].ravel(),
+                                      (self.X, self.Y),
+                                      method=method)
+
+    def chauvenet(self, iterative=True, threshold=0.5, mean=None, stdv=None):
+        """
+        Removes the outliers from the topography
+        using the chouvenet criterion
+
+        Parameters
+        ----------
+        iterative : bool
+            If true keeps calling the function until the number of outliers is 0
+            If true the mean and stdv parameters are ignored as if they were not provided
+        threshold : float
+            The acceptance threshold of the criterion
+        mean : float
+            The mean of the expected distribution
+            If none the program calculates the mean of the distribution
+        stdv : float
+            The std dev of the expected distribution
+            If none the program calculates the std dev of the distribution
+        """
+        # https://github.com/msproteomicstools/msproteomicstools/blob/master/msproteomicstoolslib/math/chauvenet.py
+        prenan = np.count_nonzero(np.isnan(self.Z))
+
+        if mean is None or iterative:
+            mean = np.nanmean(self.Z)  # Mean of incoming array y
+        if stdv is None or iterative:
+            stdv = np.nanstd(self.Z)  # Its standard deviation
+        N = self.Z.size  # Lenght of incoming arrays
+        criterion = 1.0 / (2 * N)  # Chauvenet's criterion
+        d = np.abs(self.Z - mean) / stdv  # Distance of a value to mean in stdv's
+        d /= 2.0 ** threshold  # The left and right tail threshold values
+        prob = special.erfc(d)  # Area normal dist.
+        fil = prob >= criterion  # The 'accept' filter array with booleans
+
+        self.Z[~fil] = np.nan
+        postnan = np.count_nonzero(np.isnan(self.Z))
+        addednan = postnan - prenan
+        print(f'{prenan=}, {postnan=}, diff = {addednan}')
+
+        if addednan > 0 and iterative:
+            self.chauvenet(iterative=True, threshold=threshold)
+        else:
+            return
 
     def toProfiles(self, axis='x'):
         """
@@ -206,7 +250,7 @@ class Surface:
             ylab='y [um]'
         )
         ax.set_title(self.name)
-    
+
     @options(bplt=rcs.params['bsCol'], save=rcs.params['ssCol'])
     def pltC(self):
         fig = plt.figure()

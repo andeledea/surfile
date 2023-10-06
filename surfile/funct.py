@@ -82,7 +82,9 @@ def options(csvPath=None, save=None, bplt=False, chrono=False):
             if csvPath is not None:  # save the return parameters
                 try:
                     for i, xy in enumerate(ret):
-                        np.savetxt(f"{csvPath}{func.__name__}_{rcs.currentImage}_{str(i)}.csv", np.c_[xy])
+                        np.savetxt(f"{csvPath}{func.__name__}_{rcs.currentImage}_{str(i)}.csv",
+                                   np.c_[xy],
+                                   delimiter=',')
                 except TypeError:
                     with open(f"{csvPath}.csv", 'a', newline='') as csvfile:
                         writer = csv.DictWriter(csvfile, fieldnames=range(len(ret)), dialect='excel')
@@ -150,7 +152,7 @@ class Rc:
     # and then read the file (json) with this class using only a dictionary
 
     params: dict
-    currentImage: str = 'Image'
+    currentImage: str = ''
 
     def __init__(self):
         import surfile

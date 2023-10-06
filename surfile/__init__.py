@@ -39,3 +39,4 @@ GitHub: @andeledea, @...
 """
 
 __docformat__ = 'numpy'
+__name__ = 'surfile'

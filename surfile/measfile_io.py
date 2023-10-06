@@ -95,6 +95,23 @@ def read_xyztxt(fname):
     return X, Y, Z, x, y
 ################################################
 
+#
+def read_asc(filecontent: str):
+    lines = filecontent.decode('utf-8').splitlines(keepends=False)
+    name = lines[0][lines[0].find(':') + 1 :]
+    lx = str2float(lines[1][lines[1].find(':') + 1 :])
+    ly = str2float(lines[2][lines[2].find(':') + 1 :])
+    nx = int(lines[3][lines[3].find(':') + 1 :])
+    ny = int(lines[4][lines[4].find(':') + 1 :])
+
+    dx = lx / nx
+    dy = ly / ny
+
+    height_map = np.ndarray(shape=(nx, ny))
+    for i, l in enumerate(lines[6:]):
+        height_map[:, i] = np.fromstring(l, sep='\t', dtype=float)
+
+    return nx, ny, dx, dy, height_map.T, ''
 
 #
 def read_lextinfo(filecontent):
@@ -701,6 +718,9 @@ def read_microscopedata(filename, userscalecorr, interpolflag):
     elif filename[fnlen - 4:fnlen].find('sur') > -1:
         # returns all data in micron
         nx, ny, dx, dy, height_map, measdate = read_sur(content)
+    elif filename[fnlen - 4:fnlen].find('asc') > -1:
+        # returns all data in micron
+        nx, ny, dx, dy, height_map, measdate = read_asc(content)
     else:
         if content.find(b'LEXT') > -1:
             # returns all data in micron
