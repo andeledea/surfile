@@ -264,3 +264,46 @@ class SurfaceCutter(Cutter, ABC):
 
         plt.show()
         return RS.extents, cuts
+
+
+class HistCutter(Cutter, ABC):
+    @staticmethod
+    def cut(obj, bins=None, finalize=True):
+        b = bins
+        if bins is None:
+            # bw = 2 * stats.iqr(obj.Z[np.isfinite(obj.Z)]) / (obj.Z.size ** (1/3))  # Freedman-Diaconis
+            b = int(np.sqrt(obj.Z.size))
+            print(f'Using {b} bins in hist')
+
+        hist, edges = np.histogram(obj.Z[np.isfinite(obj.Z)], bins=b)
+        fig = plt.figure()
+        ax_ht = fig.add_subplot(111)
+        ax_ht.hist(edges[:-1], bins=edges, weights=hist / np.size(obj.Z) * 100, color='red')
+        funct.persFig(
+            [ax_ht],
+            gridcol='grey',
+            xlab='z [nm]',
+            ylab='pixels %'
+        )
+        ax_ht.set_title('Choose cut region')
+
+        def onClose(event):
+            zmin, zmax = span.extents
+            # i_near = lambda arr, val: (np.abs(arr - val)).argmin()
+            # start_z, end_z = i_near(obj.Z, zmin), i_near(obj.Z, zmax)
+            # print(start_z, end_z)
+
+            if finalize:
+                exclude = np.logical_or(obj.Z < zmin, obj.Z > zmax)
+                obj.Z[exclude] = np.nan
+
+        span = SpanSelector(ax_ht, lambda a, b: None,
+                            direction='horizontal', useblit=True,
+                            button=[1, 3],  # don't use middle button
+                            interactive=True)
+
+        fig.canvas.mpl_connect('close_event', onClose)
+        plt.show()
+
+        return span.extents
+
