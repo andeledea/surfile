@@ -36,7 +36,7 @@ def persFig(figures, xlab, ylab, zlab=None, gridcol='k'):
     figures: list
         The list of ax objects to be customized
     gridcol: str
-        The color of the grid
+        The color of the grid, use None to remove the grid
     xlab: str
     ylab: str
     zlab: str
@@ -85,7 +85,7 @@ def options(csvPath=None, save=None, bplt=False, chrono=False):
                         np.savetxt(f"{csvPath}{func.__name__}_{rcs.currentImage}_{str(i)}.csv",
                                    np.c_[xy],
                                    delimiter=',')
-                except TypeError:
+                except TypeError:  # the returned values are not numpy arrays
                     with open(f"{csvPath}.csv", 'a', newline='') as csvfile:
                         writer = csv.DictWriter(csvfile, fieldnames=range(len(ret)), dialect='excel')
                         writer.writerow(dict(enumerate(ret)))

@@ -241,7 +241,7 @@ class Psd:
 
         return PSDr, PSDav, fr, fr0
 
-    @funct.options(bplt=True, save='exports\\', csvPath='out\\')
+    @funct.options(bplt=True, csvPath='out\\')
     def averageSpectra(self, bplt=False):
         """
         Calculate the average specra in the x and y directions

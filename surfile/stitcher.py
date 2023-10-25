@@ -17,20 +17,20 @@ import numpy as np
 import open3d as o3d
 
 
-def _composeFigure(alpha, beta, dx, dy, sp):
+def _composeFigure(left, right, T, R=None, support=None, sp=20):
     """
     Compose the stitched image (stitch in x direction)
 
     Parameters
     ----------
-    alpha : np.array
+    left : np.array
         The left figure
-    beta : np.array
+    right : np.array
         The right figure
-    dx : int
-        The optimal x direction displacement
-    dy : int
-        The optimal y direction displacement
+    T : List
+        The translation vector
+    R : np.array
+        The rotation matrix
     sp : int
         The overlap of the 2 images %
 
@@ -39,18 +39,27 @@ def _composeFigure(alpha, beta, dx, dy, sp):
     composed : np.array
         The composed array
     """
+    if R is not None and support is not None:  # add rotation displacement
+        beta = R[0, 2]
+        alpha = R[2, 1]
+        left += -beta * support[0] + alpha * support[1]
+
+    print(f'{T=}, {R=}')
+
     # patches creation
-    sp = int(alpha.shape[1] * (sp / 100))
-    print(f'{dx=} {dy=}')
-    alpha = np.roll(alpha, shift=(dx, dy), axis=(1, 0))
-    left = alpha[:, :-sp // 2]
-    right = beta[:, sp // 2:]
+    sp = int(left.shape[1] * (sp / 100))
+    left = np.roll(left, shift=(T[0], T[1]), axis=(1, 0))  # add x, y displacements
+
+    left = left[:, :-sp // 2]
+    right = right[:, sp // 2:]
+
+    if T[2] == 'best': left -= np.mean(left[:, -1]) - np.mean(right[:, 0])
 
     st = np.hstack((left, right))
 
     fig, (ax, bx) = plt.subplots(nrows=2, ncols=1)
-    ax.imshow(alpha[:, -sp:])
-    bx.imshow(beta[:, :sp])
+    ax.imshow(left[:, -sp:])
+    bx.imshow(right[:, :sp])
 
     fig2, cx = plt.subplots(nrows=1, ncols=1)
     cx.imshow(st, cmap=cm.viridis)
@@ -149,7 +158,7 @@ class SurfaceStitcher:
             return np.linalg.norm(diff)  # maybe an ssd (sum of square difference with a gaussian kernel is better)
 
         # a and b are ints since they rapresent pixel translations
-        nPixelMaxDisp = pixelScan if not bplt else 5
+        nPixelMaxDisp = pixelScan if not bplt else 20
         bestTranslation = optimize.brute(
             move,
             ranges=((slice(-nPixelMaxDisp, nPixelMaxDisp, 1),) * 2),
@@ -160,7 +169,7 @@ class SurfaceStitcher:
         print(bestTranslation)
 
     @staticmethod
-    def stitchCorrelation(surl, surr, stitchPrc=20, samplingPrc=50, bplt=False):
+    def stitchCorrelation(surl, surr, stitchPrc=20, samplingPrc=50, correlateDer=True, bplt=False):
         """
         Finds the best allignment between surl and surr
         by calculating the maximum of the cross correlation
@@ -176,6 +185,9 @@ class SurfaceStitcher:
             The right image to be stitched
         stitchPrc : int
             the percentage of the image overlapping
+        correlateDer : bool
+            If true uses the first derivatice for the cross correlation to
+            in order to compare the slope of the sample instead of the height
         bplt : bool
             If true plots the stitched image
         """
@@ -184,8 +196,9 @@ class SurfaceStitcher:
         lZone = surl.Z[:, 1 + int(surl.Z.shape[1] * (1 - stitchPrc / 100)):]
         rZone = surr.Z[:, :int(surr.Z.shape[1] * (stitchPrc / 100))]
 
-        # lZone = np.diff(lZone)
-        # rZone = np.diff(rZone)
+        if correlateDer:
+            lZone = np.diff(lZone)
+            rZone = np.diff(rZone)
 
         # take a central patch from the second image
         center_x, center_y = lZone.shape[0] // 2, lZone.shape[1] // 2
@@ -196,8 +209,9 @@ class SurfaceStitcher:
                   center_y - size_y // 2: center_y + size_y // 2]
 
         # correlate the patch with the first image to find its position
-        ccL = signal.correlate2d(lZone, sampleR, mode='valid')  # , boundary='fill', fillvalue=np.average(lZone))
-        ccR = signal.correlate2d(rZone, sampleL, mode='valid')  # , boundary='fill', fillvalue=np.average(lZone))
+        nrmze = lambda a: a / np.linalg.norm(a)
+        ccL = signal.correlate2d(nrmze(lZone), nrmze(sampleR), mode='valid')
+        ccR = signal.correlate2d(nrmze(rZone), nrmze(sampleL), mode='valid')
 
         ML = np.argmax(ccL)
         yML, xML = np.unravel_index(ML, ccL.shape)
@@ -221,10 +235,6 @@ class SurfaceStitcher:
         print(f'\n\n{M=} {xM=} {yM=}')
         print(f'{bestMeanTranslation=}')
 
-        _composeFigure(surl.Z, surr.Z,
-                       dx=bestMeanTranslation[0], dy=bestMeanTranslation[1],
-                       sp=stitchPrc)
-
         if bplt:
             fig, ((ax, bx, cx), (dx, ex, fx)) = plt.subplots(nrows=2, ncols=3)
             ax.imshow(ccL)
@@ -244,9 +254,164 @@ class SurfaceStitcher:
             lx.imshow(ccL)
             mx.imshow(np.flip(ccR))
             nx.imshow(ccL * np.flip(ccR))
+            funct.persFig([lx, mx, nx], xlab='x [pixels]', ylab='y [pixels]', gridcol='none')
             nx.plot(xM, yM, 'r.', ms=5)
 
             plt.show()
+
+            _composeFigure(surl.Z, surr.Z,
+                           T=[bestMeanTranslation[0], bestMeanTranslation[1], 'best'],
+                           sp=stitchPrc)
+
+    @staticmethod
+    def stitchFGR(surl, surr, stitchPrc=20):
+        """
+        Finds the best allignment between surl and surr
+        by first registering approximatively the 2 images
+        using a FGR feature matcher, and then improves
+        the result by refining with an ICP (iterative closest point)
+        registration
+
+        ref: http://www.open3d.org/docs/0.9.0/python_api/open3d.registration.html
+        FGR: http://vladlen.info/papers/fast-global-registration.pdf
+        ICP: https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=121791
+        PFH: https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=5152473
+
+        Parameters
+        ----------
+        surl : surface.Surface
+            The left image to be stitched
+        surr : surface.Surface
+            The right image to be stitched
+        stitchPrc : int
+            the percentage of the image overlapping
+        """
+        # find the interested zones to be stitched
+        lZone = copy.deepcopy(surl.Z[:, 1 + int(surl.Z.shape[1] * (1 - stitchPrc / 100)):])
+        rZone = copy.deepcopy(surr.Z[:, :int(surr.Z.shape[1] * (stitchPrc / 100))])
+
+        # scale parameter for noramalization
+        scale = 1
+
+        scalez = np.max((lZone, rZone)) * 2 * scale  # re-range [-scale * 0.5, scale * 0.5]
+        lZone /= scalez
+        rZone /= scalez
+
+        # scale xy max dimention
+        if lZone.shape[1] > lZone.shape[0]:
+            scaley = lZone.shape[0] * scale / lZone.shape[1]
+            scalefactor = lZone.shape[1]
+
+            X = np.linspace(0, scale, lZone.shape[1])
+            Y = np.linspace(0, scaley, lZone.shape[0])
+        else:
+            scalex = lZone.shape[1] * scale / lZone.shape[0]
+            scalefactor = lZone.shape[0]
+
+            X = np.linspace(0, scalex, lZone.shape[1])
+            Y = np.linspace(0, scale, lZone.shape[0])
+        mesh_x, mesh_y = np.meshgrid(X, Y)
+
+        def toPC(zone):
+            xyz = np.zeros((np.size(mesh_x), 3))
+            xyz[:, 0] = np.reshape(mesh_x, -1)
+            xyz[:, 1] = np.reshape(mesh_y, -1)
+            xyz[:, 2] = np.reshape(zone, -1)
+
+            # Pass xyz to Open3D.o3d.geometry.PointCloud and visualize
+            pcd = o3d.geometry.PointCloud()
+            pcd.points = o3d.utility.Vector3dVector(xyz)
+
+            return pcd
+
+        pcd_l = toPC(lZone)
+        pcd_r = toPC(rZone)
+
+        o3d.visualization.draw_geometries([pcd_l])
+        o3d.visualization.draw_geometries([pcd_r])
+
+        def draw_registration_result(source, target, transformation):
+            source_temp = copy.deepcopy(source)
+            target_temp = copy.deepcopy(target)
+            source_temp.paint_uniform_color(np.array([139, 242, 80]) / 255)
+            target_temp.paint_uniform_color(np.array([209, 91, 245]) / 255)
+            source_temp.transform(transformation)
+            o3d.visualization.draw_geometries([source_temp, target_temp])
+
+        def preprocess_point_cloud(pcd, voxel_size):
+            print(":: Downsample with a voxel size %.3f." % voxel_size)
+            pcd_down = pcd.voxel_down_sample(voxel_size)
+
+            radius_normal = voxel_size * 2
+            print(":: Estimate normal with search radius %.3f." % radius_normal)
+            pcd_down.estimate_normals(o3d.geometry.KDTreeSearchParamHybrid(radius=radius_normal, max_nn=30))
+
+            radius_feature = voxel_size * 5
+            print(":: Compute FPFH feature with search radius %.3f." % radius_feature)
+            pcd_fpfh = o3d.pipelines.registration.compute_fpfh_feature(
+                pcd_down,
+                o3d.geometry.KDTreeSearchParamHybrid(radius=radius_feature, max_nn=100)
+            )
+            return pcd_down, pcd_fpfh
+
+        def prepare_dataset(voxel_size):
+            source = pcd_l
+            target = pcd_r
+
+            source_down, source_fpfh = preprocess_point_cloud(source, voxel_size)
+            target_down, target_fpfh = preprocess_point_cloud(target, voxel_size)
+            return source, target, source_down, target_down, source_fpfh, target_fpfh
+
+        def execute_global_registration(source_down, target_down, source_fpfh,
+                                        target_fpfh, voxel_size):
+            distance_threshold = voxel_size * 1.5
+            print(":: FGR registration on downsampled point clouds.")
+            print(":: downsampling voxel size is %.3f," % voxel_size)
+            print(":: distance threshold %.3f." % distance_threshold)
+            result = o3d.pipelines.registration.registration_fgr_based_on_feature_matching(
+                source_down, target_down, source_fpfh, target_fpfh,
+                o3d.pipelines.registration.FastGlobalRegistrationOption(
+                    maximum_correspondence_distance=distance_threshold)
+            )
+            return result
+
+        voxel_size = 0.02 * scale
+        source, target, source_down, target_down, source_fpfh, target_fpfh = prepare_dataset(voxel_size)
+
+        result_fgr = execute_global_registration(source_down, target_down,
+                                                 source_fpfh, target_fpfh,
+                                                 voxel_size)
+        print(result_fgr)
+        print("Transformation is:")
+        print(result_fgr.transformation)
+        draw_registration_result(source_down, target_down, result_fgr.transformation)
+
+        print("Refine with point-to-point ICP")
+        # actually FGR should not need this step
+        distance_threshold = 0.005 * scale
+        reg_p2p = o3d.pipelines.registration.registration_icp(
+            source, target, distance_threshold,
+            init=result_fgr.transformation,
+            estimation_method=o3d.pipelines.registration.TransformationEstimationPointToPoint(True))
+        print(reg_p2p)
+        print("Transformation is:")
+        print(reg_p2p.transformation)
+        draw_registration_result(source, target, reg_p2p.transformation)
+
+        # Transformation matrix in the form:
+        # [[ 1 , -si, +be, xt],
+        #  [+si,  1 , -al, yt],
+        #  [-be, +al,  1 , zt],
+        #  [ 0 ,  0 ,  0 ,  1]]
+
+        xtransl = int(reg_p2p.transformation[0, 3] * scalefactor)
+        ytransl = int(reg_p2p.transformation[1, 3] * scalefactor)
+        ztransl = reg_p2p.transformation[2, 3] * scalez
+        _composeFigure(surl.Z, surr.Z,
+                       T=[xtransl, ytransl, 'best'],
+                       # R=reg_p2p.transformation[0:3, 0:3],  # this doesn't seem right
+                       # support=(surl.X, surl.Y),
+                       sp=stitchPrc)
 
     # @staticmethod
     # def stitchSSDminimize(surl, surr, stitchPrc=20, bplt=False):
@@ -307,136 +472,3 @@ class SurfaceStitcher:
     #
     #     print(match_list)
     #     return np.array(match_list)
-
-    @staticmethod
-    def stitchICP(surl, surr, stitchPrc=20):
-        """
-        Finds the best allignment between surl and surr
-        by first registering approximatively the 2 images
-        using a FGR feature matcher, and then improves
-        the result by refining with an ICP registration
-
-        see: http://www.open3d.org/docs/0.9.0/python_api/open3d.registration.html
-        see: http://vladlen.info/papers/fast-global-registration.pdf
-
-        Parameters
-        ----------
-        surl : surface.Surface
-            The left image to be stitched
-        surr : surface.Surface
-            The right image to be stitched
-        stitchPrc : int
-            the percentage of the image overlapping
-        """
-        # find the interested zones to be stitched
-        lZone = surl.Z[:, 1 + int(surl.Z.shape[1] * (1 - stitchPrc / 100)):]
-        rZone = surr.Z[:, :int(surr.Z.shape[1] * (stitchPrc / 100))]
-
-        # scale max dimention
-        scale = 1
-        if lZone.shape[1] > lZone.shape[0]:
-            scaley = lZone.shape[0] * scale / lZone.shape[1]
-            scalefactor = lZone.shape[1]
-
-            X = np.linspace(0, scale, lZone.shape[1])
-            Y = np.linspace(0, scaley, lZone.shape[0])
-        else:
-            scalex = lZone.shape[1] * scale / lZone.shape[0]
-            scalefactor = lZone.shape[0]
-
-            X = np.linspace(0, scalex, lZone.shape[1])
-            Y = np.linspace(0, scale, lZone.shape[0])
-        mesh_x, mesh_y = np.meshgrid(X, Y)
-
-        def toPC(zone):
-            xyz = np.zeros((np.size(mesh_x), 3))
-            xyz[:, 0] = np.reshape(mesh_x, -1)
-            xyz[:, 1] = np.reshape(mesh_y, -1)
-            xyz[:, 2] = np.reshape(zone, -1)
-
-            # Pass xyz to Open3D.o3d.geometry.PointCloud and visualize
-            pcd = o3d.geometry.PointCloud()
-            pcd.points = o3d.utility.Vector3dVector(xyz)
-
-            return pcd
-
-        pcd_l = toPC(lZone)
-        pcd_r = toPC(rZone)
-
-        o3d.visualization.draw_geometries([pcd_l])
-        o3d.visualization.draw_geometries([pcd_r])
-
-        def draw_registration_result(source, target, transformation):
-            source_temp = copy.deepcopy(source)
-            target_temp = copy.deepcopy(target)
-            source_temp.paint_uniform_color([1, 0.706, 0])
-            target_temp.paint_uniform_color([0, 0.651, 0.929])
-            source_temp.transform(transformation)
-            o3d.visualization.draw_geometries([source_temp, target_temp])
-
-        def preprocess_point_cloud(pcd, voxel_size):
-            print(":: Downsample with a voxel size %.3f." % voxel_size)
-            pcd_down = pcd.voxel_down_sample(voxel_size)
-
-            radius_normal = voxel_size * 2
-            print(":: Estimate normal with search radius %.3f." % radius_normal)
-            pcd_down.estimate_normals(
-                o3d.geometry.KDTreeSearchParamHybrid(radius=radius_normal, max_nn=30))
-
-            radius_feature = voxel_size * 5
-            print(":: Compute FPFH feature with search radius %.3f." % radius_feature)
-            pcd_fpfh = o3d.pipelines.registration.compute_fpfh_feature(
-                pcd_down,
-                o3d.geometry.KDTreeSearchParamHybrid(radius=radius_feature, max_nn=100))
-            return pcd_down, pcd_fpfh
-
-        def prepare_dataset(voxel_size):
-            source = pcd_l
-            target = pcd_r
-
-            source_down, source_fpfh = preprocess_point_cloud(source, voxel_size)
-            target_down, target_fpfh = preprocess_point_cloud(target, voxel_size)
-            return source, target, source_down, target_down, source_fpfh, target_fpfh
-
-        def execute_global_registration(source_down, target_down, source_fpfh,
-                                        target_fpfh, voxel_size):
-            distance_threshold = voxel_size * 1.5
-            print(":: RANSAC registration on downsampled point clouds.")
-            print("   Since the downsampling voxel size is %.3f," % voxel_size)
-            print("   we use a liberal distance threshold %.3f." % distance_threshold)
-            result = o3d.pipelines.registration.registration_fgr_based_on_feature_matching(
-                source_down, target_down, source_fpfh, target_fpfh,
-                o3d.pipelines.registration.FastGlobalRegistrationOption(
-                    maximum_correspondence_distance=distance_threshold)
-            )
-            return result
-
-        voxel_size = 0.02  # means 5cm for the dataset
-        source, target, source_down, target_down, source_fpfh, target_fpfh = \
-            prepare_dataset(voxel_size)
-
-        result_ransac = execute_global_registration(source_down, target_down,
-                                                    source_fpfh, target_fpfh,
-                                                    voxel_size)
-        print(result_ransac)
-        print("Transformation is:")
-        print(result_ransac.transformation * scalefactor)
-        draw_registration_result(source_down, target_down,
-                                 result_ransac.transformation)
-
-        print("Apply point-to-point ICP")
-        threshold = 0.02
-        reg_p2p = o3d.pipelines.registration.registration_icp(
-            source, target, threshold,
-            init=result_ransac.transformation,
-            estimation_method=o3d.pipelines.registration.TransformationEstimationPointToPoint())
-        print(reg_p2p)
-        print("Transformation is:")
-        print(reg_p2p.transformation * scalefactor)
-        draw_registration_result(source, target, reg_p2p.transformation)
-
-        xtransl = int(reg_p2p.transformation[0, 3] * scalefactor)
-        ytransl = int(reg_p2p.transformation[1, 3] * scalefactor)
-        _composeFigure(surl.Z, surr.Z,
-                       dx=xtransl, dy=ytransl,
-                       sp=stitchPrc)

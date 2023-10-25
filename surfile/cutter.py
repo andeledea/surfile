@@ -258,7 +258,7 @@ class SurfaceCutter(Cutter, ABC):
 
         cuts = []
 
-        ax.pcolormesh(obj.X, obj.Y, obj.Z, cmap=cm.rainbow)
+        ax.pcolormesh(obj.X, obj.Y, obj.Z, cmap=cm.viridis)
         ax.set_title('Choose cut region')
         fig.canvas.mpl_connect('close_event', onClose)
 
@@ -269,6 +269,26 @@ class SurfaceCutter(Cutter, ABC):
 class HistCutter(Cutter, ABC):
     @staticmethod
     def cut(obj, bins=None, finalize=True):
+        """
+        Cuts the surface on the Z axis keeping only the
+        points with an height included in the selection
+
+        Parameters
+        ----------
+        obj : surface.Surface
+            The surface object on wich the cut is applied
+        bins : int
+            The number of bins in the histogram
+            if None the program calculates the optimal value
+        finalize: bool
+            If set to False the cut will not alter the profile,
+            the method will only return the extents chosen by the user
+
+        Returns
+        ----------
+        extents (zmin, zmax):  (float, ...)
+            The cut values
+        """
         b = bins
         if bins is None:
             # bw = 2 * stats.iqr(obj.Z[np.isfinite(obj.Z)]) / (obj.Z.size ** (1/3))  # Freedman-Diaconis

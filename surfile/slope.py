@@ -42,8 +42,8 @@ def __appendSpherical_np(xyz):
     return thetas, phis
 
 
-@funct.options(bplt=True, save='exports\\', csvPath='out\\')
-def slopeDistribution(obj: surface.Surface, structured=False, theta_bins=90, phi_bins=360, bplt=False):
+@funct.options(bplt=True, csvPath='out\\')
+def slopeDistribution(obj: surface.Surface, structured=False, theta_res=1, phi_res=1, adaptive_hist=False, bplt=False):
     """
     Calculates the slope distribution in angles theta and phi
 
@@ -55,10 +55,13 @@ def slopeDistribution(obj: surface.Surface, structured=False, theta_bins=90, phi
         If true the method assumes equal spacing along x-axis (dx) and equal spacing along
         y-axis
         If false the method uses a generalized triangle approach (recommended)
-    theta_bins: int
-        The number of bins for the Theta distribution
-    phi_bins: int
-        The number of bins for the Phi distribution
+    theta_res: float
+        The angle resolution for the theta angle
+    phi_res: float
+        The angle resolution for the phi angle
+    adaptive_hist: bool
+        If true the bins are calculated between 0 and the max angles
+        If false the bins are calculated between 0 - 90 for theta, 0 - 360 for phi
     bplt: bool
         If True plots the calculated histograms
 
@@ -105,7 +108,20 @@ def slopeDistribution(obj: surface.Surface, structured=False, theta_bins=90, phi
     thetas, phis = __appendSpherical_np(normals)
 
     print(f'Slope Distribution:\nTheta:\t{st.describe(thetas)}\nPhi:\t{st.describe(phis)}')
-    
+
+    if not adaptive_hist:
+        max_theta = 90
+        max_phi = 360
+        thetas = np.append(thetas, max_theta)  # add only one value to max the space
+        phis = np.append(phis, max_phi)
+
+    else:
+        max_theta = np.max(thetas)
+        max_phi = np.max(phis)
+
+    theta_bins = int(np.ceil(max_theta / theta_res))
+    phi_bins = int(np.ceil(max_phi / phi_res))
+
     hist_theta, edges_theta = np.histogram(thetas, bins=theta_bins)
     hist_phi, edges_phi = np.histogram(phis, bins=phi_bins)
 
@@ -134,4 +150,4 @@ def slopeDistribution(obj: surface.Surface, structured=False, theta_bins=90, phi
         cx.set_title(obj.name)
         # plt.show()
 
-    return (hist_theta, edges_theta[:-1]), (hist_phi, edges_phi[:-1])
+    return (edges_theta[:-1], hist_theta / len(ind) * 100), (edges_phi[:-1], hist_phi / len(ind) * 100)

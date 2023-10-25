@@ -7,7 +7,7 @@
 
 @author: Andrea Giura
 """
-
+import copy
 import profile
 
 import numpy as np
@@ -66,8 +66,10 @@ class Surface:
         self.y = np.linspace(0, self.rangeY, num=n_y)
 
         # create main XYZ and backup of original points in Z0
-        self.X0, self.Y0 = self.X, self.Y = np.meshgrid(self.x, self.y)
-        self.Z0 = self.Z = z_map
+        self.X, self.Y = np.meshgrid(self.x, self.y)
+        self.Z = z_map
+
+        self.X0, self.Y0, self.Z0 = copy.copy(self.X), copy.copy(self.Y), copy.copy(self.Z)
 
         if bplt: self.pltC()
 
