@@ -34,7 +34,7 @@ class Surface:
 
         self.name = 'Figure'
 
-    def openTxt(self, fname, bplt, typ=None):
+    def openTxt(self, fname, bplt, typ='x'):
         self.name = os.path.basename(fname)
         self.name = os.path.splitext(self.name)[0]
 
@@ -253,7 +253,7 @@ class Surface:
         )
         ax.set_title(self.name)
 
-    @options(bplt=rcs.params['bsCol'], save=rcs.params['ssCol'])
+    @options(bplt=rcs.params['bsCol'], save="img\\")
     def pltC(self):
         fig = plt.figure()
         ax_2d = fig.add_subplot(111)

@@ -241,7 +241,7 @@ class Psd:
 
         return PSDr, PSDav, fr, fr0
 
-    @funct.options(bplt=True, csvPath='out\\')
+    @funct.options(bplt=False, csvPath='out\\')
     def averageSpectra(self, bplt=False):
         """
         Calculate the average specra in the x and y directions
@@ -303,15 +303,15 @@ class Parameters:
         RA, RQ, RP, RV, RZ, RSK, RKU: (float, ...)
             Calculated roughness parameters
         """
-        border = 0
+        border = 1
 
         if rem is not None:
             rem.applyRemover(obj)
         if fil is not None:
             fil.applyFilter(obj)
             cutoff = fil.cutoff
-            nsample_cutoff = cutoff / (np.max(obj.X) / np.size(obj.X))
-            border = nsample_cutoff / 2
+            nsample_cutoff = cutoff // (np.max(obj.X) / np.size(obj.X))
+            border = int(nsample_cutoff // 2)
 
         roi = Roi(obj.X[border: -border], obj.Z[border: -border])
 

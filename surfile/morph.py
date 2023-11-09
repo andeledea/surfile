@@ -736,7 +736,7 @@ class SurfaceMorph:
             if i == 0:
                 xs, hs = ProfileMorph.lateral(p, nom_pitch=nom_pitch, bplt=bplt)
             else:
-                x_p, h_p = ProfileMorph.lateral(p, nom_pitch=nom_pitch, bplt=False)
+                x_p, h_p = ProfileMorph.lateral(p, nom_pitch=nom_pitch, bplt=bplt)
                 xs = np.vstack((xs, x_p))
                 hs = np.vstack((hs, h_p))
 

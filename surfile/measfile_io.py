@@ -21,15 +21,15 @@ import pathlib
 import struct
 import matplotlib.pyplot as plt
 
-withigor = 0
-try:
-    from igor import binarywave
-
-    withigor = 1
-except ImportError:
-    print('igor not found: use')
-    print('pip install --proxy=http://webproxy.bs.ptb.de:8080 igor')
-    print('to install it, this command also works in spyder console I/A')
+# withigor = 0
+# try:
+#     from igor import binarywave
+#
+#     withigor = 1
+# except ImportError:
+#     print('igor not found: use')
+#     print('pip install --proxy=http://webproxy.bs.ptb.de:8080 igor')
+#     print('to install it, this command also works in spyder console I/A')
 try:
     from csaps import csaps
 except ImportError:
@@ -80,14 +80,14 @@ def read_spaceZtxt(fname):
     return X, Y, Z, x, y
 
 def read_xyztxt(fname):
-    X, Y, Z = np.genfromtxt(fname, unpack=True, usecols=(0, 1, 2), delimiter=';')
+    X, Y, Z = np.genfromtxt(fname, unpack=True, usecols=(0, 1, 2), delimiter=',')
 
     # find size of array
     i = np.argwhere(Y > 0)[0][0]
 
-    X = np.reshape(X, (i, i))
-    Y = np.reshape(Y, (i, i))
-    Z = np.reshape(Z, (i, i))
+    X = np.reshape(X, (X.size // i, i))
+    Y = np.reshape(Y, (Y.size // i, i))
+    Z = np.reshape(Z, (Z.size // i, i))
 
     x = X[0,:]
     y = Y[:,0]
