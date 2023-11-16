@@ -99,14 +99,16 @@ def options(csvPath=None, save=None, bplt=False, chrono=False):
                     for i, fig in enumerate(figs):
                         fig.savefig(f'{save}{func.__name__}_{rcs.currentImage}_{str(i)}.png', format='png')
                 else:
-                    print(Bcol.WARNING + f'Function {func.__name__} has no active figures' + Bcol.ENDC)
+                    # print(Bcol.WARNING + f'Function {func.__name__} has no active figures' + Bcol.ENDC)
+                    pass
 
             if bplt:  # plot the figure
                 if len(plt.get_fignums()) > 0:
                     print(Bcol.OKCYAN + f'Plotting image from function {func.__name__}' + Bcol.ENDC)
                     plt.show()
                 else:
-                    print(Bcol.WARNING + f'Function {func.__name__} has no active figures' + Bcol.ENDC)
+                    # print(Bcol.WARNING + f'Function {func.__name__} has no active figures' + Bcol.ENDC)
+                    pass
             else:
                 plt.close('all')
 

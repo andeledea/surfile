@@ -83,6 +83,9 @@ class RoughnessMC:
         fcns = {'preprocess': mc_pre,
                 'run': mc_run,
                 'postprocess': mc_post}
+        fcns = {'preprocess': mc_pre,
+                'run': mc_run,
+                'postprocess': mc_post}
 
         sim = mc.Sim(name='Roughness', ndraws=ndraws, fcns=fcns, firstcaseismedian=True,
                      seed=seed, singlethreaded=singleThread, verbose=True, debug=False,
