@@ -732,13 +732,18 @@ class SurfaceMorph:
         xs = None
         hs = None
         ys = obj.y
-        for i, p in enumerate(obj.toProfiles(axis=direction).tolist()):
-            if i == 0:
-                xs, hs = ProfileMorph.lateral(p, nom_pitch=nom_pitch, bplt=bplt)
-            else:
-                x_p, h_p = ProfileMorph.lateral(p, nom_pitch=nom_pitch, bplt=bplt)
-                xs = np.vstack((xs, x_p))
-                hs = np.vstack((hs, h_p))
+        profiles = obj.toProfiles(axis=direction).tolist()
+        with alive_bar(len(profiles), force_tty=True,
+                       title='lateral', theme='smooth',
+                       elapsed_end=True, stats_end=True, length=30) as bar:
+            for i, p in enumerate(profiles):
+                if i == 0:
+                    xs, hs = ProfileMorph.lateral(p, nom_pitch=nom_pitch, bplt=bplt)
+                else:
+                    x_p, h_p = ProfileMorph.lateral(p, nom_pitch=nom_pitch, bplt=False)
+                    xs = np.vstack((xs, x_p))
+                    hs = np.vstack((hs, h_p))
+                bar()
 
         ms, qs = [], []
         for c in xs.T:  # fit the regression lines
@@ -766,9 +771,11 @@ class SurfaceMorph:
             fig.colorbar(p, ax=ax)
 
             for i, c in enumerate(xs.T):
-                bx.plot(obj.y, c, obj.y, ms[i] * obj.y + qs[i])
+                bx.plot(c, obj.y)
+                bx.plot(ms[i] * obj.y + qs[i], obj.y, alpha=0.5)
+                bx.pcolormesh(obj.X, obj.Y, obj.Z, alpha=0.3)
             
-            funct.persFig([ax], xlab='x [um]', ylab='y [um]')
+            funct.persFig([ax, bx], xlab='x [um]', ylab='y [um]')
             ax.set_title(obj.name)
         
         return np.mean(hs), np.mean(pitch)

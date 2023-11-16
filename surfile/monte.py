@@ -11,53 +11,55 @@ from surfile import profile, roughness, filter
 
 class RoughnessMC:
     @staticmethod
-    def mc_pre(case):
-        # d_m = case.invals['d mean [nm]'].val
-        p = case.constvals['p']
-        sigma = case.constvals['sigma']
-        mu = case.constvals['mu']
-        return p, mu, sigma
-
-    @staticmethod
-    def mc_run(p: profile.Profile, mu, sigma):
-        disp = sigma * np.random.randn(p.X.size) + mu
-        newp = copy.deepcopy(p)
-        newp.Z += disp
-
-        fil = filter.ProfileGaussian(1)
-        RA, RQ, RP, RV, RT, RSK, RKU = roughness.Parameters.calc(newp, fil=fil)
-        return RA, RQ, RP, RV, RT, RSK, RKU
-
-    @staticmethod
-    def mc_post(case, RA, RQ, RP, RV, RT, RSK, RKU):
-        case.addOutVal('ra [nm]', RA)
-        case.addOutVal('rq [nm]', RQ)
-        case.addOutVal('rp [nm]', RP)
-        case.addOutVal('rv [nm]', RV)
-        case.addOutVal('rt [nm]', RT)
-        case.addOutVal('rsk [nm]', RSK)
-        case.addOutVal('rku [nm]', RKU)
-
-    @staticmethod
     def simulate(p: profile.Profile, ndraws):
-        seed = 78547876
-        fcns = {'preprocess': RoughnessMC.mc_pre,
-                'run': RoughnessMC.mc_run,
-                'postprocess': RoughnessMC.mc_post}
+        def mc_pre(case):
+            # d_m = case.invals['d mean [nm]'].val
+            pr = case.constvals['p']
+            sigma = case.constvals['sigma']
+            mu = case.constvals['mu']
+            return pr, mu, sigma
+    
+        def mc_run(pr: profile.Profile, mu, sigma):
+            disp = sigma * np.random.randn(pr.X.size) + mu
+            newp = copy.deepcopy(pr)
+            newp.Z += disp
 
-        sim = mc.Sim(name='TMV', ndraws=ndraws, fcns=fcns, firstcaseismedian=True,
+            bx.plot(newp.X, newp.Z, alpha=0.5)
+    
+            fil = filter.ProfileGaussian(1)
+            RA, RQ, RP, RV, RT, RSK, RKU = roughness.Parameters.calc(newp, fil=fil)
+            return RA, RQ, RP, RV, RT, RSK, RKU
+    
+        def mc_post(case, RA, RQ, RP, RV, RT, RSK, RKU):
+            case.addOutVal('ra [nm]', RA)
+            case.addOutVal('rq [nm]', RQ)
+            case.addOutVal('rp [nm]', RP)
+            case.addOutVal('rv [nm]', RV)
+            case.addOutVal('rt [nm]', RT)
+            case.addOutVal('rsk [nm]', RSK)
+            case.addOutVal('rku [nm]', RKU)
+
+        seed = 78547876
+        fcns = {'preprocess': mc_pre,
+                'run': mc_run,
+                'postprocess': mc_post}
+
+        sim = mc.Sim(name='Roughness', ndraws=ndraws, fcns=fcns, firstcaseismedian=True,
                      seed=seed, singlethreaded=True, verbose=True, debug=True,
                      savecasedata=False, savesimdata=False)
 
         sim.addConstVal(name='p', val=p)
-        sim.addConstVal(name='sigma', val=0.02)
+        sim.addConstVal(name='sigma', val=0.04)
         sim.addConstVal(name='mu', val=0)
+        
+        fig, (ax, bx) = plt.subplots(nrows=1, ncols=2)
+        ax.plot(p.X, p.Z)
 
         sim.runSim()
 
-        for ovar in sim.outvars.values():
-            mc.plot_hist(ovar)
+        figh, axsh = plt.subplots(nrows=1, ncols=len(sim.outvars))
+        for i, ovar in enumerate(sim.outvars.values()):
+            mc.plot_hist(ovar, ax=axsh[i])
             print(ovar.stats())
-        # sim.plot()
 
         plt.show()
