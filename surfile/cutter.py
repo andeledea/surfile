@@ -8,7 +8,7 @@
 from abc import ABC, abstractmethod
 import numpy as np
 
-from surfile import profile, surface, funct
+from surfile import profile, surface, funct, remover
 
 import matplotlib.pyplot as plt
 from matplotlib.widgets import RectangleSelector, SpanSelector
@@ -146,8 +146,68 @@ class ProfileCutter(Cutter, ABC):
         plt.show()
 
         return span.extents, cuts
+    
+    def circleCut(obj: profile.Profile, startP, bplt=False):
+        """
+        Function to divide a circle profile starting from the
+        maximum value to the 2 edges of the profile
 
+        Parameters
+        ----------
+        obj : profile.Profile
+            The profile to be divided in two parts
+        startP : str
+            The method used to find the maximum point
+            - 'max': uses the maximum value of the profile
+            - 'fit': uses the center coordinate calculated with a LS fit
+            
+        Returns
+        -------
+        prfl : profile.Profile
+        prfr : profile.Profile
+            The two extracted profiles
 
+        Raises
+        ------
+        Exception
+            If the startP parameter is not correct
+        """
+        prfl = profile.Profile()
+        prfr = profile.Profile()
+        
+        if startP == 'max':
+            # split the profile @ max value
+            split_i = np.nanargmax(obj.Z)
+            
+        elif startP == 'fit':
+            # split the profile at center of fit
+            _, _, center = remover.Circle.remove(obj, finalize=False, bplt=False)
+            split_i = np.nanargmin(np.abs(obj.X - center[0]))
+            
+        else: raise Exception(f'{startP} is not valid option for startP')
+        
+        xc = obj.X[split_i]
+        print(f'Cutting @ {xc=}')
+        
+        x = +(obj.X[split_i:0:-1] - xc)
+        z = obj.Z[split_i:0:-1]
+        prfl.setValues(x, z, bplt=False)
+        
+        x = -(obj.X[split_i:] - xc)
+        z = obj.Z[split_i:]
+        prfr.setValues(x, z, bplt=False)
+        
+        if bplt:
+            fig, ax = plt.subplots()
+            ax.plot(obj.X, obj.Z)
+            ax.plot(obj.X[split_i], obj.Z[split_i], 'or')
+            funct.persFig([ax], xlab='x [um]', ylab='z [um]', gridcol='None')
+            
+            plt.show()
+        
+        return prfl, prfr
+        
+        
 class SurfaceCutter(Cutter, ABC):
     def templateExtents(self):
         root = tk.Tk()
@@ -326,4 +386,3 @@ class HistCutter(Cutter, ABC):
         plt.show()
 
         return span.extents
-

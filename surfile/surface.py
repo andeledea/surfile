@@ -253,7 +253,7 @@ class Surface:
         )
         ax.set_title(self.name)
 
-    @options(bplt=rcs.params['bsCol'], save="img\\")
+    @options(bplt=rcs.params['bsCol'], save=rcs.params['ssCol'])
     def pltC(self):
         fig = plt.figure()
         ax_2d = fig.add_subplot(111)

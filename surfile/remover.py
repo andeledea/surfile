@@ -222,6 +222,8 @@ class Circle(Remover):
             The radius of the fitted circle
         dev: float
             The form deviation of the points
+        (xc, zc) : tuple
+            Centre coordinates
         """
         if cutter is True:  # if the fit is only on part of the profile the user chooses
             _, (x, z) = cutr.ProfileCutter.cut(obj, finalize=False)
@@ -253,7 +255,7 @@ class Circle(Remover):
                 cirz = - np.sqrt(r**2 - (obj.X - xc)**2) - zc
 
             obj.Z -= cirz
-        return r, dev
+        return r, dev, (xc, zc)
 
 
 class ProfileStitchError(Remover):
