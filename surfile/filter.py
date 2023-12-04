@@ -13,8 +13,9 @@ from alive_progress import alive_bar
 from matplotlib import cm
 from scipy import ndimage, sparse, special, signal
 import numpy as np
+import copy
 
-from surfile import profile, surface
+from surfile import profile, surface, funct
 
 import matplotlib.pyplot as plt
 
@@ -59,6 +60,8 @@ class Filter:
         fig, ax = plt.subplots()
         ax.plot(X, Z, X, envelope)
         ax.set_ylim(min(Z), max(Z))
+        
+        funct.persFig([ax], 'x[um]', 'z[um]')
 
         plt.show()
 
@@ -94,22 +97,24 @@ class ProfileGaussian(Filter):
             Plots the envelope of the filter if true
         """
         order = 0
-        nsample_cutoff = cutoff / (np.max(obj.X) / np.size(obj.X))
-        ncutoffs = np.floor(np.max(obj.X) / cutoff)
+        nsample_cutoff = cutoff / (np.nanmax(obj.X) / np.size(obj.X))
+        ncutoffs = np.floor(np.nanmax(obj.X) / cutoff)
         nsample_region = nsample_cutoff * ncutoffs
 
         border = round((np.size(obj.Z) - nsample_region) / 2)
 
         alpha = np.sqrt(np.log(2) / np.pi)
         sigma = nsample_cutoff * (alpha / np.sqrt(2 * np.pi))
-        envelope = ndimage.gaussian_filter1d(obj.Z, sigma=sigma, order=order)
+        envelope = copy.copy(obj.Z)
+        envelope[~np.isnan(obj.Z)] = ndimage.gaussian_filter1d(obj.Z[~np.isnan(obj.Z)], 
+                                                               sigma=sigma, order=order)
         filtered = obj.Z - envelope
 
+        if bplt:
+            Filter.plotEnvelope(obj.X, obj.Z, envelope)
+            
         obj.X = obj.X[border:-border]
         obj.Z = filtered[border:-border]
-
-        if bplt:
-            Filter.plotEnvelope(obj.X0, obj.Z0, envelope)
 
 
 class ProfileSpline(Filter):
@@ -363,6 +368,49 @@ class ProfileMorph(Filter):
 
         obj.Z = morph(obj.X, obj.Z, radius)
 
+    @staticmethod
+    def naive(obj: profile.Profile, radius, bplt=False):
+        """
+        Apllies a morphological filter as described in ISO-21920,
+        rolls a disk  of radius R (in mm) along the original profile
+        the naive approach described in:
+        "Algorithms for morph profile filters and their comparison"
+        Shan Lou, Xiangqian Jiang, Paul J. Scott. (2012)
+
+        Parameters
+        ----------
+        obj: profile.Profile
+            The profile object on wich the filter is applied
+        radius: float
+            The radius of the sphere of the contact instrument
+        bplt: bool
+            Plots the envelope of the filter if true
+        """
+        spacing = obj.X[1] - obj.X[0]
+        n_radius = int(radius // spacing)
+        
+        x = np.linspace(-radius, radius, n_radius * 2)
+        struct = -np.sqrt(radius ** 2 - x ** 2)
+        
+        l = struct.size // 2  # half lenght for cut
+        
+        def findMax(i):
+            max = np.min(obj.Z[i-l : i+l] + struct)
+            return max        
+
+        filtered = profile.Profile()
+        filtered.setValues(
+            obj.X[l: -l],
+            np.array([findMax(i) for i in range(l, obj.Z.size - l, 1)]),
+            bplt=False
+        )
+        
+        if bplt:
+                fig, ax = plt.subplots()
+                ax.axis('equal')
+                ax.plot(obj.X, obj.Z, filtered.X, filtered.Z)
+                plt.show()
+    
 
 class SurfaceGaussian(Filter):
     def __init__(self, cutoff):

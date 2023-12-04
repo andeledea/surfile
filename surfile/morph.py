@@ -369,10 +369,11 @@ class ProfileMorph:
 
         # cosine fit for the whole profile
         _cos = lambda p: 0.5 * p[0] * np.cos(np.pi * (obj.X - p[1]) / p[2]) + p[3] + p[4] * obj.X
-        _fs = lambda p, s, xsw, x: 1 / (1 + np.exp(s * (p[1] - x) - xsw))
+        _fs = lambda p, s, xsw, x: 1 / (1 + np.exp((s * (p[1] - x) - xsw) / p[4]))
         _sigm = lambda p, x: p[0] * (_fs(p, 1, 1 / 2 * p[2], x) * _fs(p, -1, 1 / 2 * p[2], x) -
-                                     _fs(p, 1, 3 / 2 * p[2], x) * _fs(p, -1, 3 / 2 * p[2], x) + 1 / 2) + p[3]
-
+                                     _fs(p, 1, 3 / 2 * p[2], x) * _fs(p, -1, 3 / 2 * p[2], x) + 
+                                     1 / 2) + p[3]
+        
         zmax = np.nanmax(obj.Z)
         zmin = np.nanmin(obj.Z)
         p_init = np.array([zmax - zmin, 0, 0.5 * nom_pitch, 0.5 * (zmax + zmin), 0])
@@ -383,26 +384,32 @@ class ProfileMorph:
             fig, ax = plt.subplots()
             ax.plot(obj.X, obj.Z, obj.X, _cos(popt))
             ax.set_title(obj.name)
+            
+            funct.persFig([ax], xlab='x [um]', ylab='z [um]')
 
         # first maximum is in p1, the following are in p1 + 2p2 * ip
         period = 2 * popt[2]
         for ip in range(1, int(np.nanmax(obj.X) / period)):
             xip = popt[1] + period * ip
-            boolbox = (xip - 3 / 2 * popt[2] < obj.X) & (obj.X < xip + 3 / 2 * popt[2])
+            boolbox = (xip - 1.3 * popt[2] < obj.X) & (obj.X < xip + 1.3 * popt[2])
             xbox = obj.X[boolbox]  # x of the single box
             zbox = obj.Z[boolbox]  # z of the single box
 
             # now we can fit the sigmoid
-            p_init_sigm = np.array([np.ptp(obj.Z), xip,  period / 2, np.nanmean(obj.Z)])
+            p_init_sigm = np.array([np.ptp(zbox), xip,  period / 2, np.nanmin(zbox) + np.ptp(zbox) / 2, 0.2])
             popt_sigm = optimize.leastsq(lambda p: _sigm(p, xbox) - zbox, p_init_sigm)[0]
 
             h = _sigm(popt_sigm, popt_sigm[1]) - _sigm(popt_sigm, popt_sigm[1] + popt_sigm[2])
             d_form = popt_sigm[0] / h
             th = 1
-            h_c.append(h if 1 - th < d_form < 1 + th else np.nan)
+            h_c.append(h if 1 - th < d_form < 1 + th else np.nan)  # check on std
             x_c.append(popt_sigm[1])
 
             if bplt: ax.plot(xbox, _sigm(popt_sigm, xbox))
+            # fig2, bx = plt.subplots()
+            # bx.plot(xbox, _sigm(popt_sigm, xbox), 'b', 
+            #         xbox, _sigm(p_init_sigm, xbox), 'r',
+            #         xbox, zbox, 'g')
 
         return np.array(x_c), np.abs(np.array(h_c))
 
@@ -760,22 +767,20 @@ class SurfaceMorph:
 
         if bplt:
             Xs, Ys = np.meshgrid(xs[0], ys)
-            fig, (ax, bx, cx) = plt.subplots(nrows=1, ncols=3)
-            
-            ax.pcolormesh(obj.X, obj.Y, obj.Z, cmap=cm.viridis)
+            fig, (ax, bx) = plt.subplots(nrows=1, ncols=2)
 
             mcm = copy.copy(cm.Greys)
             mcm.set_bad(color='r', alpha=1.)
             mask_h = np.ma.array(hs, mask=np.isnan(hs))
             Min = np.mean(mask_h) - 2 * np.std(mask_h)
             Max = np.mean(mask_h) + 2 * np.std(mask_h)
-            p = bx.pcolormesh(Ys, xs, hs, vmin=Min, vmax=Max, cmap=mcm)
+            p = ax.pcolormesh(xs.T, Ys.T, hs.T, vmin=Min, vmax=Max, cmap=mcm)
             fig.colorbar(p, ax=ax)
 
             for i, c in enumerate(xs.T):
-                bx.plot(c, obj.y)
+                bx.plot(c, obj.y, 'r')
                 bx.plot(ms[i] * obj.y + qs[i], obj.y, alpha=0.5)
-                bx.pcolormesh(obj.X, obj.Y, obj.Z, alpha=0.3)
+                bx.pcolormesh(obj.X, obj.Y, obj.Z, alpha=0.2)
             
             funct.persFig([ax, bx], xlab='x [um]', ylab='y [um]')
             ax.set_title(obj.name)

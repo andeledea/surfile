@@ -127,8 +127,13 @@ class Profile:
 
     def openTxt(self, fname, bplt, header=0):
         self.name = os.path.basename(fname)
-        self.X, self.Z = np.genfromtxt(fname, delimiter=';', skip_header=header, usecols=[0, 1], unpack=True)
-
+        
+        self.X, self.Z = np.genfromtxt(fname, 
+                                       skip_header=header, 
+                                       usecols=[0, 1], unpack=True,
+                                       converters={0: lambda s: float(s or np.nan)})
+        self.X0 = copy.copy(self.X)
+        self.Z0 = copy.copy(self.Z)
         if bplt: self.pltPrf()
     
     def saveTxt(self, fname):
@@ -152,6 +157,12 @@ class Profile:
         self.Z0 = self.Z = np.asarray(Y)
 
         if bplt: self.pltPrf()
+        
+    def fillNM(self, bplt=False):
+        nans, f = funct.nan_helper(self.Z)
+        self.Z[nans]= np.interp(f(nans), f(~nans), self.Z[~nans])
+        
+        if bplt: self.pltCompare()
 
     #################
     # PLOT SECTION  #

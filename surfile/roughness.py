@@ -241,7 +241,6 @@ class Psd:
 
         return PSDr, PSDav, fr, fr0
 
-    @funct.options(bplt=False, csvPath='out\\')
     def averageSpectra(self, bplt=False):
         """
         Calculate the average specra in the x and y directions
@@ -269,6 +268,8 @@ class Psd:
 
             funct.persFig([ax, bx], xlab=r'$f$ in $\frac{1}{\mu m}$', ylab=r'PSD in $\mu m^3$')
             fig.legend()
+            
+            plt.show()
 
         return (self.fx[self.fx >= 0], PSDxmean[self.fx >= 0]), (self.fy[self.fy >= 0], PSDymean[self.fy >= 0])
 
@@ -308,23 +309,25 @@ class Parameters:
         if rem is not None:
             rem.applyRemover(obj)
         if fil is not None:
-            fil.applyFilter(obj)
+            fil.applyFilter(obj, bplt=False)
             cutoff = fil.cutoff
-            nsample_cutoff = cutoff // (np.max(obj.X) / np.size(obj.X))
+            nsample_cutoff = cutoff // (np.nanmax(obj.X) / np.size(obj.X))
             border = int(nsample_cutoff // 2)
 
         roi = Roi(obj.X[border: -border], obj.Z[border: -border])
+        # print(roi.X, roi.Z)
 
         if bplt:
             fig, ax = plt.subplots()
-            ax.plot(obj.X0, obj.Z0, obj.X, obj.Z, alpha=0.5)
+            ax.plot(obj.X, obj.Z, alpha=0.5)
             ax.plot(roi.X, roi.Z)
+            plt.show()
 
-        RA = np.sum(abs(roi.Z)) / np.size(roi.Z)
-        RQ = np.sqrt(np.sum(abs(roi.Z ** 2)) / np.size(roi.Z))
-        RP = abs(np.max(roi.Z))
-        RV = abs(np.min(roi.Z))
+        RA = np.nansum(abs(roi.Z)) / np.size(roi.Z)
+        RQ = np.sqrt(np.nansum(abs(roi.Z ** 2)) / np.size(roi.Z))
+        RP = abs(np.nanmax(roi.Z))
+        RV = abs(np.nanmin(roi.Z))
         RT = RP + RV
-        RSK = (np.sum(roi.Z ** 3) / np.size(roi.Z)) / (RQ ** 3)
-        RKU = (np.sum(roi.Z ** 4) / np.size(roi.Z)) / (RQ ** 4)
+        RSK = (np.nansum(roi.Z ** 3) / np.size(roi.Z)) / (RQ ** 3)
+        RKU = (np.nansum(roi.Z ** 4) / np.size(roi.Z)) / (RQ ** 4)
         return RA, RQ, RP, RV, RT, RSK, RKU

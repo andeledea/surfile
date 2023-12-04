@@ -116,6 +116,7 @@ class ProfileLSLine(Remover):
         # create matrix and Z vector to use lstsq
         XZ = np.vstack([obj.X.reshape(np.size(obj.X)),
                         obj.Z.reshape(np.size(obj.Z))]).T
+        XZ = XZ[~np.isnan(obj.Z)]
         (rows, cols) = XZ.shape
         G = np.ones((rows, 2))
         G[:, 0] = XZ[:, 0]  # X

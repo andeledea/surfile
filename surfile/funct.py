@@ -47,6 +47,24 @@ def persFig(figures, xlab, ylab, zlab=None, gridcol='k'):
         if zlab is not None:
             figure.set_zlabel(zlab)
         figure.grid(color=gridcol)
+        
+        
+def nan_helper(y):
+    """Helper to handle indices and logical indices of NaNs.
+
+    Input:
+        - y, 1d numpy array with possible NaNs
+    Output:
+        - nans, logical indices of NaNs
+        - index, a function, with signature indices= index(logical_indices),
+          to convert logical indices of NaNs to 'equivalent' indices
+    Example:
+        >>> # linear interpolation of NaNs
+        >>> nans, x= nan_helper(y)
+        >>> y[nans]= np.interp(x(nans), x(~nans), y[~nans])
+    """
+
+    return np.isnan(y), lambda z: z.nonzero()[0]
 
 
 def options(csvPath=None, save=None, bplt=False, chrono=False):
@@ -103,9 +121,10 @@ def options(csvPath=None, save=None, bplt=False, chrono=False):
                     pass
 
             if bplt:  # plot the figure
-                if len(plt.get_fignums()) > 0:
+                num_figs = plt.get_fignums()
+                if len(num_figs) > 0:
                     print(Bcol.OKCYAN + f'Plotting image from function {func.__name__}' + Bcol.ENDC)
-                    plt.show()
+                    for n in num_figs: plt.figure(n).show()
                 else:
                     # print(Bcol.WARNING + f'Function {func.__name__} has no active figures' + Bcol.ENDC)
                     pass

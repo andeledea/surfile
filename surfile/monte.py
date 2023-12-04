@@ -14,7 +14,7 @@ from scipy.stats import uniform, norm
 import numpy as np
 import matplotlib.pyplot as plt
 
-from surfile import profile, roughness, filter
+from surfile import profile, roughness, filter, funct
 
 
 class RoughnessMC:
@@ -44,6 +44,7 @@ class RoughnessMC:
             is selected bplt is set to False to limit the number
             of lines plotted
         """
+        
         def mc_pre(case):
             # d_m = case.invals['d mean [nm]'].val
             p = case.constvals['p']
@@ -59,22 +60,22 @@ class RoughnessMC:
             - param calc
             """
             disp = sigma * np.random.randn(p.X.size) + mu
-            newp = copy.deepcopy(p)
+            newp = copy.copy(p)
             newp.Z += disp
             
             if bplt: bx.plot(newp.X, newp.Z, alpha=0.5)
 
             # if no filter is needed set fil=None
-            fil = filter.ProfileGaussian(cutoff=1)
+            fil = filter.ProfileGaussian(cutoff=0.001)
             RA, RQ, RP, RV, RT, RSK, RKU = roughness.Parameters.calc(newp, fil=fil)
             return RA, RQ, RP, RV, RT, RSK, RKU
 
         def mc_post(case, RA, RQ, RP, RV, RT, RSK, RKU):
             case.addOutVal('ra [um]', RA)
             case.addOutVal('rq [um]', RQ)
-            case.addOutVal('rp [um]', RP)
-            case.addOutVal('rv [um]', RV)
-            case.addOutVal('rt [um]', RT)
+            # case.addOutVal('rp [um]', RP)
+            # case.addOutVal('rv [um]', RV)
+            # case.addOutVal('rt [um]', RT)
             case.addOutVal('rsk [um]', RSK)
             case.addOutVal('rku [um]', RKU)
 
@@ -98,6 +99,7 @@ class RoughnessMC:
         if bplt:
             fig, (ax, bx) = plt.subplots(nrows=1, ncols=2)
             ax.plot(p.X, p.Z)
+            funct.persFig([ax, bx], 'x [um]', 'z[um]', gridcol='None')
 
         sim.runSim()
         return sim.outvars.values()
