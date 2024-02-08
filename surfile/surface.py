@@ -3,7 +3,7 @@
 - data structure for surface objects
 - plots of the surface
 - basic transformation methods (resample, rotation)
-- io operation for data storage
+- io operation
 
 @author: Andrea Giura
 """
@@ -83,7 +83,6 @@ class Surface:
             If fname is a folder the file will be saved in that folder with the surface name
             If fname is not a folder the file will be saved at fname
         """
-
         def saveLine(line):
             line = line / 1000  # in um
             line.tofile(fout, sep='\t', format='%.4f')
@@ -101,7 +100,7 @@ class Surface:
             np.apply_along_axis(saveLine, axis=1, arr=self.Z)
 
     def saveTxt(self, fname):
-        name = os.path.join(fname, self.name + '.asc') if os.path.isdir(fname) else os.path.splitext(fname)[0] + '.asc'
+        name = os.path.join(fname, self.name + '.txt') if os.path.isdir(fname) else os.path.splitext(fname)[0] + '.txt'
         np.savetxt(name, np.c_[self.X.ravel().T, self.Y.ravel().T, self.Z.ravel().T], fmt='%.4e')
 
     def rotate(self, angle):
@@ -176,15 +175,15 @@ class Surface:
         prenan = np.count_nonzero(np.isnan(self.Z))
 
         if mean is None or iterative:
-            mean = np.nanmean(self.Z)  # Mean of incoming array y
+            mean = np.nanmean(self.Z)
         if stdv is None or iterative:
-            stdv = np.nanstd(self.Z)  # Its standard deviation
+            stdv = np.nanstd(self.Z)
         N = self.Z.size  # Lenght of incoming arrays
-        criterion = 1.0 / (2 * N)  # Chauvenet's criterion
+        criterion = 1.0 / (2 * N)
         d = np.abs(self.Z - mean) / stdv  # Distance of a value to mean in stdv's
-        d /= 2.0 ** threshold  # The left and right tail threshold values
-        prob = special.erfc(d)  # Area normal dist.
-        fil = prob >= criterion  # The 'accept' filter array with booleans
+        d /= 2.0 ** threshold
+        prob = special.erfc(d)
+        fil = prob >= criterion
 
         self.Z[~fil] = np.nan
         postnan = np.count_nonzero(np.isnan(self.Z))

@@ -137,7 +137,7 @@ class Profile:
         if bplt: self.pltPrf()
     
     def saveTxt(self, fname):
-        name = os.path.join(fname, self.name + '.asc') if os.path.isdir(fname) else os.path.splitext(fname)[0] + '.asc'
+        name = os.path.join(fname, self.name + '.txt') if os.path.isdir(fname) else os.path.splitext(fname)[0] + '.txt'
         np.savetxt(name, np.c_[self.X.ravel().T, self.Z.ravel().T], fmt='%.4e')
 
     def setValues(self, X, Y, bplt):

@@ -1,15 +1,27 @@
 """
-'surfile.remover'
-- form removal operations, implements:
+'surfile.geometry'
+- form fit operations, implements:
+    - circle fit
     - least square polynomial fits with bounded domain
+    - 3 point plane
     - spherical fit
     - cylinder fit
+    
+Notes
+-----
+Measurements made by microscopy techniques involve sample loading,
+and specifically profilometers involve the housing of samples above a tilt x-y table.
+Before carrying out the measurements, the samples must be levelled with respect to 
+the instrument plane, but since the images recorded have distortions mainly due 
+to misalignments (since the plane which contains the sample surface is not perfectly 
+parallel to the plane of the image), it is therefore essential to implement methods 
+for image levelling.  Moreover, other image distortions which can degrade the quality 
+of the surface reconstruction are (i) bow, which appears as a false curvature superposed 
+on the real sample topography, and (ii) edge effects, that can enlarge or shrink 
+features present in the image borders.
 
 @author: Andrea Giura
 """
-
-# TODO: classes are not needed for some methods because there are no user propts
-#  reshape the code without classes
 
 import itertools
 
@@ -25,10 +37,11 @@ from matplotlib.widgets import PolygonSelector
 
 
 def _polyval2d(x, y, coeffs):
-    # https://sofia-usra.github.io/sofia_redux/license.html
     """
     Evaluate 2D polynomial coefficients
-    ONLY USED INTERNALLY FOR SURFACE RECONSTRUCTION
+    Private method: ONLY USED INTERNALLY FOR FORM RECONSTRUCTION
+    
+    # https://sofia-usra.github.io/sofia_redux/license.html
 
     Parameters
     ----------
@@ -56,12 +69,57 @@ def _polyval2d(x, y, coeffs):
     return z
 
 
-class Remover:
-    def applyRemover(self, obj, bplt=False):
+class FormEstimator:
+    """
+    Base class for form fitting operations contains the methods 
+    common to all the derived classes:
+    - Profile Line
+    - Profile Poly
+    - Circle
+    - Surface Plane
+    - Surface Poly
+    - Surface 3 Points
+    - Sphere
+    - Cylinder
+    
+    Notes
+    -----
+    The form or geometry parameters are estimated by minimizing the sum of the squares
+    of the residuals: $\\varepsilon_i \\; = \\; f(\\mathbf{p}, x_i, y_i, z_i)$
+    where $(x_i, y_i)$ are the sampling positions, $z_i = z(x_i, y_i)$ are the height values 
+    of the topography map, $f$ is the model function, and $\mathbf{p} = [p_0, p_1, \\dots, p_m]$ 
+    is the tuple of geometry parameters or polynomial coefficients to be estimated by optimization.
+    
+    $\\min_{\\mathbf{p}} \\{\\sum\\limits_{i = 0}^{n-1}  f(\\mathbf{p}, x_i, y_i, z_i)^2 \\}$
+    """
+    def applyFit(self, obj, bplt=False):
+        """
+        Applies the fit operation to the obj with the
+        parameters of the self object
+
+        Parameters
+        ----------
+        obj : surfile.container
+            The data structure
+        bplt : bool, optional
+            If true plots the removed form, by default False
+        """
         pass
 
     @staticmethod
     def plotForm(x, z, coeff):
+        """
+        Plots the fitted 1d function and the profile
+
+        Parameters
+        ----------
+        x : np.array
+            The x values of the profile
+        z : np.array
+            The z values of the profile
+        coeff : np.array
+            The coefficients of the polynomial fit
+        """
         form = np.polyval(coeff, x)
         fig, ax = plt.subplots()
         ax.plot(x, z, x, form)
@@ -71,12 +129,44 @@ class Remover:
 
     @staticmethod
     def removeForm(x, z, coeff):
+        """
+        Calculates the polynomial function given the
+        coefficients and subtracts the form from the profile
+
+        Parameters
+        ----------
+        x : np.array
+            The x values of the profile
+        z : np.array
+            The z values of the profile
+        coeff : np.array
+            The coefficients of the polynomial fit
+
+        Returns
+        -------
+        z_final : np.array
+            The final z values of the profile after the form is removed
+        """
         form = np.polyval(coeff, x)
         z_final = z - form
         return z_final
 
     @staticmethod
     def plot3DForm(x, y, z, coeff):
+        """
+        Plots the fitted 2d function and the surface
+
+        Parameters
+        ----------
+        x : np.array
+            The x values of the surface
+        y : np.array
+            The y values of the surface
+        z : np.array
+            The z values of the surface
+        coeff : np.array
+            The coefficients of the polynomial fit
+        """
         form = _polyval2d(x, y, coeff)
         fig, ax = plt.subplots(subplot_kw={'projection': '3d'})
         ax.plot_surface(x, y, z, cmap=cm.Greys, alpha=0.7)
@@ -86,20 +176,43 @@ class Remover:
 
     @staticmethod
     def remove3DForm(x, y, z, coeff):
+        """
+        Removes the fitted 2d function from the surface
+
+        Parameters
+        ----------
+        x : np.array
+            The x values of the surface
+        y : np.array
+            The y values of the surface
+        z : np.array
+            The z values of the surface
+        coeff : np.array
+            The coefficients of the polynomial fit
+            
+        Returns
+        -------
+        z_final : np.array
+            The final z values of the surface after the form is removed
+        """
         form = _polyval2d(x, y, coeff)
         z_final = z - form
         return z_final
 
 
-class ProfileLSLine(Remover):
+class ProfileLSLine(FormEstimator):
+    """
+    Class derived from FormEstimator for the degree 1 line 
+    fit on a profile data.
+    """
     # shortcut class to profile poly of degree 1 (implemented for simmetry)
-    def applyRemover(self, obj: profile.Profile, bplt=False):
-        return self.remove(obj, bplt=bplt)
+    def applyFit(self, obj: profile.Profile, bplt=False):
+        return self.formFit(obj, bplt=bplt)
 
     @staticmethod
-    def remove(obj: profile.Profile, bplt=False):
+    def formFit(obj: profile.Profile, bplt=False):
         """
-        Least square line fit implementation
+        Least square line fit implementation on a profile
 
         Parameters
         ----------
@@ -109,9 +222,16 @@ class ProfileLSLine(Remover):
             If True plots the line overimposed on the profile
 
         Returns
-        ----------
+        -------
         (m, q) : (float, ...)
             The line equation coefficients
+            
+        Notes
+        -----
+        $\\min_{\\mathbf{p}} \\{\\sum\\limits_{i = 0}^{n-1}  f(\\mathbf{p}, x_i, z_i)^2 \\}$
+        
+        In this particular case of line fitting $f(\\mathbf{p}, x_i, z_i)=z_i-z(\\mathbf{p}, x_i)$
+        where $z(\\mathbf{p}, x)=p_0 x + p_1$ and $\\mathbf{p}=[m, q]$.
         """
         # create matrix and Z vector to use lstsq
         XZ = np.vstack([obj.X.reshape(np.size(obj.X)),
@@ -124,38 +244,66 @@ class ProfileLSLine(Remover):
         (m, q), resid, rank, s = np.linalg.lstsq(G, Z, rcond=None)  # calculate LS line
 
         if bplt:
-            Remover.plotForm(obj.X, obj.Z, [m, q])
+            FormEstimator.plotForm(obj.X, obj.Z, [m, q])
 
-        obj.Z = Remover.removeForm(obj.X, obj.Z, [m, q])
+        obj.Z = FormEstimator.removeForm(obj.X, obj.Z, [m, q])
         return m, q
 
 
-class ProfilePolynomial(Remover):
+class ProfilePolynomial(FormEstimator):
+    """
+    Class derived from FormEstimator for the degree n polynomial 
+    fit on a profile data.
+    """
     def __init__(self, degree, comp=lambda a, b: a < b, bound=None, cutter=None):
+        """
+        Creates a ProfilePolynomial object with the parameters provided
+
+        Parameters
+        ----------
+        degree: int
+            polynomial degree
+        comp: funct / lambda
+            comparison method between bound and profile
+        bound: float
+            -if not set the fit uses all points,
+            -if set the fit uses all points below the value,
+            -if set to True the fit uses only the values below the average value of the profile
+        cutter: cutter.Cutter
+            -if not set, the fit uses all points
+            -if true allows the user to select manually the region of interest
+            -if a cutter obj is passed the fit is done only on the cutted profile points
+             and then applied on the whole profile
+             
+        Examples
+        --------
+        >>> profPolyFit = ProfilePolynomial(2, bound=True, cutter=None)
+        >>> texture.Parameters.calc(prf, rem=profPolyFit, bplt=True)
+        """
         self.degree = degree
         self.comp = comp
         self.bound = bound
         self.cutter = cutter
 
-    def applyRemover(self, obj: profile.Profile, bplt=False):
-        return self.remove(obj, self.degree, self.comp, self.bound, self.cutter, bplt=bplt)
+    def applyFit(self, obj: profile.Profile, bplt=False):
+        return self.formFit(obj, self.degree, self.comp, self.bound, self.cutter, bplt=bplt)
 
     @staticmethod
-    def remove(obj: profile.Profile, degree, comp=lambda a, b: a < b, bound=None, cutter=None, bplt=False):
+    def formFit(obj: profile.Profile, degree, comp=lambda a, b: a < b, bound=None, cutter=None, bplt=False):
         """
-        Plynomial fit implementation
+        Plynomial fit implementation on a profile using the least square method
 
         Parameters
         ----------
         obj: profile.Profile
             The profile object on wich the form is removed
-        comp: funct / lambda
-            comparison method between bound and profile
         degree: int
             polynomial degree
+        comp: funct / lambda
+            comparison method between bound and profile
         bound: float
             -if not set the fit uses all points,
-            -if set the fit uses all points below the values,
+            -if set the fit uses all points below the value,
             -if set to True the fit uses only the values below the average value of the profile
         cutter: cutter.Cutter
             -if not set, the fit uses all points
@@ -169,6 +317,13 @@ class ProfilePolynomial(Remover):
         ----------
         coeff: np.array()
             The polynomial form coefficients
+            
+        Notes
+        -----
+        $\\min_{\\mathbf{p}} \\{\\sum\\limits_{i = 0}^{n-1}  f(\\mathbf{p}, x_i, z_i)^2 \\}$
+        
+        In this particular case of polynomial fitting $f(\\mathbf{p}, x_i, z_i)=z_i-z(\\mathbf{p}, x_i)$
+        where $z(\\mathbf{p}, x)=p_0 x^n + \\cdots + p_{n-1} x + p_n$ and $\\mathbf{p}=[p_0, \\cdots, p_n]$.
         """
 
         if cutter is True:  # if the fit is only on part of the profile the user chooses
@@ -190,17 +345,21 @@ class ProfilePolynomial(Remover):
             coeff = np.polyfit(x[ind], z[ind], degree)
 
         if bplt:
-            Remover.plotForm(obj.X, obj.Z, coeff)
+            FormEstimator.plotForm(obj.X, obj.Z, coeff)
 
-        obj.Z = Remover.removeForm(obj.X, obj.Z, coeff)
+        obj.Z = FormEstimator.removeForm(obj.X, obj.Z, coeff)
         return coeff
 
 
-class Circle(Remover):
+class Circle(FormEstimator):
+    """
+    Class derived from FormEstimator for the circle 
+    fit on a profile data.
+    """
     @staticmethod
-    def remove(obj: profile.Profile, cutter=None, finalize=True, bplt=False):
+    def formFit(obj: profile.Profile, cutter=None, finalize=True, bplt=False):
         """
-        Circle fit implementation
+        Circle fit implementation using the least square method
 
         Parameters
         ----------
@@ -225,6 +384,16 @@ class Circle(Remover):
             The form deviation of the points
         (xc, zc) : tuple
             Centre coordinates
+            
+        Notes
+        -----
+        The method used is from circle-fit python package hyperLSQ()
+        which implements the algorithm in [1]
+        
+        References
+        ----------
+        [1] Rangarajan, Prasanna & Kanatani, Kenichi & Niitsuma, Hirotaka & Sugaya, Yasuyuki. (2010). 
+        Hyper Least Squares and Its Applications. 5-8. 10.1109/ICPR.2010.10.
         """
         if cutter is True:  # if the fit is only on part of the profile the user chooses
             _, (x, z) = cutr.ProfileCutter.cut(obj, finalize=False)
@@ -259,7 +428,7 @@ class Circle(Remover):
         return r, dev, (xc, zc)
 
 
-class ProfileStitchError(Remover):
+class ProfileStitchError(FormEstimator):
     @staticmethod
     def remove(obj: profile.Profile, stitchPos, bplt=False):
         """
@@ -296,7 +465,7 @@ class ProfileStitchError(Remover):
 
 
 # TODO: this class does not work, is it even useful??
-class ProfileHistogram(Remover):  # Still not working well
+class ProfileHistogram(FormEstimator):
     @staticmethod
     def remove(obj: profile.Profile, final_m, bplt=False):
         """
@@ -363,34 +532,73 @@ class ProfileHistogram(Remover):  # Still not working well
         print(f'Hist method -> End slope {line_m}')
 
 
-class SurfaceLSPlane(Remover):
+class SurfaceLSPlane(FormEstimator):
+    """
+    Class derived from FormEstimator for the degree 1 plane 
+    fit on surface data.
+    """
     # shortcut class to surface poly of degree 1 (implemented for simmetry)
-    def applyRemover(self, obj: surface.Surface, bplt=False):
-        return self.remove(obj, bplt=bplt)
+    def applyFit(self, obj: surface.Surface, bplt=False):
+        return self.formFit(obj, bplt=bplt)
 
     @staticmethod
-    def remove(obj: surface.Surface, bplt=False):
+    def formFit(obj: surface.Surface, bplt=False):
         """
         Least square plane fit implementation
 
         Parameters
         ----------
-        obj: surface.Surface
+        obj : surface.Surface
             The surface object on wich the LS plane is applied
-        bplt: bool
+        bplt : bool
             If True plots the plane overimposed on the surface
 
         Returns
         ----------
-        sol: np.ndarray
+        sol : np.ndarray
             Array of polynomial coefficients.
+            
+        Notes
+        -----
+        $\\min_{\\mathbf{p}} \\{\\sum\\limits_{i = 0}^{n-1}  f(\\mathbf{p}, x_i, y_i, z_i)^2 \\}$
+        
+        In this particular case of plane fitting $f(\\mathbf{p}, x_i, y_i, z_i)=z_i-z(\\mathbf{p}, x_i, y_i)$
+        where $z(\\mathbf{p}, x, y)=p_{0,1} x + p_{1,0} y + p_{0,0}$ and 
+        $\\mathbf{p}=[[p_{0,0}, p_{0,1}][p_{1,0}, \\textcolor{red}{p_{1,1}}]]$.
         """
+        return SurfacePolynomial.formFit(obj, kx=1, ky=1, bplt=bplt)
 
-        return SurfacePolynomial.remove(obj, kx=1, ky=1, bplt=bplt)
 
-
-class SurfacePolynomial(Remover):
+class SurfacePolynomial(FormEstimator):
+    """
+    Class derived from FormEstimator for the degree kx, ky polynomial 
+    fit on surface data.
+    """
     def __init__(self, kx=3, ky=3, full=False, comp=lambda a, b: a < b, bound=None, cutter=None):
+        """
+        Creates a SurfacePolynomial object with the parameters provided
+
+        Parameters
+        ----------
+        kx, ky : int
+            Polynomial order in x and y, respectively.
+        full : bool, optional
+            If True, will solve using the full polynomial matrix.  Otherwise,
+            will use the upper-left triangle of the matrix.  See
+            `polyinterp2d` for further details.  Note that if kx != ky, then
+            the full matrix will be solved for. (@sofia_redux/toolkit)
+        comp : funct / lambda, optional
+            comparison method between bound and surface
+        bound: float, optional
+            if not set the fit uses all points,
+            if set the fit uses all points below the values,
+            if set to True the fit uses only the values below the average value of the surface
+        cutter : cutter.Cutter
+            -if not set, the fit uses all points
+            -if true allows the user to select manually the region of interest
+            -if a cutter obj is passed the fit is done only on the cutted profile points
+             and then applied on the whole profile
+        """
         self.kx = kx
         self.ky = ky
         self.full = full
@@ -398,32 +606,32 @@ class SurfacePolynomial(Remover):
         self.bound = bound
         self.cutter = cutter
 
-    def applyRemover(self, obj: surface.Surface, bplt=False):
-        return self.remove(obj, self.kx, self.ky, self.full, self.comp, self.bound, self.cutter)
+    def applyFit(self, obj: surface.Surface, bplt=False):
+        return self.formFit(obj, self.kx, self.ky, self.full, self.comp, self.bound, self.cutter)
 
     @staticmethod
-    def remove(obj: surface.Surface, kx=3, ky=3, full=False, comp=lambda a, b: a < b, bound=None, cutter=None, bplt=False):
+    def formFit(obj: surface.Surface, kx=3, ky=3, full=False, comp=lambda a, b: a < b, bound=None, cutter=None, bplt=False):
         """
-        Least square polynomial fit implementation
+        Least square polynomial fit implementation on surface data
 
         Parameters
         ----------
-        obj: surface.Surface
+        obj : surface.Surface
             The surface object on wich the polynomial fit is applied
-        kx, ky: int
+        kx, ky : int
             Polynomial order in x and y, respectively.
         full : bool, optional
             If True, will solve using the full polynomial matrix.  Otherwise,
             will use the upper-left triangle of the matrix.  See
             `polyinterp2d` for further details.  Note that if kx != ky, then
             the full matrix will be solved for. (@sofia_redux/toolkit)
-        comp: funct / lambda, optional
+        comp : funct / lambda, optional
             comparison method between bound and surface
-        bound: float, optional
+        bound : float, optional
             if not set the fit uses all points,
             if set the fit uses all points below the values,
             if set to True the fit uses only the values below the average value of the surface
-        cutter: cutter.Cutter
+        cutter : cutter.Cutter
             -if not set, the fit uses all points
             -if true allows the user to select manually the region of interest
             -if a cutter obj is passed the fit is done only on the cutted profile points
@@ -433,8 +641,20 @@ class SurfacePolynomial(Remover):
 
         Returns
         ----------
-        sol: np.ndarray
+        sol : np.ndarray
             Array of polynomial coefficients.
+            
+        Notes
+        -----
+        $\\min_{\\mathbf{p}} \\{\\sum\\limits_{i = 0}^{n-1}  f(\\mathbf{p}, x_i, y_i, z_i)^2 \\}$
+        
+        In this particular case of polynomial fitting $f(\\mathbf{p}, x_i, y_i, z_i)=z_i-z(\\mathbf{p}, x_i, y_i)$
+        where $z(\\mathbf{p}, x, y)=\\sum_{i,j}p_{i,j}\\cdot x^i \\cdot y^j$ and 
+        $\\mathbf{M}=[
+        [m_{0,0},  \\cdots,  m_{0,kx}]
+        [\\vdots,  \\ddots,  \\textcolor{red}{\\vdots}]
+        [m_{ky,0},  \\textcolor{red}{\cdots},  \\textcolor{red}{m_{kx,ky}}]
+        ]$.
         """
         if cutter is True:
             _, (x, y, z) = cutr.SurfaceCutter.cut(obj, finalize=False)
@@ -482,26 +702,54 @@ class SurfacePolynomial(Remover):
                 coeffs[j, i] = c
 
         if bplt:
-            Remover.plot3DForm(obj.X, obj.Y, obj.Z, coeffs)
+            FormEstimator.plot3DForm(obj.X, obj.Y, obj.Z, coeffs)
 
-        obj.Z = Remover.remove3DForm(obj.X, obj.Y, obj.Z, coeffs)
+        obj.Z = FormEstimator.remove3DForm(obj.X, obj.Y, obj.Z, coeffs)
         return coeffs
 
 
-class Surface3Points(Remover):
+class Surface3Points(FormEstimator):
+    """
+    Class derived from FormEstimator for the removal of the
+    plane defined by three points selected by the user.
+    """
     # TODO : add radius of points to pick with a single click
     @staticmethod
     def remove(obj: surface.Surface, bplt=False):
         """
         3 points plane fit implementation
-        Opens a plot figure to choose the 3 points and fids the plane for those points
+        Opens a plot figure to choose the 3 points and finds the equation
+        of the plane passing through those 3 points.
 
         Parameters
         ----------
-        obj: surface.Surface
+        obj : surface.Surface
             The surface object on wich the polynomial fit is applied
-        bplt: bool
+        bplt : bool
             If True plots the plane overimposed on the surface
+            
+        Notes
+        -----
+        Once the choice has been confirmed, the program calculates the coefficients 
+        a, b and c of the equation of the plane $z_{plane}(x,y)$  passing through the 
+        three specified positions Pa, Pb and Pc.
+        
+        Points coordinates:
+        $P_a=(x_a, y_a, z_a)$
+        $P_b=(x_b, y_b, z_b)$
+        $P_c=(x_c, y_c, z_c)$
+        
+        Plane coefficients:
+        $a=(y_b-y_a)(z_c-z_a)-(y_c-y_a)(z_b-z_a)$
+        $b=(x_c-x_a)(z_b-z_a)-(x_b-x_a)(z_c-z_a)$
+        $c=(x_b-x_a)(y_c-y_a)-(y_b-y_a)(x_c-x_a)$
+        
+        Plane equation:
+        $z_{plane}(x,y)=\\frac{(-ax-by)}{c}$
+        
+        NOTE: in order to let the software perform a robust and affordable calculation, 
+        the chosen points Pa, Pb and Pc must be as far apart as possible 
+        (if possible, as vertices of an equilateral triangle)
         """
         def onClose(event):  # when fig is closed calculate plane parameters
             po = []
@@ -526,9 +774,9 @@ class Surface3Points(Remover):
             sol = np.array([-d/c, -a/c, -b/c, 0]).reshape((2, 2))
 
             if bplt:
-                Remover.plot3DForm(obj.X, obj.Y, obj.Z, sol)
+                FormEstimator.plot3DForm(obj.X, obj.Y, obj.Z, sol)
 
-            obj.Z = Remover.remove3DForm(obj.X, obj.Y, obj.Z, sol)
+            obj.Z = FormEstimator.remove3DForm(obj.X, obj.Y, obj.Z, sol)
             plt.close(fig)
 
         fig, ax = plt.subplots()
@@ -541,32 +789,43 @@ class Surface3Points(Remover):
         plt.show()
 
 
-class Sphere(Remover):
+class Sphere(FormEstimator):
+    """
+    Class derived from FormEstimator for the removal of the
+    least square sphere
+    """
     @staticmethod
-    def remove(obj: surface.Surface, finalize=True, radius=None, concavity=None, bplt=False):
+    def formFit(obj: surface.Surface, finalize=True, radius=None, concavity=None, bplt=False):
         """
         Calculates the least square sphere
 
         Parameters
         ----------
-        obj: surface.Surface
+        obj : surface.Surface
             The surface object on wich the polynomial fit is applied
-        finalize: bool
+        finalize : bool
             If set to False the fit will not alter the surface,
             the method will only return the center and the radius
-        radius: float
+        radius : float
             If None the method will use the best fit radius
             If a radius is passed then the program will use it
-        concavity: str
+        concavity : str
             Can be either 'convex' or 'concave'
             If set to None the program will find the concavity of the sample
-        bplt: bool
+        bplt : bool
             Plots the sphere fitted to the data points
 
         Returns
-        ----------
+        -------
         (radius, C): (float, [xc, yc, zc])
             Radius and sphere center coordinates
+            
+        Notes
+        -----
+        The general equation of a sphere is: $(x-x_c)^2+(y-y_c)^2+(z-z_c)^2=r^2$
+        
+        Expanding the equation we get: $x^2+y^2+z^2=2xx_c+2yy_c+2zz_c+r^2-x_c^2-y_c^2-z_c^2$        
+        We can solve for $x_c, y_c, z_c, r$
         """
         if concavity not in [None, 'concave', 'convex']: raise Exception('Concavity is not valid')
         #   Assemble the A matrix
@@ -660,41 +919,54 @@ def _evalCyl(obj: surface.Surface, est_p, concavity):
     return (-B + delta) / (2 * A) + est_p[2]
 
 
-class Cylinder(Remover):
+class Cylinder(FormEstimator):
+    """
+    Class derived from FormEstimator for the calculation of the
+    least square cylinder
+    """
     @staticmethod
-    def remove(obj: surface.Surface, radius, alphaZ=0, alphaY=0, concavity='convex', base=False, finalize=True, bplt=False):
+    def formFit(obj: surface.Surface, radius, alphaZ=0, alphaY=0, concavity='convex', base=False, finalize=True, bplt=False):
         """
         This is a fitting for a horizontal along x cylinder fitting
         uses the following parameters to find the best cylinder fit
 
         Parameters
         ----------
-        obj: surface.Surface
+        obj : surface.Surface
             The surface object on wich the cylinder fit is applied
-        radius: float
+        radius : float
             The cylinder nominal radius
-        alphaY:
+        alphaY : float
             An estimate ot the cylinder rotation about the y-axis (radian)
-        alphaZ:
+        alphaZ : float
             An estimate ot the cylinder rotation about the z-axis (radian)
-        concavity: str
+        concavity : str
             Can be either 'convex' or 'concave'
-        base: bool
+        base : bool
             If true removes the points at the base of the cylinder
-        finalize: bool
+        finalize : bool
             If set to False the fit will not alter the surface,
             the method will only return the center and the radius
-        bplt: bool
+        bplt : bool
             Plots the sphere fitted to the data points
 
         Returns
         ----------
-        est_p: np.array
-            P[0] = r, radius of the cylinder
-            p[1] = Yc, y coordinate of the cylinder centre
-            P[2] = Zc, z coordinate of the cylinder centre
-            P[3] = alpha_z, rotation angle (radian) about the z-axis
+        est_p : np.array
+            P[0] = r, radius of the cylinder\n
+            p[1] = Yc, y coordinate of the cylinder centre\n
+            P[2] = Zc, z coordinate of the cylinder centre\n
+            P[3] = alpha_z, rotation angle (radian) about the z-axis\n
             P[4] = alpha_y, rotation angle (radian) about the y-axis
+            
+        Notes
+        -----
+        The cylinder fit is done according to the general cylider equation with 5
+        degrees of freedom to accomodate for the axis rotation and translation.
+        The general equation of the cylinder is $(x-x_c)^2+(y-y_c)^2+(z-z_c)^2-[l(x-x_c)+m(y-y_c)+n(z_{cyl}-z_c)]^2-R^2=0$
+        Where $x,y,z_{cyl}$ are the coordinates of the cylinder points, $l, m, n$ 
+        are the three components of the versor that represent the cylinder axis direction,
+        $x_c, y_c, z_c$ are the coordinate of the centre and $R$ is the radius of the circular base.
         """
         # TODO : try masking the points instead of removing
         if base:  # remove base points

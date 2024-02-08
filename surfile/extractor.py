@@ -4,6 +4,12 @@
     - SimpleExtractor: profile parallel to x or y direction
     - ComplexExtractor: profile can be any (even pieceWise defined)
     - SphereExtractor: profile starting from the maximum point of the surface
+    
+Notes
+-----
+Since the study of profiles is of great interest for studying (i) roughness 
+parameters and (ii) height measurements of step or groove samples, profile 
+extraction methodologies have been implemented within the program.
 
 @author: Andrea Giura
 """
@@ -78,7 +84,7 @@ class Extractor(ABC):
 def _extractProfileWithOptions(obj: surface.Surface, opt, prf: profile.Profile = None, bplt=False):
     """
     Protected method
-    Applyes the class option to extract a profile from a topography
+    Applies the class option to extract a profile from a topography
 
     Parameters
     ----------
@@ -368,7 +374,7 @@ class SphereExtractor(Extractor, ABC):
             xind = unraveled[0]
             yind = unraveled[1]
         elif startP == 'fit':
-            from surfile.remover import sphere
+            from surfile.geometry import sphere
 
             r, C = sphere.remove(obj, bplt=False)
             yc = C[0][0]

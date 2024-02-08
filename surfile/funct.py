@@ -50,18 +50,27 @@ def persFig(figures, xlab, ylab, zlab=None, gridcol='k'):
         
         
 def nan_helper(y):
-    """Helper to handle indices and logical indices of NaNs.
+    """
+    Helper to handle indices and logical indices of NaNs.
 
-    Input:
-        - y, 1d numpy array with possible NaNs
-    Output:
-        - nans, logical indices of NaNs
-        - index, a function, with signature indices= index(logical_indices),
-          to convert logical indices of NaNs to 'equivalent' indices
-    Example:
-        >>> # linear interpolation of NaNs
-        >>> nans, x= nan_helper(y)
-        >>> y[nans]= np.interp(x(nans), x(~nans), y[~nans])
+    Parameters
+    ----------
+    y : np.array
+        1d numpy array with possible NaNs
+            
+    Returns
+    -------
+    nans : np.array
+        logical indices of NaNs
+    index : funct
+        a function, with signature indices= index(logical_indices),
+        to convert logical indices of NaNs to 'equivalent' indices
+            
+    Example
+    -------
+    >>> # linear interpolation of NaNs
+    >>> nans, x= nan_helper(y)
+    >>> y[nans]= np.interp(x(nans), x(~nans), y[~nans])
     """
 
     return np.isnan(y), lambda z: z.nonzero()[0]
@@ -88,11 +97,11 @@ def options(csvPath=None, save=None, bplt=False, chrono=False):
     """
     # TODO now every function asks the user to define a bplt parameter
     # TODO this decorator implements global options, how can we implement both solutions
-    # Solution: the bplt can be defaulted to False in every function, the plt.show()
+    # SOLUTION: the bplt can be defaulted to False in every function, the plt.show()
     # should not be called in the function but only in the decorator and only if there
     # are pending graphs to be shown plt.get_fignums(). Try this and see...
     def outer(func):
-        def inner(*args, **kwargs):                
+        def inner(*args, **kwargs):
             init = time.time()
             # exec the function
             ret = func(*args, **kwargs)

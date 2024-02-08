@@ -2,13 +2,20 @@
 'surfile.cutter'
 - Cutting operations for profiles and surfaces
 
+Notes
+-----
+These utilities are implemented as classes in order to allow the creation 
+of templates to apply the same processing to multiple images.
+The class implementation also allows the creation of cutter and selector 
+objects in other methods such as levelling or feature extraction routines.
+
 @author: Andrea Giura
 """
 
 from abc import ABC, abstractmethod
 import numpy as np
 
-from surfile import profile, surface, funct, remover
+from surfile import geometry, profile, surface, funct
 
 import matplotlib.pyplot as plt
 from matplotlib.widgets import RectangleSelector, SpanSelector
@@ -181,7 +188,7 @@ class ProfileCutter(Cutter, ABC):
             
         elif startP == 'fit':
             # split the profile at center of fit
-            _, _, center = remover.Circle.remove(obj, finalize=False, bplt=False)
+            _, _, center = geometry.Circle.formFit(obj, finalize=False, bplt=False)
             split_i = np.nanargmin(np.abs(obj.X - center[0]))
             
         else: raise Exception(f'{startP} is not valid option for startP')
@@ -219,7 +226,7 @@ class SurfaceCutter(Cutter, ABC):
 
         sur = surface.Surface()
         sur.openFile(fname, bplt=False)
-        self.extents, _ = SurfaceCutter.cut(sur)
+        self.extents, _ = SurfaceCutter.cut(sur, finalize=False)
 
     def applyCut(self, obj: surface.Surface, finalize=True):
         """

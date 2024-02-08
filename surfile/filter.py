@@ -227,7 +227,7 @@ class ProfileRobust(Filter):
             Filter.plotEnvelope(obj.X0, obj.Z0, w)
 
     @staticmethod
-    def filter(obj: profile.Profile, cutoff, bplt=False):
+    def filter_regression_p1(obj: profile.Profile, cutoff, bplt=False):
         """
         Applies to a profile object a gaussian robust filter ISO 16610-31.
 
@@ -422,8 +422,9 @@ class SurfaceGaussian(Filter):
     @staticmethod
     def filter(obj: surface.Surface, cutoff, bplt=False):
         """
-        Applies to a profile object a gaussian filter ISO 16610-21.
+        Applies to a surface object a gaussian filter ISO 16610-21.
         The resulting profile is cut at the borders to avoid border effects.
+        TODO
 
         Parameters
         ----------
