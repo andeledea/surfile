@@ -2,8 +2,14 @@
 'surfile.surface'
 - data structure for surface objects
 - plots of the surface
-- basic transformation methods (resample, rotation)
-- io operation for data storage
+- io operation
+
+Example
+-------
+>>> from surfile import surface
+>>> sur = surface.Surface() # instantiate an empty surface
+>>> sur.openFile('path to file', bplt=False)
+>>> sur.pltC()
 
 @author: Andrea Giura
 """
@@ -21,7 +27,13 @@ from surfile.funct import options, rcs
 
 
 class Surface:
+    """
+    Class for handling surface data
+    Provides io file operations in different formats
+    Provides simple visualization plots
+    """
     def __init__(self):
+        """Instantiate an empty Surface object"""
         self.X0, self.Y0, self.Z0 = None, None, None
         self.Z = None
         self.Y = None
@@ -35,6 +47,26 @@ class Surface:
         self.name = 'Figure'
 
     def openTxt(self, fname, bplt, typ='x'):
+        """
+        Opens a txt file containing the values of the topography
+        see Notes for more information on file format.
+
+        Parameters
+        ----------
+        fname : str
+            The file path
+        bplt : bool
+            If true plots the opened surface
+        typ : str, optional
+            Type of text file see Notes, by default 'x'
+            
+        Notes
+        -----
+        This method accepts two different txt formats:
+        - typ = 's' txt file with 4 header lines with values respectively 
+        [nx, ny, dx, dy] and then the list of Z values of the array.
+        - typ = 'x' txt file with three columns [x, y, z]
+        """
         self.name = os.path.basename(fname)
         self.name = os.path.splitext(self.name)[0]
 
@@ -52,11 +84,25 @@ class Surface:
 
         if bplt: self.pltC()
 
-    def openFile(self, fname, bplt, interp=False):
+    def openFile(self, fname, bplt, interp=False, userscalecorrections=[1.0, 1.0, 1.0]):
+        """
+        Opens a file from a supported intrument, the list of 
+        supported types is in measfile_io documentation.
+
+        Parameters
+        ----------
+        fname : str
+            The file path
+        bplt : bool
+            If true plots the opened surface
+        interp : bool, optional
+            If true uses interpolation to fill NaNs, by default False
+        userscalecorrections : list
+            Array to correct the values of the topography [x_mul, y_mul, z_mul].
+        """
         self.name = os.path.basename(fname)
         self.name = os.path.splitext(self.name)[0]
 
-        userscalecorrections = [1.0, 1.0, 1.0]
         dx, dy, z_map, weights, magnification, measdate = \
             measfile_io.read_microscopedata(fname, userscalecorrections, interp)
         (n_y, n_x) = z_map.shape
@@ -75,15 +121,24 @@ class Surface:
 
     def saveAsc(self, fname):
         """
-        Saves the topography in the .asc file format
+        Saves the topography in the .asc file format of the tracOptic project
 
         Parameters
         ----------
-        fname: str
+        fname : str
             If fname is a folder the file will be saved in that folder with the surface name
             If fname is not a folder the file will be saved at fname
+            
+        Notes
+        -----
+        The tracOptic file format: \n
+        {self.name}\n
+        X - length: {max(self.x) - min(self.x)}\n
+        Y - length: {max(self.y) - min(self.y)}\n
+        X - pixel number: {len(self.x)}\n
+        Y - pixel number: {len(self.y)}\n
+        Z - data array start: (all the values of the Z array)
         """
-
         def saveLine(line):
             line = line / 1000  # in um
             line.tofile(fout, sep='\t', format='%.4f')
@@ -101,7 +156,16 @@ class Surface:
             np.apply_along_axis(saveLine, axis=1, arr=self.Z)
 
     def saveTxt(self, fname):
-        name = os.path.join(fname, self.name + '.asc') if os.path.isdir(fname) else os.path.splitext(fname)[0] + '.asc'
+        """
+        Saves the topography in the .txt file format with three cols
+
+        Parameters
+        ----------
+        fname : str
+            If fname is a folder the file will be saved in that folder with the surface name
+            If fname is not a folder the file will be saved at fname
+        """
+        name = os.path.join(fname, self.name + '.txt') if os.path.isdir(fname) else os.path.splitext(fname)[0] + '.txt'
         np.savetxt(name, np.c_[self.X.ravel().T, self.Y.ravel().T, self.Z.ravel().T], fmt='%.4e')
 
     def rotate(self, angle):
@@ -112,6 +176,11 @@ class Surface:
         ----------
         angle: float
             The angle of rotation
+            
+        Notes
+        -----
+        <span style="color:orange">This function will be moved to a utility module in the future
+        use with caution !!!</span>.
         """
         self.Z = ndimage.rotate(self.Z0, angle, order=0, reshape=False, cval=np.nan)
 
@@ -125,6 +194,11 @@ class Surface:
             Number of points desired on the x-axis
         newYsize: int
             Number of points desired on the y-axis
+            
+        Notes
+        -----
+        <span style="color:orange">This function will be moved to a utility module in the future
+        use with caution !!!</span>.
         """
         xi = np.linspace(0, self.rangeX, newXsize)
         yi = np.linspace(0, self.rangeY, newYsize)
@@ -146,6 +220,16 @@ class Surface:
     def fillNM(self, method='cubic'):
         """
         Fills the surface non measured points
+        
+        Parameters
+        ----------
+        method : str
+            The interpolation method used
+            
+        Notes
+        -----
+        <span style="color:orange">This function will be moved to a utility module in the future
+        use with caution !!!</span>.
         """
         z_ma = np.ma.masked_invalid(self.Z)
         self.Z = interpolate.griddata((self.X[~z_ma.mask], self.Y[~z_ma.mask]),
@@ -171,20 +255,25 @@ class Surface:
         stdv : float
             The std dev of the expected distribution
             If none the program calculates the std dev of the distribution
+            
+        Notes
+        -----
+        <span style="color:orange">This function will be moved to a utility module in the future
+        use with caution !!!</span>.
         """
         # https://github.com/msproteomicstools/msproteomicstools/blob/master/msproteomicstoolslib/math/chauvenet.py
         prenan = np.count_nonzero(np.isnan(self.Z))
 
         if mean is None or iterative:
-            mean = np.nanmean(self.Z)  # Mean of incoming array y
+            mean = np.nanmean(self.Z)
         if stdv is None or iterative:
-            stdv = np.nanstd(self.Z)  # Its standard deviation
+            stdv = np.nanstd(self.Z)
         N = self.Z.size  # Lenght of incoming arrays
-        criterion = 1.0 / (2 * N)  # Chauvenet's criterion
+        criterion = 1.0 / (2 * N)
         d = np.abs(self.Z - mean) / stdv  # Distance of a value to mean in stdv's
-        d /= 2.0 ** threshold  # The left and right tail threshold values
-        prob = special.erfc(d)  # Area normal dist.
-        fil = prob >= criterion  # The 'accept' filter array with booleans
+        d /= 2.0 ** threshold
+        prob = special.erfc(d)
+        fil = prob >= criterion
 
         self.Z[~fil] = np.nan
         postnan = np.count_nonzero(np.isnan(self.Z))
@@ -226,6 +315,7 @@ class Surface:
     #################
     @options(bplt=rcs.params['bs3_D'], save=rcs.params['ss3_D'])
     def plt3D(self):
+        """Plots a 3D view of the surface"""
         fig = plt.figure()
         ax_3d = fig.add_subplot(111, projection='3d')
         p = ax_3d.plot_surface(self.X, self.Y, self.Z, cmap=cm.rainbow)  # hot, viridis, rainbow
@@ -240,6 +330,7 @@ class Surface:
 
     @options(bplt=rcs.params['bsCom'], save=rcs.params['ssCom'])
     def pltCompare(self):
+        """Plots the current topography data and the original data"""
         fig, (ax, bx) = plt.subplots(nrows=1, ncols=2)
         p1 = ax.pcolormesh(self.X0, self.Y0, self.Z0, cmap=cm.jet)  # hot, viridis, rainbow
         p2 = bx.pcolormesh(self.X, self.Y, self.Z, cmap=cm.jet)  # hot, viridis, rainbow
@@ -255,6 +346,7 @@ class Surface:
 
     @options(bplt=rcs.params['bsCol'], save=rcs.params['ssCol'])
     def pltC(self):
+        """Plots the topography (pcolormesh)"""
         fig = plt.figure()
         ax_2d = fig.add_subplot(111)
         ax_2d.pcolormesh(self.X, self.Y, self.Z, cmap=cm.viridis)  # hot, viridis, rainbow

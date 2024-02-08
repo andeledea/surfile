@@ -1,6 +1,6 @@
 """
-'surfile.morph'
-- analysis of morphological features for:
+'surfile.analysis'
+- analysis for:
     - Profiles
     - Surfaces
 
@@ -16,12 +16,13 @@ from alive_progress import alive_bar
 from matplotlib import pyplot as plt, cm
 from scipy import signal, optimize, stats
 
-from surfile import profile, surface, funct, extractor, remover
+from surfile import geometry, profile, surface, funct, extractor
 from surfile.funct import classOptions, options, rcs
 
 
 @dataclass
 class Roi:
+    """Simple class to handle profile sections"""
     X: list
     Z: list
 
@@ -92,11 +93,26 @@ def _tolerant_mean(arrs: list):
     save=rcs.params['spMor'],
     csvPath=rcs.params['cpMor'])
 )
-class ProfileMorph:
+class ProfileAnalysis:
+    """
+    Class that contains all the methods relative to Profile
+    analysis
+
+    Notes
+    -----
+    All the methods in this class are implemented as a @staticmethod
+    so this class is only used as a namespace to include all the routines
+    relative to profile analysis.
+    
+    Many of the methods of this function are called from functions 
+    of the SurfaceAnalysis class, but they can be called also to process
+    single profile objects.
+    """
     @staticmethod
     def stepAuto(obj: profile.Profile, bplt=False):
         """
-        Calculates the step height using the auto method
+        Calculates the step height by finding the position of
+        the walls automatically.
 
         Parameters
         ----------
@@ -112,6 +128,17 @@ class ProfileMorph:
         definedPeaks: bool
             False if the standard deviation of the flats is greater than step / 200
             it gives an indication on how well the steps are defined
+            
+        Notes
+        -----
+        To automate the selection of the areas @ the left, right and center of the step,
+        which will henceforth be called regions of interest (ROIs), the programme calculates 
+        the first derivative of the profile p'(x) and a threshold value that will be used 
+        to search peaks above its value. Once the peaks have been defined, it is possible to 
+        derive the ROIs as segments in between the peaks and one third the width of the distance 
+        between the two peaks that include it.
+        
+        $h_{step}=\\overline{ROI_{middle}}-\\frac{\\overline{ROI_{left}}+\\overline{ROI_{right}}}{2}$
         """
 
         def calcSteps():
@@ -177,52 +204,10 @@ class ProfileMorph:
         return steps, definedPeaks
 
     @staticmethod
-    def wireParams(obj: profile.Profile, bplt=False):
-        """
-        Given a nanowire cross section calculates max value
-        height of the wire, width of the wire
-
-        Parameters
-        ----------
-        obj : profile.Profile
-            The nanowire cross section
-        bplt : bool
-            If true plots the profile and the section used for
-            the height and width calculation
-
-        Returns
-        -------
-        height : float
-            The heigth of the nanowire
-        width : float
-            The width of the nanowire
-        max : float
-            The maximum value of the cross section
-        max_i : int
-            The index of the max
-        """
-        bound = np.min(obj.Z) + np.ptp(obj.Z) / 2
-
-        top = np.max(obj.Z)
-        bot = np.mean(obj.Z[obj.Z < bound])
-
-        height = top - bot
-        bound = bot + 0.1 * height
-        width = obj.X[obj.Z > bound][-1] - obj.X[obj.Z > bound][0]
-
-        if bplt:
-            fig, ax = plt.subplots()
-            ax.plot(obj.X, obj.Z)
-            ax.plot(obj.X[obj.Z > bound], obj.Z[obj.Z > bound], 'r')
-
-            ax.set_title(obj.name)
-
-        return height, width, np.max(obj.Z), np.argmax(obj.Z)
-
-    @staticmethod
     def histHeight(obj: profile.Profile, bins=None, bplt=False):
         """
-        Histogram method implementation
+        Calculates the height of the sample using the histogram 
+        method.
 
         Parameters
         ----------
@@ -239,6 +224,13 @@ class ProfileMorph:
             The calculated height of the surface
         (hist, edges)
             The histogram x and y
+            
+        Notes
+        -----
+        The histogram of the Z values of the object describes how many pixels 
+        are present in the image at a certain height. In the case of a step
+        height sample the histogram presents two peaks, the program calculates
+        the difference between the two peaks and returns the height.
         """
         b = bins
         if bins is None:
@@ -276,7 +268,7 @@ class ProfileMorph:
     @staticmethod
     def arcSlope(obj: profile.Profile, R):
         """
-        Used to find the max measured slopes of arc of radius R
+        Finds the max measured slopes of arc of radius R at two breakpoints
 
         Parameters
         ----------
@@ -291,6 +283,14 @@ class ProfileMorph:
             The slope calculated at breackpoint 1 (first nan value)
         phi_max2: float
             The slope calculated at breackpoint 2 (last measured point)
+        
+        Notes
+        -----
+        The first breakpoint $b_1$ is taken at the first non-measured point, 
+        the second breakpoint $b_2$ is taken at the last measured point.
+        
+        $\\Phi_{MS1}=asin(\\frac{b_1}{R})$
+        $\\Phi_{MS2}=asin(\\frac{b_2}{R})$
         """
         try:
             bound_nan = np.argwhere(np.isnan(obj.Z))[0][-1] - 1
@@ -321,6 +321,14 @@ class ProfileMorph:
         ----------
         (r, z): (np.array(), ...)
             The radius and the respective z values
+            
+        Notes
+        -----
+        The radius of the arc for a specific height is then calculated as:
+        $ R_i=\\frac{x_i^2+z_{eh,i}^2}{2z_{eh,i}}$
+        where $x_i^2$ is the $x$ coordinate of the $i_{th}$ point, $z_{(eh,i)}$ 
+        is the distance between the maximum value of the profile and the $z$ 
+        coordinate of point $i$; $R_i$ represent the radius calculated at point $i$.
         """
         r = []
         z = []
@@ -346,16 +354,22 @@ class ProfileMorph:
         return r, z
 
     @staticmethod
-    def lateral(obj: profile.Profile, nom_pitch, bplt=False):
+    def grating_1d(obj: profile.Profile, nom_pitch, bplt=False):
         """
-        Evaluate RSM - N parameters with the sigmoid fit method
-        @dorothee_hueser
+        Determines height and pitch of 1D gratings
+        of line bars of rectangular cross-section, where the trench width
+        is equal to the bar width.
+        The bar cross-sections are modelled as rectangular boxes with
+        smoothed corners using a combination of sigmoidal functions.
 
         Parameters
         ----------
-        obj: The profile on which the steps are evaluated
-        nom_pitch: the nominal pitch of the sample
-        bplt: if true 
+        obj: profile.Profile
+            The profile on which the steps are evaluated
+        nom_pitch: float
+            the nominal pitch of the sample
+        bplt: Bool
+            if true plots the sine and the sigmoid fit
 
         Returns
         ----------
@@ -363,6 +377,16 @@ class ProfileMorph:
             The center position of the features
         h_c: np.array
             The calculated heights of the features
+            
+        Notes
+        -----
+        At first the extracted profile is fitted with a least square sine wave,
+        this is used to find the centres of the features.\n
+        $\\min_b {\\sum_{i=0}^{n_1}(z_i-\\frac{1}{2}b_0cos(\\frac{\\pi}{b_2}(x_i-b_1))-b_3-b_4x_i)^2}$\n
+        The sigmoidal funtion fit is in the form:\n
+        $f_s(x_{SW})=\\frac{1}{1+e^{\\frac{s(p_1-x)-x_{SW}}{p_4}}}$\n
+        $z_M(\\mathbf{p},x)=p_0(f_{+1}(\\frac{1}{2}p_2)f_{-1}(\\frac{1}{2}p_2)-f_{+1}
+        (\\frac{3}{2}p_2)f_{-1}(\\frac{3}{2}p_2))$
         """
         x_c = []  # center positions of features
         h_c = []  # height of features
@@ -419,19 +443,29 @@ class ProfileMorph:
     save=rcs.params['ssMor'],
     csvPath=rcs.params['csMor'])
 )
-class SurfaceMorph:
+class SurfaceAnalysis:
+    """
+    Class that contains all the methods relative to Surface
+    analysis
+
+    Notes
+    -----
+    All the methods in this class are implemented as a @staticmethod
+    so this class is only used as a namespace to include all the routines
+    relative to surface analysis.
+    """
     @staticmethod
     def histHeight(obj: surface.Surface, bins=None, bplt=False):
         """
-        Histogram method implementation
+        Calculates the height of the sample using the histogram 
+        method.
 
         Parameters
         ----------
         obj : surface.Surface
-            The surface object on wich the height is calculated
+            The profile object on wich the height is calculated
         bins: int
-            The number of bins of the histogram, if set to none the program will calculate
-            automatically the number of bins
+            The number of bins of the histogram
         bplt: bool
             Plots the histogram of the profile
 
@@ -441,6 +475,13 @@ class SurfaceMorph:
             The calculated height of the surface
         (hist, edges)
             The histogram x and y
+            
+        Notes
+        -----
+        The histogram of the Z values of the object describes how many pixels 
+        are present in the image at a certain height. In the case of a step
+        height sample the histogram presents two peaks, the program calculates
+        the difference between the two peaks and returns the height.
         """
         b = bins
         if bins is None:
@@ -464,56 +505,17 @@ class SurfaceMorph:
         return height, (hist, edges)
 
     @staticmethod
-    def wireParams(obj: surface.Surface, bplt=False):
+    def maxMeasSlope(obj: surface.Surface, R, angleStep, start='local', bplt=False):
         """
-        Given a nanowire topography extracts all the cross sections
-        and calculates the parameters explained in ProfileMorph.wireParams
-
-        Parameters
-        ----------
-        obj : surface.Surface
-            the nanowire topography
-        bplt : bool
-            if true plots the results of the processing
-        """
-        prfs = obj.toProfiles('x')
-
-        hs = []
-        ws = []
-        ts = []
-
-        mZ = np.ma.masked_array(obj.Z)
-
-        for i, p in enumerate(prfs):
-            h, w, t, ti = ProfileMorph.wireParams(p, bplt=False)
-
-            mZ[i, ti] = np.ma.masked
-
-            hs.append(h)
-            ws.append(w)
-            ts.append(t)
-
-        fig1, (ax, bx) = plt.subplots(nrows=1, ncols=2)
-        ax.pcolormesh(obj.X, obj.Y, mZ, cmap=cm.viridis)  # hot, viridis, rainbow
-        bx.plot(obj.y, ts, label='top_profile')
-
-        fig2, (ax, bx) = plt.subplots(nrows=1, ncols=2)
-        ax.plot(obj.y, hs, label='height')
-        bx.plot(obj.y, ws, label='width')
-
-        ax.legend()
-        bx.legend()
-
-    @staticmethod
-    def sphereSlope(obj: surface.Surface, R, angleStep, start='local', bplt=False):
-        """
-        Returns the maximum measurable slope in every direction
+        Calculates the maximum measurable slope in the radial directions
+        given a topography of a sphere measured with the instrument.
+        See ProfileAnalysis.arcSlope() for details.
 
         Parameters
         ----------
         obj : surface.Surface
             The surface object on wich the maximum slope is calculated
-        R: float
+        R : float
             The nominal radius of the sphere
         angleStep : int
             The angle used to rotate the image after every iteration
@@ -523,8 +525,8 @@ class SurfaceMorph:
                 'fit': the start point is the center of the best fit sphere
                 'center': the start point is the center of the topography
                 'local': the start point is the local maximum closest to the center of the topography
-        bplt: bool
-            Plots the slope at the different angles
+        bplt : bool
+            Plots the slope at the different angles (linear and radial plots)
 
         Returns
         ----------
@@ -539,7 +541,7 @@ class SurfaceMorph:
             for a in range(0, 360, angleStep):
                 obj.rotate(a)
                 slopeprofile = copy.copy(extractor.SphereExtractor.sphereProfile(obj, startP=start, bplt=False))
-                ms1, ms2 = ProfileMorph.arcSlope(slopeprofile, R)  # 350 um radius
+                ms1, ms2 = ProfileAnalysis.arcSlope(slopeprofile, R)  # 350 um radius
                 meas_slope1.append(np.rad2deg(ms1))
                 meas_slope2.append(np.rad2deg(ms2))
                 bar()
@@ -563,7 +565,10 @@ class SurfaceMorph:
     @staticmethod
     def sphereRadius(obj: surface.Surface, angleStepSize, start='local', bplt=False):
         """
-        Returns the radius of the profile in every direction
+        Returns the radius of the sphere in the radial direction
+        and at each height. Calculates and plots the average value of
+        the radius at each height.
+        See ProfileAnalysis.arcRadius() for details.
 
         Parameters
         ----------
@@ -595,7 +600,7 @@ class SurfaceMorph:
             for a in range(0, 360, angleStepSize):
                 obj.rotate(a)
                 radiusprofile = copy.copy(extractor.SphereExtractor.sphereProfile(obj, startP=start, bplt=False))
-                r, z = ProfileMorph.arcRadius(radiusprofile, bplt=False)  # 350 um radius
+                r, z = ProfileAnalysis.arcRadius(radiusprofile, bplt=False)  # 350 um radius
                 rs.append(r)
                 zs.append(z)
                 if bplt: ax.plot(z, r, alpha=0.2)
@@ -615,39 +620,56 @@ class SurfaceMorph:
     def cylinder(obj: surface.Surface, radius, phiCone=None, alphaZ=0, concavity='convex', base=False, bplt=False):
         """
         Evaluates radius and form deviation of a cylinder by fitting a least square cylinder
-        to the points
+        to the points and applying cuts to the surface to avoid edge points.
 
         Parameters
         ----------
-        obj: surface.Surface
+        obj : surface.Surface
             The surface on which the processing is applied
-        radius: float
+        radius : float
             The nominal radius of the cylinder
-        phiCone: float
+        phiCone : float
             Angle in degree of the FOV of the instrument
-        alphaZ: float
+        alphaZ : float
             Rotation of the cylinder axis about the Y axis (radian)
-        concavity: str
+        concavity : str
             Can be either 'convex' or 'concave'
-        base: bool
+        base : bool
             If true removes the points at the base of the cylinder
-        bplt: bool
+        bplt : bool
             Plots the sphere fitted to the data points
 
         Returns
         -------
-        R_all: float
+        R_all : float
             The radius of the best fit cylinder to all points
-        FD_all: float
+        FD_all : float
             The form deviation of the best fit cylinder to all points
-        R_2s: float
+        R_2s : float
             The radius of the best fit cylinder to only the points with residue < 2 * sigma
-        FD_2s: float
+        FD_2s : float
             The form deviation of the best fit cylinder to only the points with residue < 2 * sigma
+            
+        Notes
+        -----
+        At first, the points of the cylinder measured by the optical profilometer are fitted with the 
+        least squares algorithm Surfile.geometry.cylinder(); this fit is used to calculate the equation 
+        of the cylinder and the residuals of the measured points compared to the calculated points.
+        Based on the results obtained, the measured points are eliminated where the following inequality 
+        is satisfied, in order to cut out any outlier point far from the cylinder axis:
+
+        $|y-(\\frac{m}{l})x-y_0|>\\frac{2Rsin \\cdot (\\phi)}{cos(\\alpha_z)}$
+        where $m$ and $l$ are the components of the versor that represent the cylinder axis direction,
+        R is the estimated radius of the circular base of the cylinder, $\\alpha_z$ is the rotation of the 
+        cylinder axis around the Z-axis, $\\phi$ is the cone angle of the objective specified by the instrument
+        manufacturer, $y_0$  the intercept of the axis.
+        A second cylinder fit is then applied to all remaining points and $R_{all}$ and $FD_{all}$ parameters are 
+        calculated, a third cylinder fit is done on the points that in the initial fit had a radial residue 
+        below $2\\sigma$ and $R_{2\\sigma}$ and $FD_{2\\sigma}$ can be finally calculated.
         """
         # TODO: if alphaZ = 90 deg the method is really slow (whyyy??)
         def fitCyl():
-            _p = remover.Cylinder.remove(obj, radius, alphaZ=alphaZ, concavity=concavity,
+            _p = geometry.Cylinder.formFit(obj, radius, alphaZ=alphaZ, concavity=concavity,
                                          base=base, finalize=False, bplt=bplt)
             _r = np.abs(_p[0])
 
@@ -718,23 +740,34 @@ class SurfaceMorph:
         return R_all, FD_all, R_2s, FD_2s, avg_all, std_all, avg_2s, std_2s
 
     @staticmethod
-    def lateral(obj: surface.Surface, nom_pitch, direction='x', bplt=False):
+    def grating_1d(obj: surface.Surface, nom_pitch, direction='x', bplt=False):
         """
-        Performs the 1D sigmoid analysis for each profile in the topography
+        Determines height and pitch of 1D gratings
+        of line bars of rectangular cross-section, where the trench width
+        is equal to the bar width.
+        The bar cross-sections are modelled as rectangular boxes with
+        smoothed corners using a combination of sigmoidal functions.
+        See ProfileAnalysis.grating_1d() for details on the sigmoidal fit.
         
         Parameters
         ----------
-        obj: The surface on which the analysis is carried out
-        nom_pitch: The nominal pitch of the grating
-        direction: Orientation of the features (perpendicular to the steps)
-        bplt: If true plots the 
-
+        obj: surface.Surface
+            The "surface" on which the analysis is carried out
+        nom_pitch: float
+            The nominal pitch of the grating
+        direction: str
+            Orientation of the features (perpendicular to the grating bars)
+        bplt: bool
+            If true plots the calculated heights and regression lines
+            
         Returns
         ----------
         hs: float
             Calculated mean height
         pitch: float
             Calculated mean pitch
+        s_pitch: float
+            standard error of the pitch
         """
         xs = None
         hs = None
@@ -745,14 +778,14 @@ class SurfaceMorph:
                        elapsed_end=True, stats_end=True, length=30) as bar:
             for i, p in enumerate(profiles):
                 if i == 0:
-                    xs, hs = ProfileMorph.lateral(p, nom_pitch=nom_pitch, bplt=bplt)
+                    xs, hs = ProfileAnalysis.grating_1d(p, nom_pitch=nom_pitch, bplt=bplt)
                 else:
-                    x_p, h_p = ProfileMorph.lateral(p, nom_pitch=nom_pitch, bplt=False)
+                    x_p, h_p = ProfileAnalysis.grating_1d(p, nom_pitch=nom_pitch, bplt=False)
                     xs = np.vstack((xs, x_p))
                     hs = np.vstack((hs, h_p))
                 bar()
-
-        ms, qs = [], []
+        ms = []
+        qs = []
         for c in xs.T:  # fit the regression lines
             yx = np.vstack([obj.y, c.T]).T
             (rows, cols) = yx.shape
@@ -760,15 +793,17 @@ class SurfaceMorph:
             G[:, 0] = yx[:, 0]  # X
             Z = yx[:, 1]
             (m, q), _, _, _ = np.linalg.lstsq(G, Z, rcond=None)
-            ms.append(m)
-            qs.append(q)
-
-        pitch = np.ediff1d(qs)
+            ms = np.append(ms, m)
+            qs = np.append(qs, q)
+        gamma = np.mean(np.arctan(ms))
+        x_posnom = np.arange(0, len(qs)) * nom_pitch / np.cos(gamma)
+        p_line, cov_p = np.polyfit(x_posnom, qs, 1)
+        pitch = p_line[0] * nom_pitch
+        s_pitch = np.sqrt(cov_p[0][0] * nom_pitch**2 + cov_p[1][1])
 
         if bplt:
             Xs, Ys = np.meshgrid(xs[0], ys)
             fig, (ax, bx) = plt.subplots(nrows=1, ncols=2)
-
             mcm = copy.copy(cm.Greys)
             mcm.set_bad(color='r', alpha=1.)
             mask_h = np.ma.array(hs, mask=np.isnan(hs))
@@ -776,7 +811,6 @@ class SurfaceMorph:
             Max = np.mean(mask_h) + 2 * np.std(mask_h)
             p = ax.pcolormesh(xs.T, Ys.T, hs.T, vmin=Min, vmax=Max, cmap=mcm)
             fig.colorbar(p, ax=ax)
-
             for i, c in enumerate(xs.T):
                 bx.plot(c, obj.y, 'r')
                 bx.plot(ms[i] * obj.y + qs[i], obj.y, alpha=0.5)
@@ -785,4 +819,4 @@ class SurfaceMorph:
             funct.persFig([ax, bx], xlab='x [um]', ylab='y [um]')
             ax.set_title(obj.name)
         
-        return np.mean(hs), np.mean(pitch)
+        return np.mean(hs), np.mean(pitch), s_pitch

@@ -1,0 +1,31 @@
+digraph "packages" {
+rankdir=BT
+charset="utf-8"
+"surfile.analysis" [color="#77AADD", label=<surfile.analysis>, shape="box", style="filled"];
+"surfile.cutter" [color="#77AADD", label=<surfile.cutter>, shape="box", style="filled"];
+"surfile.extractor" [color="#77AADD", label=<surfile.extractor>, shape="box", style="filled"];
+"surfile.geometry" [color="#77AADD", label=<surfile.geometry>, shape="box", style="filled"];
+"surfile.profile" [color="#77AADD", label=<surfile.profile>, shape="box", style="filled"];
+"surfile.stitcher" [color="#77AADD", label=<surfile.stitcher>, shape="box", style="filled"];
+"surfile.surface" [color="#77AADD", label=<surfile.surface>, shape="box", style="filled"];
+"surfile.texture" [color="#77AADD", label=<surfile.texture>, shape="box", style="filled"];
+"surfile.analysis" -> "surfile.extractor" [arrowhead="open", arrowtail="none"];
+"surfile.analysis" -> "surfile.geometry" [arrowhead="open", arrowtail="none"];
+"surfile.analysis" -> "surfile.profile" [arrowhead="open", arrowtail="none"];
+"surfile.analysis" -> "surfile.surface" [arrowhead="open", arrowtail="none"];
+"surfile.cutter" -> "surfile.geometry" [arrowhead="open", arrowtail="none"];
+"surfile.cutter" -> "surfile.profile" [arrowhead="open", arrowtail="none"];
+"surfile.cutter" -> "surfile.surface" [arrowhead="open", arrowtail="none"];
+"surfile.extractor" -> "surfile.cutter" [arrowhead="open", arrowtail="none"];
+"surfile.extractor" -> "surfile.geometry" [arrowhead="open", arrowtail="none"];
+"surfile.extractor" -> "surfile.profile" [arrowhead="open", arrowtail="none"];
+"surfile.extractor" -> "surfile.surface" [arrowhead="open", arrowtail="none"];
+"surfile.geometry" -> "surfile.cutter" [arrowhead="open", arrowtail="none"];
+"surfile.geometry" -> "surfile.profile" [arrowhead="open", arrowtail="none"];
+"surfile.geometry" -> "surfile.surface" [arrowhead="open", arrowtail="none"];
+"surfile.stitcher" -> "surfile.surface" [arrowhead="open", arrowtail="none"];
+"surfile.surface" -> "surfile.profile" [arrowhead="open", arrowtail="none"];
+"surfile.texture" -> "surfile.geometry" [arrowhead="open", arrowtail="none"];
+"surfile.texture" -> "surfile.profile" [arrowhead="open", arrowtail="none"];
+"surfile.texture" -> "surfile.surface" [arrowhead="open", arrowtail="none"];
+}

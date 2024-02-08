@@ -180,7 +180,7 @@ class ProfileSpline(Filter):
             Filter.plotEnvelope(obj.X0, obj.Z0, envelope)
 
 
-class ProfileRobust(Filter):
+class ProfileRegression(Filter):
     def __init__(self, cutoff):
         self.cutoff = cutoff
 
@@ -227,9 +227,9 @@ class ProfileRobust(Filter):
             Filter.plotEnvelope(obj.X0, obj.Z0, w)
 
     @staticmethod
-    def filter(obj: profile.Profile, cutoff, bplt=False):
+    def filter_regression_p1(obj: profile.Profile, cutoff, bplt=False):
         """
-        Applies to a profile object a gaussian robust filter ISO 16610-31.
+        Applies to a profile object a gaussian regression with a degree 1 poly.
 
         Parameters
         ----------
@@ -298,11 +298,11 @@ class ProfileRobust(Filter):
             Filter.plotEnvelope(obj.X0, obj.Z0, envelope)
 
 
-class ProfileMorph(Filter):
+class TipCorrection(Filter):
     @staticmethod
     def filter(obj: profile.Profile, radius, bplt=False):
         """
-        Apllies a morphological filter as described in ISO-21920,
+        Tip correction method implementation,
         rolls a disk  of radius R (in mm) along the original profile
 
         Parameters
@@ -336,7 +336,7 @@ class ProfileMorph(Filter):
                                       profile_y_filled[i - n_radius:i + n_radius])
 
                     alpha = profile_x_filled[i]
-                    beta = profile_out[i]  # start under the profile
+                    beta = profile_out[i]
 
                     cerchio = np.sqrt(-(alpha ** 2 - radius ** 2) + 2 * alpha * loc_x - loc_x ** 2) + beta
 
@@ -371,9 +371,9 @@ class ProfileMorph(Filter):
     @staticmethod
     def naive(obj: profile.Profile, radius, bplt=False):
         """
-        Apllies a morphological filter as described in ISO-21920,
+        Tip correction implementation,
         rolls a disk  of radius R (in mm) along the original profile
-        the naive approach described in:
+        Uses the naive approach described in:
         "Algorithms for morph profile filters and their comparison"
         Shan Lou, Xiangqian Jiang, Paul J. Scott. (2012)
 
@@ -422,8 +422,9 @@ class SurfaceGaussian(Filter):
     @staticmethod
     def filter(obj: surface.Surface, cutoff, bplt=False):
         """
-        Applies to a profile object a gaussian filter ISO 16610-21.
+        Applies to a surface object a gaussian filter ISO 16610-21.
         The resulting profile is cut at the borders to avoid border effects.
+        TODO !!!
 
         Parameters
         ----------

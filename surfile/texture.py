@@ -4,14 +4,23 @@
     - Profiles
     - Surfaces
 
+Example
+-------
+>>> psd = texture.Psd()
+>>> psd.evalPsd(sur, bplt=False)
+>>> avg = psd.averageSpectra(bplt=False)
+>>> psd.angleIntegratedSpectra(dt_fct=0.8, bplt=True)
+>>> psd.polarSpectra(df_fct=0.8, bplt=True)
+
 @author: Dorothee Hueser, Andrea Giura
 """
 
 from matplotlib import cm
 import numpy as np
+import scipy.stats as st
 from dataclasses import dataclass
 
-from surfile import profile, surface, filter, remover, funct
+from surfile import geometry, profile, surface, filter, funct
 
 import matplotlib.pyplot as plt
 
@@ -43,7 +52,12 @@ def eval_pinter(PSD, fx0, fy0, frc, theta, nxDC, nyDC):
 
 
 class Psd:
+    """
+    Class that provides the data structure and methods for PSD
+    calculation.
+    """
     def __init__(self):
+        """Instantiate an empty psd object"""
         self.deltaX = None
         self.deltaY = None
         self.psd = None
@@ -74,6 +88,25 @@ class Psd:
             The x and y axis of the psd
         psd_x, psd_y: np.ndarray
             The psd along the given axis
+            
+        Notes
+        -----
+        The power spectral density (PSD) function gives indication on  the strength 
+        of different frequency components  as function of the spatial frequency and 
+        is calculated from the absolute value of the square of the Fourier transform 
+        of the height values z(x,y).
+        The areal Fourier transform is given by:\n
+        $
+        \\begin{equation}
+        F_z(f_x,f_y)=\\lim_{L_x \\to \\infty}\\lim_{Ly \\to \\infty} \\frac{1}{L_x L_y}\int_{-L_y/2}^{L_y/2}\\int_{-L_x/2}^{L_x/2}z(x,y)e^{[-i2\\pi(f_xx+f_yy)]}dxdy
+        \\end{equation}
+        $\n
+        The Power Spectral Density is then calculated as:\n
+        $
+        \\begin{equation}
+            P(f_x,f_y)=\\frac{d}{df_x}\\frac{d}{df_y}F_z^*(f_x,f_y)F_z(f_x,f_y)
+        \\end{equation}
+        $
         """
         self.deltaX = np.max(obj.x) / np.size(obj.x)
         self.deltaY = np.max(obj.y) / np.size(obj.y)
@@ -138,11 +171,12 @@ class Psd:
 
     def polarSpectra(self, df_fct, bplt=False):
         """
-        df_fct: float
         Calculate the spectra in polar coordinates
 
         Parameters
         ----------
+        df_fct: float
+            The frequency resolution
         bplt: bool
             If true the spectra is plotted in a 3d projection axis
 
@@ -163,7 +197,7 @@ class Psd:
 
         frmax = np.min([df_x * (nx - 2) / 2, df_y * (ny - 2) / 2])
         fr0 = df_fct * (df_x + df_y)
-        fr = np.linspace(0.1 * fr0, frmax, 512);
+        fr = np.linspace(0.1 * fr0, frmax, 512)
         #    thetas = np.linspace(0.001, 2*np.pi, 360)
         thetas = np.linspace(0.0, 2 * np.pi, 205) + 0.1 * np.pi
         Th, Fr = np.meshgrid(thetas, fr)
@@ -186,7 +220,7 @@ class Psd:
 
     def angleIntegratedSpectra(self, df_fct, bplt=None):
         """
-        Calculate the angle integrated
+        Calculate the angle integrated spectra
 
         Parameters
         ----------
@@ -201,7 +235,7 @@ class Psd:
         Fr, Th: np.array
             The polar coordinate vectors
         """
-        if self.psd is None: raise Exception('Polar spectra failed: psd has not been evaluated')
+        if self.psd is None: raise Exception('Angle integrated spectra failed: psd has not been evaluated')
 
         (ny, nx) = self.psd.shape
         df_x = 1.0 / (nx * self.deltaX)
@@ -282,7 +316,7 @@ class Roi:
 
 class Parameters:
     @staticmethod
-    def calc(obj: profile.Profile, rem: remover.Remover = None, fil: filter.Filter = None, bplt=False):
+    def calc(obj: profile.Profile, rem: geometry.FormEstimator = None, fil: filter.Filter = None, bplt=False):
         """
         Calculates the roughness parameters of a profile
 
@@ -307,7 +341,7 @@ class Parameters:
         border = 1
 
         if rem is not None:
-            rem.applyRemover(obj)
+            rem.applyFit(obj)
         if fil is not None:
             fil.applyFilter(obj, bplt=False)
             cutoff = fil.cutoff
@@ -331,3 +365,151 @@ class Parameters:
         RSK = (np.nansum(roi.Z ** 3) / np.size(roi.Z)) / (RQ ** 3)
         RKU = (np.nansum(roi.Z ** 4) / np.size(roi.Z)) / (RQ ** 4)
         return RA, RQ, RP, RV, RT, RSK, RKU
+
+
+def __makeFacesVectorized(shape):
+    Nr = shape[0]
+    Nc = shape[1]
+
+    out = np.empty((Nr - 1, Nc - 1, 2, 3), dtype=int)
+
+    r = np.arange(Nr * Nc).reshape(Nr, Nc)
+
+    out[:, :, 0, 0] = r[:-1, :-1]
+    out[:, :, 1, 0] = r[:-1, 1:]
+    out[:, :, 0, 1] = r[:-1, 1:]
+
+    out[:, :, 1, 1] = r[1:, 1:]
+    out[:, :, :, 2] = r[1:, :-1, None]
+
+    out.shape = (-1, 3)
+    return out
+
+
+def __appendSpherical_np(xyz):
+    xy = xyz[:, 0] ** 2 + xyz[:, 1] ** 2
+    # rs = np.sqrt(xy + xyz[:, 2] ** 2)
+    thetas = np.rad2deg(np.arctan2(np.sqrt(xy), xyz[:, 2]))  # for elevation angle defined from Z-axis down
+    # ptsnew[:,4] = np.arctan2(xyz[:,2], np.sqrt(xy))  # for elevation angle defined from XY-plane up
+    phis = np.rad2deg(np.arctan2(xyz[:, 1], xyz[:, 0]))
+    phis[phis < 0] += 360
+    return thetas, phis
+
+
+@funct.options(bplt=True, csvPath='out\\')
+def slopeDistribution(obj: surface.Surface, structured=False, theta_res=1, phi_res=1, adaptive_hist=False, bplt=False):
+    """
+    Calculates the slope distribution in angles theta and phi
+
+    Parameters
+    ----------
+    obj: surface.Surface
+        The surface n wich the slope distribution is calculated
+    structured: bool
+        If true the method assumes equal spacing along x-axis (dx) and equal spacing along
+        y-axis
+        If false the method uses a generalized triangle approach (recommended)
+    theta_res: float
+        The angle resolution for the theta angle
+    phi_res: float
+        The angle resolution for the phi angle
+    adaptive_hist: bool
+        If true the bins are calculated between 0 and the max angles
+        If false the bins are calculated between 0 - 90 for theta, 0 - 360 for phi
+    bplt: bool
+        If True plots the calculated histograms
+
+    Returns
+    -------
+    (hist_theta, edges_theta): tuple
+        The theta histogram
+    (hist_phi, edges_phi): tuple
+        The phi histogram
+        
+    Notes
+    -----
+    This method performs a slope distribution analysis on the surface by calculating all 
+    the normal vectors to the triangles constructed on the adjacent points of the topography. 
+    The normal vectors are then expressed in polar coordinates and for the two angles 
+    (elevation, azimuth) a histogram plot is generated. The number of bins for each angle can 
+    be specified by the user by setting the two parameters res and adaptive_hist. 
+    """
+    x = obj.X.ravel()
+    y = obj.Y.ravel()
+    z = obj.Z.ravel()
+
+    ind = __makeFacesVectorized(obj.Z.shape)
+
+    def unstructuredMesh():
+        A = np.array([x[ind[:, 0]], y[ind[:, 0]], z[ind[:, 0]]]).T
+        B = np.array([x[ind[:, 1]], y[ind[:, 1]], z[ind[:, 1]]]).T
+        C = np.array([x[ind[:, 2]], y[ind[:, 2]], z[ind[:, 2]]]).T
+
+        u = B - A
+        v = C - B
+
+        return np.cross(u, v)
+
+    def structuredMesh():
+        dx, dy = np.max(obj.x) / np.size(obj.x), np.max(obj.y) / np.size(obj.y)
+
+        eve_fun = lambda a: np.array([(z[a[0]] - z[a[1]]) * dy, (z[a[0]] - z[a[2]]) * dx, dx * dy])
+        odd_fun = lambda a: np.array([(z[a[2]] - z[a[1]]) * dy, (z[a[0]] - z[a[1]]) * dx, dx * dy])
+
+        ind_eve = ind[::2]
+        n_eve = np.apply_along_axis(eve_fun, 1, ind_eve)
+
+        ind_odd = ind[1::2]
+        n_odd = np.apply_along_axis(odd_fun, 1, ind_odd)
+
+        return np.vstack((n_eve, n_odd))
+
+    if structured: normals = structuredMesh()
+    else:          normals = unstructuredMesh()
+
+    thetas, phis = __appendSpherical_np(normals)
+
+    print(f'Slope Distribution:\nTheta:\t{st.describe(thetas)}\nPhi:\t{st.describe(phis)}')
+
+    if not adaptive_hist:
+        max_theta = 90
+        max_phi = 360
+        thetas = np.append(thetas, max_theta)  # add only one value to max the space
+        phis = np.append(phis, max_phi)
+
+    else:
+        max_theta = np.max(thetas)
+        max_phi = np.max(phis)
+
+    theta_bins = int(np.ceil(max_theta / theta_res))
+    phi_bins = int(np.ceil(max_phi / phi_res))
+
+    hist_theta, edges_theta = np.histogram(thetas, bins=theta_bins)
+    hist_phi, edges_phi = np.histogram(phis, bins=phi_bins)
+
+    if bplt:
+        fig = plt.figure()
+        (ax_ht, bx_ht) = fig.subplots(nrows=2, ncols=1)
+        ax_ht.hist(edges_theta[:-1], bins=edges_theta, weights=hist_theta / len(ind) * 100, color='darksalmon')
+        bx_ht.hist(edges_phi[:-1], bins=edges_phi, weights=hist_phi / len(ind) * 100, color='darkturquoise')
+        funct.persFig(
+            [ax_ht, bx_ht],
+            gridcol='grey',
+            xlab='slope distribution [deg]',
+            ylab='percentage [%]'
+        )
+        ax_ht.set_title(obj.name + ' Theta')
+        bx_ht.set_title(obj.name + ' Phi')
+
+        plt.figure()
+        cx, dx = plt.subplot(121, polar=True), plt.subplot(122, polar=True)
+        cx.bar(np.deg2rad(edges_theta[:-1]), hist_theta / max(hist_theta), width=(2*np.pi) / theta_bins,
+               bottom=0, color='darksalmon', alpha=0.5, label='Theta')
+        dx.bar(np.deg2rad(edges_phi[:-1]), hist_phi / max(hist_phi), width=(2 * np.pi) / phi_bins,
+               bottom=0, color='darkturquoise', alpha=0.5, label='Phi')
+        cx.legend()
+        dx.legend()
+        cx.set_title(obj.name)
+        # plt.show()
+
+    return (edges_theta[:-1], hist_theta / len(ind) * 100), (edges_phi[:-1], hist_phi / len(ind) * 100)

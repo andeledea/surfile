@@ -9,9 +9,11 @@ Module to read data output of microscopes:
 - SPIP bcr and bcrf
 - ISO 25178-71 sdf
 - NMM (Gaoliang)
+- asc tracOptic data file
+- txt (xyz or space Z)
 
 Created 2019-10-03
-last edit 2021-04-02
+last edit 2024-02-09
 @author: Dorothee Hueser
 """
 
@@ -21,7 +23,7 @@ import pathlib
 import struct
 import matplotlib.pyplot as plt
 
-# withigor = 0
+withigor = 0
 # try:
 #     from igor import binarywave
 #
@@ -36,26 +38,129 @@ except ImportError:
     print('csaps not found: use')
     print('pip install --proxy=http://webproxy.bs.ptb.de:8080 csaps')
     print('to install it, this command also works in spyder console I/A')
+    
+def read_microscopedata(filename, userscalecorr, interpolflag):
+    """
+    Main function that reads from files according to the file extension
 
+    Parameters
+    ----------
+    filename : String
+        The path of the file
+    userscalecorr : np.array
+        [x, y, z] vector of correction values
+    interpolflag : Bool
+        If true fills the non measured points with spline interpolation
 
-#
+    Returns
+    -------
+    dx : float
+        The x spacing
+    dy : float
+        The y spacing
+    height_map : np.array
+        The Z array
+    """
+    #
+    # dx, dy: sampling/pixel distances in micron
+    # height_map in micron
+    #
+    fnlen = len(filename)
+    dx = 0
+    dy = 0
+    height_map = 0
+    magnification = 0
+    measdate = ''
+    f = open(filename, "rb")
+    content = f.read()
+    f.close()
+    if filename[fnlen - 4:fnlen].find('ibw') > -1:
+        if (withigor == 1):
+            # returns all data in micron
+            nx, ny, dx, dy, height_map, zpiezo_map, measdate, \
+            heightstr, zpiezostr, velostr = read_ibw(filename)
+            measdate = measdate + '\n' + heightstr + ', v=' + 'Scanspeed: ' + velostr
+        else:
+            print('ibw not readable: package igor required but not installed')
+            print('pip install igor')
+            print('also with this command in spyder console I/A')
+    elif filename[fnlen - 4:fnlen].find('plu') > -1:
+        # returns all data in micron
+        nx, ny, dx, dy, height_map, measdate = read_plu(content)
+    elif filename[fnlen - 5:fnlen].find('bcr') > -1:
+        # returns all data in micron
+        measdate = ''
+        nx, ny, dx, dy, height_map = read_bcrf(content)
+    elif filename[fnlen - 4:fnlen].find('sdf') > -1:
+        # returns all data in micron
+        nx, ny, dx, dy, height_map, measdate = read_sdf(content)
+    elif filename[fnlen - 4:fnlen].find('sur') > -1:
+        # returns all data in micron
+        nx, ny, dx, dy, height_map, measdate = read_sur(content)
+    elif filename[fnlen - 4:fnlen].find('asc') > -1:
+        # returns all data in micron
+        nx, ny, dx, dy, height_map, measdate = read_asc(content)
+    else:
+        if content.find(b'LEXT') > -1:
+            # returns all data in micron
+            nx, ny, endheightmap, heightperpix, magnification, measdate = read_lextinfo(content)
+            height_map = read_lextimg(filename, nx, ny, endheightmap, 1)
+            # use n/(n-1) to get pixel distance from pixel width (='height')
+            # the it agrees with gwyddion's result, but which we reject to use!
+            # HeightperPixel is already the distance!!
+            dx = heightperpix[0]
+            dy = heightperpix[1]
+            height_map = height_map * heightperpix[2]
+        elif content[0:15].find(b'LRSPM') > -1:
+            nx, ny, dx, dy, height_map, measdate = read_NMMgaoliang(content.decode('ascii'))
+
+    weight_map, num_invalid = invalid_data_weight(height_map)
+    print(f'num_invalid: {num_invalid} / {height_map.size}')
+    if (num_invalid > 0) and interpolflag:
+        height_map, weight_map = interpol_csaps(height_map, weight_map, dx, dy, 0.7)
+    print('userscalecorr: ', userscalecorr)
+    dx *= userscalecorr[0]
+    dy *= userscalecorr[1]
+    height_map *= userscalecorr[2]
+    return dx, dy, height_map, weight_map, magnification, measdate
+
 def str2float(s):
+    """
+    Convert string to float without stopping at an error
+    
+    Notes
+    -----
+    In txt files the nan values are represented with
+    a non numerical value and the numpy reading routines 
+    often fail and terminate the program. This function
+    is used in case of reading failure to insert a NaN value.
+    """
     try:
         return float(s)
     except ValueError:
         return np.NaN
 
-
-#
 def extract_tag(sdata, tagkey):
     i1 = sdata.find(b''.join([b'<', tagkey, b'>']))
     i2 = sdata.find(b''.join([b'</', tagkey, b'>']))
     tagcontent = sdata[i1 + len(tagkey) + 2:i2]
     return tagcontent
 
-# TXT file readings ############################
-
 def read_spaceZtxt(fname):
+    """
+    Reads a txt file with spacing values on the top 
+    two lines and then the list of Z values of the array.
+
+    Parameters
+    ----------
+    fname : string
+        The file path to open
+
+    Returns
+    -------
+    (X, Y, Z, x, y) : tuple
+        The arrays red from the file
+    """
     with open(fname, 'r') as fin:
         line = fin.readline().split()
         sx = int(line[0])  # read number of x points
@@ -74,12 +179,25 @@ def read_spaceZtxt(fname):
     y = np.linspace(0, sy * spacey, num=sy)
 
     # create main XYZ and backup of original points in Z0
-    X, Y = np.meshgrid(self.x, self.y)
+    X, Y = np.meshgrid(x, y)
     Z = np.transpose(plu)
 
     return X, Y, Z, x, y
 
 def read_xyztxt(fname):
+    """
+    Reads a txt file with three columns [x, y, z]
+
+    Parameters
+    ----------
+    fname : string
+        The file path to open
+
+    Returns
+    -------
+    (X, Y, Z, x, y) : tuple
+        The arrays red from the file
+    """
     X, Y, Z = np.genfromtxt(fname, unpack=True, usecols=(0, 1, 2), delimiter=',')
 
     # find size of array
@@ -93,10 +211,10 @@ def read_xyztxt(fname):
     y = Y[:,0]
 
     return X, Y, Z, x, y
-################################################
 
-#
 def read_asc(filecontent: str):
+    """Reads the tracoptic project file structure"""
+    
     lines = filecontent.decode('utf-8').splitlines(keepends=False)
     name = lines[0][lines[0].find(':') + 1 :]
     lx = str2float(lines[1][lines[1].find(':') + 1 :])
@@ -113,9 +231,9 @@ def read_asc(filecontent: str):
 
     return nx, ny, dx, dy, height_map.T, ''
 
-#
 def read_lextinfo(filecontent):
-    """read factor to convert raw data values into values in micron
+    """
+    read factor to convert raw data values into values in micron
 
     parameter:
     filecontent: binary content of complete file
@@ -177,8 +295,6 @@ def read_lextinfo(filecontent):
     measdate = filecontent[i1 + len(keywords[3]) + 2:i1 + len(keywords[3]) + 22].decode('ascii')
     return nx, ny, endheightmap, heightperpix, magnification, measdate
 
-
-#
 def read_lextimg(filename, nx, ny, endheightmap, heightflag):
     imgs = Image.open(filename)
     frameflag = 1
@@ -229,10 +345,9 @@ def read_lextimg(filename, nx, ny, endheightmap, heightflag):
             the_map = []
     return the_map
 
-#
-# Sensofar
-#
+
 def read_plu(filecontent):
+    """Read sensofar data files"""
     DATE_SIZE = 128
     COMMENT_SIZE = 256
     measdate = filecontent[0:DATE_SIZE].decode('ascii', errors='ignore').replace("\x00", "")
@@ -250,11 +365,8 @@ def read_plu(filecontent):
     dy = pix_size[0]
     return npix[1], npix[0], dx, dy, height_map, measdate
 
-
-#
-# Cypher
-#
 def read_ibw(filename):
+    """Read cypher data"""
     filepath = pathlib.Path(filename)
     ibw = binarywave.load(filepath)
     larsdat = ibw['wave']['wData'].T
@@ -287,8 +399,6 @@ def read_ibw(filename):
     print(velostr)
     return nx, ny, dx, dy, zsensor_map, zpiezo_map, date_time, zsensorstr, zpiezostr, velostr
 
-
-#
 def read_asciisdf(content):
     xpixels = 0
     ypixels = 0
@@ -333,8 +443,6 @@ def read_asciisdf(content):
             zmap2D[i_profile][i_pt] = z2micron * str2float(hlplist[i_pt])
     return xpixels, ypixels, dx, dy, zmap2D, measdate
 
-
-#
 def read_sdf(content):
     versionnumber = content[0:8].decode('ascii', errors='ignore')
     print(versionnumber)
@@ -350,8 +458,6 @@ def read_sdf(content):
         measdate = ''
     return xpixels, ypixels, dx, dy, zmap2D, measdate
 
-
-#
 def read_bcrf(content):
     hsize_strtry = '2048'
     hsize_n = int(hsize_strtry)
@@ -427,9 +533,8 @@ def read_bcrf(content):
         zmap2D = []
     return xpixels, ypixels, dx, dy, zmap2D
 
-
-#
 def read_sur(content):
+    """Read mountains files"""
     little_endian = 1
 
     dx = 0
@@ -653,8 +758,6 @@ def interpol_csaps(zmatrix, wmatrix, dx, dy, smoothparam):
         plt.show()
     return zfinal, wfinal
 
-
-#
 def invalid_data_weight(height_map):
     (ny, nx) = height_map.shape
     weights = np.ones((ny, nx))
@@ -662,8 +765,6 @@ def invalid_data_weight(height_map):
     weights[i_nans] = 0
     return weights, len(i_nans[0])
 
-
-#
 def read_lextintensity(filename):
     dx = 0
     dy = 0
@@ -679,74 +780,6 @@ def read_lextintensity(filename):
     dy = heightperpix[1]
     return dx, dy, intensity_map
 
-
-#
-def read_microscopedata(filename, userscalecorr, interpolflag):
-    #
-    # dx, dy: sampling/pixel distances in micron
-    # height_map in micron
-    #
-    fnlen = len(filename)
-    dx = 0
-    dy = 0
-    height_map = 0
-    magnification = 0
-    measdate = ''
-    f = open(filename, "rb")
-    content = f.read()
-    f.close()
-    if filename[fnlen - 4:fnlen].find('ibw') > -1:
-        if (withigor == 1):
-            # returns all data in micron
-            nx, ny, dx, dy, height_map, zpiezo_map, measdate, \
-            heightstr, zpiezostr, velostr = read_ibw(filename)
-            measdate = measdate + '\n' + heightstr + ', v=' + 'Scanspeed: ' + velostr
-        else:
-            print('ibw not readable: package igor required but not installed')
-            print('pip install igor')
-            print('also with this command in spyder console I/A')
-    elif filename[fnlen - 4:fnlen].find('plu') > -1:
-        # returns all data in micron
-        nx, ny, dx, dy, height_map, measdate = read_plu(content)
-    elif filename[fnlen - 5:fnlen].find('bcr') > -1:
-        # returns all data in micron
-        measdate = ''
-        nx, ny, dx, dy, height_map = read_bcrf(content)
-    elif filename[fnlen - 4:fnlen].find('sdf') > -1:
-        # returns all data in micron
-        nx, ny, dx, dy, height_map, measdate = read_sdf(content)
-    elif filename[fnlen - 4:fnlen].find('sur') > -1:
-        # returns all data in micron
-        nx, ny, dx, dy, height_map, measdate = read_sur(content)
-    elif filename[fnlen - 4:fnlen].find('asc') > -1:
-        # returns all data in micron
-        nx, ny, dx, dy, height_map, measdate = read_asc(content)
-    else:
-        if content.find(b'LEXT') > -1:
-            # returns all data in micron
-            nx, ny, endheightmap, heightperpix, magnification, measdate = read_lextinfo(content)
-            height_map = read_lextimg(filename, nx, ny, endheightmap, 1)
-            # use n/(n-1) to get pixel distance from pixel width (='height')
-            # the it agrees with gwyddion's result, but which we reject to use!
-            # HeightperPixel is already the distance!!
-            dx = heightperpix[0]
-            dy = heightperpix[1]
-            height_map = height_map * heightperpix[2]
-        elif content[0:15].find(b'LRSPM') > -1:
-            nx, ny, dx, dy, height_map, measdate = read_NMMgaoliang(content.decode('ascii'))
-
-    weight_map, num_invalid = invalid_data_weight(height_map)
-    print(f'num_invalid: {num_invalid} / {height_map.size}')
-    if (num_invalid > 0) and interpolflag:
-        height_map, weight_map = interpol_csaps(height_map, weight_map, dx, dy, 0.7)
-    print('userscalecorr: ', userscalecorr)
-    dx *= userscalecorr[0]
-    dy *= userscalecorr[1]
-    height_map *= userscalecorr[2]
-    return dx, dy, height_map, weight_map, magnification, measdate
-
-
-#
 def read_HRTS(content):
     contentlines = content.split('\n')
     ix = -1
@@ -779,8 +812,6 @@ def read_HRTS(content):
         data[2][k - iline] = str2float(hlpstr[iz])
     return data
 
-
-#
 def read_pointcloud(filename):
     f = open(filename, 'rb')
     content = f.read().decode('ascii', errors='ignore')
@@ -791,8 +822,6 @@ def read_pointcloud(filename):
         data *= 1e3  # micron
     return data
 
-
-#
 def lateral_axis(data_lat):
     len_lat = np.max(data_lat) - np.min(data_lat)
     diff = np.diff(data_lat)
@@ -802,8 +831,6 @@ def lateral_axis(data_lat):
     print(len_lat, delta, s_delta)
     return len_lat, delta, s_delta, num
 
-
-#
 def pointcloud_to_heightmap(dat_x, dat_y, dat_z):
     len_x, delta_x, s_delta_x, n_x = lateral_axis(dat_x)
     len_y, delta_y, s_delta_y, n_y = lateral_axis(dat_y)
@@ -819,4 +846,3 @@ def pointcloud_to_heightmap(dat_x, dat_y, dat_z):
         n1 = n_all // n_y
     z_map = dat_z.reshape(n1, n2)
     return delta_x, delta_y, z_map
-#

@@ -4,6 +4,13 @@
 - plots of the profile
 - io operation for data storage
 
+Example
+-------
+>>> from surfile import profile
+>>> prf = profile.Profile() # instantiate an empty profile
+>>> prf.openPrf('path to file', bplt=False)
+>>> prf.pltPrf()
+
 @author: Andrea Giura
 """
 
@@ -17,7 +24,13 @@ from surfile.funct import options, rcs
 
 
 class Profile:
+    """
+    Class for handling profile data
+    Provides io file operations in different formats
+    Provides simple visualization plots
+    """
     def __init__(self):
+        """Instantiate an empty Profile object"""
         self.X = None
         self.Z = None
         self.Z0, self.X0 = None, None
@@ -25,6 +38,16 @@ class Profile:
         self.name = 'Profile'
 
     def openPrf(self, fname, bplt):
+        """
+        Opens a .prf file from taylor hobson profilometers
+
+        Parameters
+        ----------
+        fname : str
+            The file path
+        bplt : bool
+            If true plots the opened profile
+        """
         z = []
         xs = 0
         zs = 0
@@ -54,6 +77,17 @@ class Profile:
             if bplt: self.pltPrf()
 
     def openCHR(self, dirname, bplt):
+        """
+        Opens a CHR folder containing the profile data and the
+        stitching positions.
+
+        Parameters
+        ----------
+        dirname : str
+            The directory path
+        bplt : bool
+            If true plots the opened profile
+        """
         data = np.genfromtxt(dirname + '/data.CHRdat', delimiter=',')
         print(data.shape)
         # stitch = np.loadtxt(dirname + '/stitching.py.CHRdat')
@@ -89,6 +123,17 @@ class Profile:
             plt.show()
 
     def openTS(self, fname, bplt):
+        """
+        OBSOLETE: opens the talyStep data files with multiple measurements
+        ads asks the user which measurement to consider.
+
+        Parameters
+        ----------
+        fname : str
+            The file path
+        bplt : bool
+            If true plots the opened profile
+        """
         with open(fname, 'rb') as tsfile:
             firstline_sp = tsfile.readline().split(b'\x1a', maxsplit=1)
             names = firstline_sp[0]
@@ -126,6 +171,24 @@ class Profile:
         if bplt: self.pltPrf()
 
     def openTxt(self, fname, bplt, header=0):
+        """
+        Opens a txt file with 2 columns [x, z]
+
+        Parameters
+        ----------
+        fname : str
+            The file path
+        bplt : bool
+            If true plots the opened profile
+        header : int, optional
+            Number of lines to be discarded when opening the file, by default 0
+            
+        Notes
+        -----
+        This function uses np.genfromtxt() with converter
+        >>> converters={0: lambda s: float(s or np.nan)}
+        this is used to correctly decect all NaN formats in txt
+        """ 
         self.name = os.path.basename(fname)
         
         self.X, self.Z = np.genfromtxt(fname, 
@@ -137,7 +200,15 @@ class Profile:
         if bplt: self.pltPrf()
     
     def saveTxt(self, fname):
-        name = os.path.join(fname, self.name + '.asc') if os.path.isdir(fname) else os.path.splitext(fname)[0] + '.asc'
+        """
+        Saves the profile in a txt format 2 columns [x, z]
+
+        Parameters
+        ----------
+        fname : str
+            The output file path
+        """
+        name = os.path.join(fname, self.name + '.txt') if os.path.isdir(fname) else os.path.splitext(fname)[0] + '.txt'
         np.savetxt(name, np.c_[self.X.ravel().T, self.Z.ravel().T], fmt='%.4e')
 
     def setValues(self, X, Y, bplt):
@@ -168,7 +239,8 @@ class Profile:
     # PLOT SECTION  #
     #################
     @options(bplt=rcs.params['bpPrf'], save=rcs.params['spPrf'])
-    def pltPrf(self):  # plots the profile
+    def pltPrf(self):
+        """Plots the profile"""
         fig, ax = plt.subplots(nrows=1, ncols=1)
         ax.plot(self.X, self.Z, color='teal')
         funct.persFig(
@@ -180,7 +252,8 @@ class Profile:
         ax.set_title(self.name)
 
     @options(bplt=rcs.params['bpCom'], save=rcs.params['spCom'])
-    def pltCompare(self):  # plots the profile
+    def pltCompare(self):
+        """Plots the current profile and the original data"""
         fig, (ax, bx) = plt.subplots(nrows=1, ncols=2)
         ax.plot(self.X0, self.Z0, color='teal')
         bx.plot(self.X, self.Z, color='teal')
