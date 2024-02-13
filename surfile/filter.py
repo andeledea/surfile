@@ -228,7 +228,6 @@ class ProfileRegression(Filter):
 
     @staticmethod
     def filter_regression_p1(obj: profile.Profile, cutoff, bplt=False):
-    def filter_regression_p1(obj: profile.Profile, cutoff, bplt=False):
         """
         Applies to a profile object a gaussian regression with a degree 1 poly.
 
