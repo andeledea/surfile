@@ -266,11 +266,17 @@ class Surface:
 
         if mean is None or iterative:
             mean = np.nanmean(self.Z)
+            mean = np.nanmean(self.Z)
         if stdv is None or iterative:
+            stdv = np.nanstd(self.Z)
             stdv = np.nanstd(self.Z)
         N = self.Z.size  # Lenght of incoming arrays
         criterion = 1.0 / (2 * N)
+        criterion = 1.0 / (2 * N)
         d = np.abs(self.Z - mean) / stdv  # Distance of a value to mean in stdv's
+        d /= 2.0 ** threshold
+        prob = special.erfc(d)
+        fil = prob >= criterion
         d /= 2.0 ** threshold
         prob = special.erfc(d)
         fil = prob >= criterion

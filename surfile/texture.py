@@ -18,8 +18,10 @@ Example
 from matplotlib import cm
 import numpy as np
 import scipy.stats as st
+import scipy.stats as st
 from dataclasses import dataclass
 
+from surfile import geometry, profile, surface, filter, funct
 from surfile import geometry, profile, surface, filter, funct
 
 import matplotlib.pyplot as plt
@@ -317,6 +319,7 @@ class Roi:
 class Parameters:
     @staticmethod
     def calc(obj: profile.Profile, rem: geometry.FormEstimator = None, fil: filter.Filter = None, bplt=False):
+    def calc(obj: profile.Profile, rem: geometry.FormEstimator = None, fil: filter.Filter = None, bplt=False):
         """
         Calculates the roughness parameters of a profile
 
@@ -341,6 +344,7 @@ class Parameters:
         border = 1
 
         if rem is not None:
+            rem.applyFit(obj)
             rem.applyFit(obj)
         if fil is not None:
             fil.applyFilter(obj, bplt=False)

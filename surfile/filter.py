@@ -228,6 +228,7 @@ class ProfileRegression(Filter):
 
     @staticmethod
     def filter_regression_p1(obj: profile.Profile, cutoff, bplt=False):
+    def filter_regression_p1(obj: profile.Profile, cutoff, bplt=False):
         """
         Applies to a profile object a gaussian regression with a degree 1 poly.
 
@@ -422,6 +423,7 @@ class SurfaceGaussian(Filter):
     @staticmethod
     def filter(obj: surface.Surface, cutoff, bplt=False):
         """
+        Applies to a surface object a gaussian filter ISO 16610-21.
         Applies to a surface object a gaussian filter ISO 16610-21.
         The resulting profile is cut at the borders to avoid border effects.
         TODO !!!
