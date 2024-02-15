@@ -18,10 +18,9 @@ Python library for analyzing topographic features of surfaces from
 The project is intended to be an easy to use tool box providing multiple algorithms to analyze areal surface topographies: areal height maps and profiles.
 
 <!-- USAGE EXAMPLES -->
-
+<p align="center">
 <img src="https://user-images.githubusercontent.com/62064962/203512071-66eb1ae4-2c17-4e45-9371-e04f86580d18.png" alt="drawing" width="500" class="center"/>  
-<img src="https://user-images.githubusercontent.com/62064962/203511581-7370c9a6-e920-4dd4-922f-b7e306f77190.png" alt="drawing" width="500" class="center"/> 
-<img src="https://user-images.githubusercontent.com/62064962/203512435-881b27aa-2480-4f41-b069-3c0198b760f5.png" alt="drawing" width="500" class="center"/>
+</p>
 
 <!-- GOAL -->
 ## Goal

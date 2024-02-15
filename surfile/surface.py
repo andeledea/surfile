@@ -86,7 +86,7 @@ class Surface:
 
     def openFile(self, fname, bplt, interp=False, userscalecorrections=[1.0, 1.0, 1.0]):
         """
-        Opens a file from a supported intrument, the list of 
+        Opens a file from a supported instrument, the list of 
         supported types is in measfile_io documentation.
 
         Parameters
@@ -240,7 +240,7 @@ class Surface:
     def chauvenet(self, iterative=True, threshold=0.5, mean=None, stdv=None):
         """
         Removes the outliers from the topography
-        using the chouvenet criterion
+        using the Chauvenet criterion
 
         Parameters
         ----------

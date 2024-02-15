@@ -319,7 +319,6 @@ class Roi:
 class Parameters:
     @staticmethod
     def calc(obj: profile.Profile, rem: geometry.FormEstimator = None, fil: filter.Filter = None, bplt=False):
-    def calc(obj: profile.Profile, rem: geometry.FormEstimator = None, fil: filter.Filter = None, bplt=False):
         """
         Calculates the roughness parameters of a profile
 
