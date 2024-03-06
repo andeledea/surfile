@@ -123,7 +123,7 @@ class FormEstimator:
         form = np.polyval(coeff, x)
         fig, ax = plt.subplots()
         ax.plot(x, z, x, form)
-        ax.set_ylim(min(z), max(z))
+        ax.set_ylim(np.nanmin(z), np.nanmax(z))
 
         plt.show()
 
@@ -663,7 +663,7 @@ class SurfacePolynomial(FormEstimator):
         else:
             x, y, z = obj.X, obj.Y, obj.Z
 
-        x, y, z,  = x.ravel(), y.ravel(), z.ravel(),
+        x, y, z,  = x.ravel(), y.ravel(), z.ravel()
 
         if bound is True:
             bound = np.nanmean(obj.Z)  # set the bound to the mean point

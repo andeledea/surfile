@@ -18,6 +18,7 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 import copy
+import scipy
 
 from surfile import funct
 from surfile.funct import options, rcs
@@ -195,8 +196,8 @@ class Profile:
                                        skip_header=header, 
                                        usecols=[0, 1], unpack=True,
                                        converters={0: lambda s: float(s or np.nan)})
-        self.X0 = copy.copy(self.X)
-        self.Z0 = copy.copy(self.Z)
+        self.X0 = copy.deepcopy(self.X)
+        self.Z0 = copy.deepcopy(self.Z)
         if bplt: self.pltPrf()
     
     def saveTxt(self, fname):

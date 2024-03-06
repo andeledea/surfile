@@ -8,33 +8,63 @@ Python library for analyzing topographic features of surfaces from
 <img src="https://github.com/andeledea/surfile/blob/PLTsub/resources/Surf-Logo.png" alt="drawing" width="300"/>
 </p>
 
-# SurfILE: surface and profile analysis
-Python library for analyzing topographic features of surfaces from
-- areal surface data -- __Surf__-ace
-- profiles -- prof-__ile__
-
 <!-- ABOUT THE PROJECT -->
 ## About The Project
-The project is intended to be an easy to use tool box providing multiple algorithms to analyze areal surface topographies: areal height maps and profiles.
-
-<!-- USAGE EXAMPLES -->
-
-<img src="https://user-images.githubusercontent.com/62064962/203512071-66eb1ae4-2c17-4e45-9371-e04f86580d18.png" alt="drawing" width="500" class="center"/>  
-<img src="https://user-images.githubusercontent.com/62064962/203511581-7370c9a6-e920-4dd4-922f-b7e306f77190.png" alt="drawing" width="500" class="center"/> 
-<img src="https://user-images.githubusercontent.com/62064962/203512435-881b27aa-2480-4f41-b069-3c0198b760f5.png" alt="drawing" width="500" class="center"/>
 
 <!-- GOAL -->
-## Goal
+### Goal
 The project aims to provide easy-to-use Python programs for analysing areal surface topographies and profiles:
 - as a tool box of algorithms to estimate geometry parameters of spheres, cylinders, gratings (height and pitch), etc
 - in the field of surface metrology for users
     - who want the flexibility to adapt their data processing to their own needs by modifying and adding code as required
     - who need to process large amounts of measurement data for automatic analysis (such as 20 to 100 topography maps of repetitive measurements)
-- for beginners as well as for those experts who need a quick and easy way to solve their tasks 
+- for beginners as well as for those experts who need a quick and easy way to solve their tasks
+
+### Usage
+To use the package clone this repository
+```bash
+git clone https://github.com/andeledea/surfile.git
+```
+or
+```bash
+gh repo clone andeledea/surfile
+```
+Check the dependencies
+```bash
+pip install matplotlib circle_fit alive_progress open3d csaps igor numpy scipy
+```
+Try this simple example
+```python
+from surfile import surface
+import matplotlib.pyplot as plt
+
+if __name__ == "__main__":    
+    sur = surface.Surface()
+    sur.openFile("/path/to/data.(asc/txt/...)", bplt=True)
+
+    sur.pltC()
+    plt.show()
+```
+and you are using the package!!
+
+### Documentation
+The package is documented in docstrings in NumPy format and the documentation was exported in html format in the folder docs using pdoc. It is possible to view the documentation interactively in the browser by running pdoc
+```bash
+pip install pdoc
+python -m pdoc surfile --math --mermaid
+
+Note
+----
+To ignore external Imports when generating the docs:
+
+fish >>> set -Ux PDOC_ALLOW_EXEC 1
+bash >>> export PDOC_ALLOW_EXEC=1
+```
 
 <!-- CONTRIBUTING -->
 ## Contributing
 When contributing to this repository, please first discuss the change you wish to make via "issue" before making a change.
+Please consider contributing to the documentation of the package as well.
 
 <!-- LICENCE -->
 ## License

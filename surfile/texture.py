@@ -27,7 +27,7 @@ from surfile import geometry, profile, surface, filter, funct
 import matplotlib.pyplot as plt
 
 
-def eval_pinter(PSD, fx0, fy0, frc, theta, nxDC, nyDC):
+def _eval_pinter(PSD, fx0, fy0, frc, theta, nxDC, nyDC):
     def bilinear_interp(x, y, x1, x2, y1, y2, z11, z12, z21, z22):
         r1 = ((x2 - x) / (x2 - x1)) * z11 + ((x - x1) / (x2 - x1)) * z21
         r2 = ((x2 - x) / (x2 - x1)) * z12 + ((x - x1) / (x2 - x1)) * z22
@@ -208,7 +208,7 @@ class Psd:
         for ir in range(0, nf):
             frc = fr[ir]
             for ith in range(0, nt):
-                PSDp[ir][ith] = eval_pinter(self.psd, df_x, df_y, frc, thetas[ith], nxDC, nyDC)
+                PSDp[ir][ith] = _eval_pinter(self.psd, df_x, df_y, frc, thetas[ith], nxDC, nyDC)
 
         self.psdp = PSDp
         if bplt:
@@ -259,7 +259,7 @@ class Psd:
             dth = thetas[1] - thetas[0]
             psum = 0
             for theta in thetas:
-                pinter = eval_pinter(self.psd, df_x, df_y, frc, theta, nxDC, nyDC)
+                pinter = _eval_pinter(self.psd, df_x, df_y, frc, theta, nxDC, nyDC)
                 psum = psum + pinter
             PSDav[ir] = psum / nth  # dimension of height^2 * lateral^2 i.e. length^4
             PSDr[ir] = dth * frc * psum / (2 * np.pi)  # frc has dimension of 1 / lateral
@@ -319,7 +319,6 @@ class Roi:
 class Parameters:
     @staticmethod
     def calc(obj: profile.Profile, rem: geometry.FormEstimator = None, fil: filter.Filter = None, bplt=False):
-    def calc(obj: profile.Profile, rem: geometry.FormEstimator = None, fil: filter.Filter = None, bplt=False):
         """
         Calculates the roughness parameters of a profile
 
@@ -338,7 +337,7 @@ class Parameters:
 
         Returns
         -------
-        RA, RQ, RP, RV, RZ, RSK, RKU: (float, ...)
+        RA, RQ, RP, RV, RT, RZ, RSK, RKU: (float, ...)
             Calculated roughness parameters
         """
         border = 1
@@ -347,7 +346,7 @@ class Parameters:
             rem.applyFit(obj)
             rem.applyFit(obj)
         if fil is not None:
-            fil.applyFilter(obj, bplt=False)
+            fil.applyFilter(obj, bplt=bplt)
             cutoff = fil.cutoff
             nsample_cutoff = cutoff // (np.nanmax(obj.X) / np.size(obj.X))
             border = int(nsample_cutoff // 2)
@@ -366,9 +365,10 @@ class Parameters:
         RP = abs(np.nanmax(roi.Z))
         RV = abs(np.nanmin(roi.Z))
         RT = RP + RV
+        RZ = np.nanmax(roi.Z) - np.nanmin(roi.Z)
         RSK = (np.nansum(roi.Z ** 3) / np.size(roi.Z)) / (RQ ** 3)
         RKU = (np.nansum(roi.Z ** 4) / np.size(roi.Z)) / (RQ ** 4)
-        return RA, RQ, RP, RV, RT, RSK, RKU
+        return RA, RQ, RP, RV, RT, RZ, RSK, RKU
 
 
 def __makeFacesVectorized(shape):

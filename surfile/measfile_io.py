@@ -26,18 +26,15 @@ import matplotlib.pyplot as plt
 withigor = 0
 # try:
 #     from igor import binarywave
-#
 #     withigor = 1
 # except ImportError:
 #     print('igor not found: use')
-#     print('pip install --proxy=http://webproxy.bs.ptb.de:8080 igor')
-#     print('to install it, this command also works in spyder console I/A')
+#     print('pip install igor')
 try:
     from csaps import csaps
 except ImportError:
     print('csaps not found: use')
-    print('pip install --proxy=http://webproxy.bs.ptb.de:8080 csaps')
-    print('to install it, this command also works in spyder console I/A')
+    print('pip install csaps')
     
 def read_microscopedata(filename, userscalecorr, interpolflag):
     """
@@ -83,7 +80,6 @@ def read_microscopedata(filename, userscalecorr, interpolflag):
         else:
             print('ibw not readable: package igor required but not installed')
             print('pip install igor')
-            print('also with this command in spyder console I/A')
     elif filename[fnlen - 4:fnlen].find('plu') > -1:
         # returns all data in micron
         nx, ny, dx, dy, height_map, measdate = read_plu(content)

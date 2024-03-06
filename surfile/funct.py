@@ -99,7 +99,8 @@ def options(csvPath=None, save=None, bplt=False, chrono=False):
     # TODO this decorator implements global options, how can we implement both solutions
     # SOLUTION: the bplt can be defaulted to False in every function, the plt.show()
     # should not be called in the function but only in the decorator and only if there
-    # are pending graphs to be shown plt.get_fignums(). Try this and see...
+    # are pending graphs to be shown plt.get_fignums().
+    # TODO implement timer for figures and add timespan to rcs.
     def outer(func):
         def inner(*args, **kwargs):
             init = time.time()
