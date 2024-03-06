@@ -64,11 +64,6 @@
             <input type="search" placeholder="Search..." role="searchbox" aria-label="search"
                    pattern=".+" required>
 
-            <h2>Contents</h2>
-            <ul>
-  <li><a href="#notes">Notes</a></li>
-</ul>
-
 
 
             <h2>API Documentation</h2>
@@ -160,7 +155,7 @@
 </ul></li>
 </ul>
 
-<h2 id="notes">Notes</h2>
+<h6 id="notes">Notes</h6>
 
 <p>Since the study of profiles is of great interest for studying (i) roughness 
 parameters and (ii) height measurements of step or groove samples, profile 
@@ -1003,23 +998,27 @@ defined previously by the user, see template()</p>
 
             <div class="docstring"><p>Extracts a profile along x or y at the position indicated by the user</p>
 
-<h2 id="parameters">Parameters</h2>
+<h6 id="parameters">Parameters</h6>
 
-<p>obj: surface.Surface
-    The surface object on wich the profile is extracted
-direction: str
-    The direction of the profile mean 'x' or 'y'
-width: int
-    The lateral number of values averged when extracting the profile
-bplt: bool
-    If True plots the extracted profile</p>
+<ul>
+<li><strong>obj</strong> (surface.Surface):
+The surface object on wich the profile is extracted</li>
+<li><strong>direction</strong> (str):
+The direction of the profile mean 'x' or 'y'</li>
+<li><strong>width</strong> (int):
+The lateral number of values averged when extracting the profile</li>
+<li><strong>bplt</strong> (bool):
+If True plots the extracted profile</li>
+</ul>
 
-<h2 id="returns">Returns</h2>
+<h6 id="returns">Returns</h6>
 
-<p>profile: prf.Profile
-    Profile object exctracted from the topography
-options: dict
-    The position selected by the user and the direction of extraction</p>
+<ul>
+<li><strong>profile</strong> (prf.Profile):
+Profile object exctracted from the topography</li>
+<li><strong>options</strong> (dict):
+The position selected by the user and the direction of extraction</li>
+</ul>
 </div>
 
 
@@ -1080,24 +1079,28 @@ options: dict
 
             <div class="docstring"><p>Extracts the mean profile along x or y</p>
 
-<h2 id="parameters">Parameters</h2>
+<h6 id="parameters">Parameters</h6>
 
-<p>obj: surface.Surface
-    The surface object on wich the profile is extracted
-direction: str
-    The direction of the profile mean 'x' or 'y'
-cutter: cutter.Cutter
-    -if not set, the fit uses all points
-    -if true allows the user to select manually the region of interest
-    -if a cutter obj is passed the fit is done only on the cutted profile points
-     and then applied on the whole profile
-bplt: bool
-    If True plots the extracted profile</p>
+<ul>
+<li><strong>obj</strong> (surface.Surface):
+The surface object on wich the profile is extracted</li>
+<li><strong>direction</strong> (str):
+The direction of the profile mean 'x' or 'y'</li>
+<li><strong>cutter</strong> (cutter.Cutter):
+-if not set, the fit uses all points
+-if true allows the user to select manually the region of interest
+-if a cutter obj is passed the fit is done only on the cutted profile points
+ and then applied on the whole profile</li>
+<li><strong>bplt</strong> (bool):
+If True plots the extracted profile</li>
+</ul>
 
-<h2 id="returns">Returns</h2>
+<h6 id="returns">Returns</h6>
 
-<p>prf: profile.Profile
-    The mean profile</p>
+<ul>
+<li><strong>prf</strong> (profile.Profile):
+The mean profile</li>
+</ul>
 </div>
 
 
@@ -1288,20 +1291,24 @@ defined previously by the user, see template()</p>
             <div class="docstring"><p>Opens a plot figure to choose the profile and extracts it
 The profile is taken with a mpl.widgets.PolygonSelector</p>
 
-<h2 id="parameters">Parameters</h2>
+<h6 id="parameters">Parameters</h6>
 
-<p>obj: surface.Surface
-    The surface object on wich the profile is extracted
-width: int
-    The lateral number of values averged when extracting the profile
-bplt: bool
-    If True plots the extracted profile</p>
+<ul>
+<li><strong>obj</strong> (surface.Surface):
+The surface object on wich the profile is extracted</li>
+<li><strong>width</strong> (int):
+The lateral number of values averged when extracting the profile</li>
+<li><strong>bplt</strong> (bool):
+If True plots the extracted profile</li>
+</ul>
 
-<h2 id="returns">Returns</h2>
+<h6 id="returns">Returns</h6>
 
-<p>prf: profile.Profile
-    The extracted profile
-points: the points selected by the user</p>
+<ul>
+<li><strong>prf</strong> (profile.Profile):
+The extracted profile</li>
+<li><strong>points</strong> (the points selected by the user):</li>
+</ul>
 </div>
 
 
@@ -1498,23 +1505,27 @@ the center of the spherical cup</li>
 
             <div class="docstring"><p>Returns the profile starting from the start point on the positive x direction</p>
 
-<h2 id="parameters">Parameters</h2>
+<h6 id="parameters">Parameters</h6>
 
-<p>obj: surface.Surface
-    The surface object on wich the profile is extracted
-startP : str
-    Method used to find the start (x, y) point on the topography
-        'max': the start point corresponds to the maximum Z of the topography
-        'fit': the start point is the center coords of the best fit sphere
-        'center': the start point is the center of the topography
-        'local': the start point is the local maximum closest to the center of the topography
-bplt: bool
-    If True plots the topography and the line where the profile is taken from</p>
+<ul>
+<li><strong>obj</strong> (surface.Surface):
+The surface object on wich the profile is extracted</li>
+<li><strong>startP</strong> (str):
+Method used to find the start (x, y) point on the topography
+    'max': the start point corresponds to the maximum Z of the topography
+    'fit': the start point is the center coords of the best fit sphere
+    'center': the start point is the center of the topography
+    'local': the start point is the local maximum closest to the center of the topography</li>
+<li><strong>bplt</strong> (bool):
+If True plots the topography and the line where the profile is taken from</li>
+</ul>
 
-<h2 id="returns">Returns</h2>
+<h6 id="returns">Returns</h6>
 
-<p>profile: prof.Profile()
-    The extracted profile</p>
+<ul>
+<li><strong>profile</strong> (prof.Profile()):
+The extracted profile</li>
+</ul>
 </div>
 
 

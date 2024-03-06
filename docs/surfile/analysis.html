@@ -1543,7 +1543,7 @@
             <div class="docstring"><p>Class that contains all the methods relative to Profile
 analysis</p>
 
-<h2 id="notes">Notes</h2>
+<h6 id="notes">Notes</h6>
 
 <p>All the methods in this class are implemented as a @staticmethod
 so this class is only used as a namespace to include all the routines
@@ -1616,22 +1616,26 @@ single profile objects.</p>
             <div class="docstring"><p>Calculates the step height by finding the position of
 the walls automatically.</p>
 
-<h2 id="parameters">Parameters</h2>
+<h6 id="parameters">Parameters</h6>
 
-<p>obj : profile.Profile
-    The profile object on wich the steps are calculated
-bplt: bool
-    Plots the step reconstruction</p>
+<ul>
+<li><strong>obj</strong> (profile.Profile):
+The profile object on wich the steps are calculated</li>
+<li><strong>bplt</strong> (bool):
+Plots the step reconstruction</li>
+</ul>
 
-<h2 id="returns">Returns</h2>
+<h6 id="returns">Returns</h6>
 
-<p>steps: list
-    The calculated step heights
-definedPeaks: bool
-    False if the standard deviation of the flats is greater than step / 200
-    it gives an indication on how well the steps are defined</p>
+<ul>
+<li><strong>steps</strong> (list):
+The calculated step heights</li>
+<li><strong>definedPeaks</strong> (bool):
+False if the standard deviation of the flats is greater than step / 200
+it gives an indication on how well the steps are defined</li>
+</ul>
 
-<h2 id="notes">Notes</h2>
+<h6 id="notes">Notes</h6>
 
 <p>To automate the selection of the areas @ the left, right and center of the step,
 which will henceforth be called regions of interest (ROIs), the programme calculates 
@@ -1706,23 +1710,26 @@ between the two peaks that include it.</p>
             <div class="docstring"><p>Calculates the height of the sample using the histogram 
 method.</p>
 
-<h2 id="parameters">Parameters</h2>
+<h6 id="parameters">Parameters</h6>
 
-<p>obj : profile.Profile
-    The profile object on wich the height is calculated
-bins: int
-    The number of bins of the histogram
-bplt: bool
-    Plots the histogram of the profile</p>
+<ul>
+<li><strong>obj</strong> (profile.Profile):
+The profile object on wich the height is calculated</li>
+<li><strong>bins</strong> (int):
+The number of bins of the histogram</li>
+<li><strong>bplt</strong> (bool):
+Plots the histogram of the profile</li>
+</ul>
 
-<h2 id="returns">Returns</h2>
+<h6 id="returns">Returns</h6>
 
-<p>height: float
-    The calculated height of the surface
-(hist, edges)
-    The histogram x and y</p>
+<ul>
+<li><strong>height</strong> (float):
+The calculated height of the surface</li>
+<li><strong>(hist, edges)</strong>: The histogram x and y</li>
+</ul>
 
-<h2 id="notes">Notes</h2>
+<h6 id="notes">Notes</h6>
 
 <p>The histogram of the Z values of the object describes how many pixels 
 are present in the image at a certain height. In the case of a step
@@ -1792,21 +1799,25 @@ the difference between the two peaks and returns the height.</p>
 
             <div class="docstring"><p>Finds the max measured slopes of arc of radius R at two breakpoints</p>
 
-<h2 id="parameters">Parameters</h2>
+<h6 id="parameters">Parameters</h6>
 
-<p>obj: profile.Profile
-    The profile object on wich the maximum meaasured slope is calculated
-R: float
-    The nominal radius of the arc</p>
+<ul>
+<li><strong>obj</strong> (profile.Profile):
+The profile object on wich the maximum meaasured slope is calculated</li>
+<li><strong>R</strong> (float):
+The nominal radius of the arc</li>
+</ul>
 
-<h2 id="returns">Returns</h2>
+<h6 id="returns">Returns</h6>
 
-<p>phi_max1: float
-    The slope calculated at breackpoint 1 (first nan value)
-phi_max2: float
-    The slope calculated at breackpoint 2 (last measured point)</p>
+<ul>
+<li><strong>phi_max1</strong> (float):
+The slope calculated at breackpoint 1 (first nan value)</li>
+<li><strong>phi_max2</strong> (float):
+The slope calculated at breackpoint 2 (last measured point)</li>
+</ul>
 
-<h2 id="notes">Notes</h2>
+<h6 id="notes">Notes</h6>
 
 <p>The first breakpoint $b_1$ is taken at the first non-measured point, 
 the second breakpoint $b_2$ is taken at the last measured point.</p>
@@ -1877,21 +1888,25 @@ $\Phi_{MS2}=asin(\frac{b_2}{R})$</p>
 
             <div class="docstring"><p>Calculates the radius of the arc varying the z (top to bottom)</p>
 
-<h2 id="parameters">Parameters</h2>
+<h6 id="parameters">Parameters</h6>
 
-<p>obj: profile.Profile
-    The profile object on wich the radius is calculated
-skip: float
-    The first micrometers to skip
-bplt: bool
-    Plots the calculated radius at all the z values</p>
+<ul>
+<li><strong>obj</strong> (profile.Profile):
+The profile object on wich the radius is calculated</li>
+<li><strong>skip</strong> (float):
+The first micrometers to skip</li>
+<li><strong>bplt</strong> (bool):
+Plots the calculated radius at all the z values</li>
+</ul>
 
-<h2 id="returns">Returns</h2>
+<h6 id="returns">Returns</h6>
 
-<p>(r, z): (np.array(), ...)
-    The radius and the respective z values</p>
+<ul>
+<li><strong>(r, z)</strong> ((np.array(), ...)):
+The radius and the respective z values</li>
+</ul>
 
-<h2 id="notes">Notes</h2>
+<h6 id="notes">Notes</h6>
 
 <p>The radius of the arc for a specific height is then calculated as:
 $ R_i=\frac{x_i^2+z_{eh,i}^2}{2z_{eh,i}}$
@@ -1966,23 +1981,27 @@ is equal to the bar width.
 The bar cross-sections are modelled as rectangular boxes with
 smoothed corners using a combination of sigmoidal functions.</p>
 
-<h2 id="parameters">Parameters</h2>
+<h6 id="parameters">Parameters</h6>
 
-<p>obj: profile.Profile
-    The profile on which the steps are evaluated
-nom_pitch: float
-    the nominal pitch of the sample
-bplt: Bool
-    if true plots the sine and the sigmoid fit</p>
+<ul>
+<li><strong>obj</strong> (profile.Profile):
+The profile on which the steps are evaluated</li>
+<li><strong>nom_pitch</strong> (float):
+the nominal pitch of the sample</li>
+<li><strong>bplt</strong> (Bool):
+if true plots the sine and the sigmoid fit</li>
+</ul>
 
-<h2 id="returns">Returns</h2>
+<h6 id="returns">Returns</h6>
 
-<p>x_c: np.array
-    The center position of the features
-h_c: np.array
-    The calculated heights of the features</p>
+<ul>
+<li><strong>x_c</strong> (np.array):
+The center position of the features</li>
+<li><strong>h_c</strong> (np.array):
+The calculated heights of the features</li>
+</ul>
 
-<h2 id="notes">Notes</h2>
+<h6 id="notes">Notes</h6>
 
 <p>At first the extracted profile is fitted with a least square sine wave,
 this is used to find the centres of the features.</p>
@@ -2400,7 +2419,7 @@ this is used to find the centres of the features.</p>
             <div class="docstring"><p>Class that contains all the methods relative to Surface
 analysis</p>
 
-<h2 id="notes">Notes</h2>
+<h6 id="notes">Notes</h6>
 
 <p>All the methods in this class are implemented as a @staticmethod
 so this class is only used as a namespace to include all the routines
@@ -2469,23 +2488,26 @@ relative to surface analysis.</p>
             <div class="docstring"><p>Calculates the height of the sample using the histogram 
 method.</p>
 
-<h2 id="parameters">Parameters</h2>
+<h6 id="parameters">Parameters</h6>
 
-<p>obj : surface.Surface
-    The profile object on wich the height is calculated
-bins: int
-    The number of bins of the histogram
-bplt: bool
-    Plots the histogram of the profile</p>
+<ul>
+<li><strong>obj</strong> (surface.Surface):
+The profile object on wich the height is calculated</li>
+<li><strong>bins</strong> (int):
+The number of bins of the histogram</li>
+<li><strong>bplt</strong> (bool):
+Plots the histogram of the profile</li>
+</ul>
 
-<h2 id="returns">Returns</h2>
+<h6 id="returns">Returns</h6>
 
-<p>height: float
-    The calculated height of the surface
-(hist, edges)
-    The histogram x and y</p>
+<ul>
+<li><strong>height</strong> (float):
+The calculated height of the surface</li>
+<li><strong>(hist, edges)</strong>: The histogram x and y</li>
+</ul>
 
-<h2 id="notes">Notes</h2>
+<h6 id="notes">Notes</h6>
 
 <p>The histogram of the Z values of the object describes how many pixels 
 are present in the image at a certain height. In the case of a step
@@ -2557,28 +2579,32 @@ the difference between the two peaks and returns the height.</p>
 given a topography of a sphere measured with the instrument.
 See <a href="#ProfileAnalysis.arcSlope">ProfileAnalysis.arcSlope()</a> for details.</p>
 
-<h2 id="parameters">Parameters</h2>
+<h6 id="parameters">Parameters</h6>
 
-<p>obj : surface.Surface
-    The surface object on wich the maximum slope is calculated
-R : float
-    The nominal radius of the sphere
-angleStep : int
-    The angle used to rotate the image after every iteration
-start : str
-    Method used to find the start (x, y) point on the topography
-        'max': the start point is the maximum Z of the topography
-        'fit': the start point is the center of the best fit sphere
-        'center': the start point is the center of the topography
-        'local': the start point is the local maximum closest to the center of the topography
-bplt : bool
-    Plots the slope at the different angles (linear and radial plots)</p>
+<ul>
+<li><strong>obj</strong> (surface.Surface):
+The surface object on wich the maximum slope is calculated</li>
+<li><strong>R</strong> (float):
+The nominal radius of the sphere</li>
+<li><strong>angleStep</strong> (int):
+The angle used to rotate the image after every iteration</li>
+<li><strong>start</strong> (str):
+Method used to find the start (x, y) point on the topography
+    'max': the start point is the maximum Z of the topography
+    'fit': the start point is the center of the best fit sphere
+    'center': the start point is the center of the topography
+    'local': the start point is the local maximum closest to the center of the topography</li>
+<li><strong>bplt</strong> (bool):
+Plots the slope at the different angles (linear and radial plots)</li>
+</ul>
 
-<h2 id="returns">Returns</h2>
+<h6 id="returns">Returns</h6>
 
-<p>phi_max1 : np.array
-phi_max2 : np.array
-    The 2 slopes calculated at breackpoints 1 and 2 respectively</p>
+<ul>
+<li><p><strong>phi_max1</strong> (np.array):</p></li>
+<li><p><strong>phi_max2</strong> (np.array):
+The 2 slopes calculated at breackpoints 1 and 2 respectively</p></li>
+</ul>
 </div>
 
 
@@ -2646,25 +2672,29 @@ and at each height. Calculates and plots the average value of
 the radius at each height.
 See <a href="#ProfileAnalysis.arcRadius">ProfileAnalysis.arcRadius()</a> for details.</p>
 
-<h2 id="parameters">Parameters</h2>
+<h6 id="parameters">Parameters</h6>
 
-<p>obj : surface.Surface
-    The surface object on wich the radius is calculated
-angleStepSize : int
-    The angle used to rotate the image after every iteration
-start : str
-    Method used to find the start (x, y) point on the topography
-        'max': the start point is the maximum Z of the topography
-        'fit': the start point is the center of the best fit sphere
-        'center': the start point is the center of the topography
-        'local': the start point is the local maximum closest to the center of the topography
-bplt: bool
-    Plots the radius at the different angles</p>
+<ul>
+<li><strong>obj</strong> (surface.Surface):
+The surface object on wich the radius is calculated</li>
+<li><strong>angleStepSize</strong> (int):
+The angle used to rotate the image after every iteration</li>
+<li><strong>start</strong> (str):
+Method used to find the start (x, y) point on the topography
+    'max': the start point is the maximum Z of the topography
+    'fit': the start point is the center of the best fit sphere
+    'center': the start point is the center of the topography
+    'local': the start point is the local maximum closest to the center of the topography</li>
+<li><strong>bplt</strong> (bool):
+Plots the radius at the different angles</li>
+</ul>
 
-<h2 id="returns">Returns</h2>
+<h6 id="returns">Returns</h6>
 
-<p>(yr, yz): (np.array(), ...)
-    The mean of the radius and the mean of the different heights where the radius is calculated</p>
+<ul>
+<li><strong>(yr, yz)</strong> ((np.array(), ...)):
+The mean of the radius and the mean of the different heights where the radius is calculated</li>
+</ul>
 </div>
 
 
@@ -2730,35 +2760,39 @@ bplt: bool
             <div class="docstring"><p>Evaluates radius and form deviation of a cylinder by fitting a least square cylinder
 to the points and applying cuts to the surface to avoid edge points.</p>
 
-<h2 id="parameters">Parameters</h2>
+<h6 id="parameters">Parameters</h6>
 
-<p>obj : surface.Surface
-    The surface on which the processing is applied
-radius : float
-    The nominal radius of the cylinder
-phiCone : float
-    Angle in degree of the FOV of the instrument
-alphaZ : float
-    Rotation of the cylinder axis about the Y axis (radian)
-concavity : str
-    Can be either 'convex' or 'concave'
-base : bool
-    If true removes the points at the base of the cylinder
-bplt : bool
-    Plots the sphere fitted to the data points</p>
+<ul>
+<li><strong>obj</strong> (surface.Surface):
+The surface on which the processing is applied</li>
+<li><strong>radius</strong> (float):
+The nominal radius of the cylinder</li>
+<li><strong>phiCone</strong> (float):
+Angle in degree of the FOV of the instrument</li>
+<li><strong>alphaZ</strong> (float):
+Rotation of the cylinder axis about the Y axis (radian)</li>
+<li><strong>concavity</strong> (str):
+Can be either 'convex' or 'concave'</li>
+<li><strong>base</strong> (bool):
+If true removes the points at the base of the cylinder</li>
+<li><strong>bplt</strong> (bool):
+Plots the sphere fitted to the data points</li>
+</ul>
 
-<h2 id="returns">Returns</h2>
+<h6 id="returns">Returns</h6>
 
-<p>R_all : float
-    The radius of the best fit cylinder to all points
-FD_all : float
-    The form deviation of the best fit cylinder to all points
-R_2s : float
-    The radius of the best fit cylinder to only the points with residue &lt; 2 * sigma
-FD_2s : float
-    The form deviation of the best fit cylinder to only the points with residue &lt; 2 * sigma</p>
+<ul>
+<li><strong>R_all</strong> (float):
+The radius of the best fit cylinder to all points</li>
+<li><strong>FD_all</strong> (float):
+The form deviation of the best fit cylinder to all points</li>
+<li><strong>R_2s</strong> (float):
+The radius of the best fit cylinder to only the points with residue &lt; 2 * sigma</li>
+<li><strong>FD_2s</strong> (float):
+The form deviation of the best fit cylinder to only the points with residue &lt; 2 * sigma</li>
+</ul>
 
-<h2 id="notes">Notes</h2>
+<h6 id="notes">Notes</h6>
 
 <p>At first, the points of the cylinder measured by the optical profilometer are fitted with the 
 least squares algorithm Surfile.geometry.cylinder(); this fit is used to calculate the equation 
@@ -2843,25 +2877,29 @@ The bar cross-sections are modelled as rectangular boxes with
 smoothed corners using a combination of sigmoidal functions.
 See <a href="#ProfileAnalysis.grating_1d">ProfileAnalysis.grating_1d()</a> for details on the sigmoidal fit.</p>
 
-<h2 id="parameters">Parameters</h2>
+<h6 id="parameters">Parameters</h6>
 
-<p>obj: surface.Surface
-    The "surface" on which the analysis is carried out
-nom_pitch: float
-    The nominal pitch of the grating
-direction: str
-    Orientation of the features (perpendicular to the grating bars)
-bplt: bool
-    If true plots the calculated heights and regression lines</p>
+<ul>
+<li><strong>obj</strong> (surface.Surface):
+The "surface" on which the analysis is carried out</li>
+<li><strong>nom_pitch</strong> (float):
+The nominal pitch of the grating</li>
+<li><strong>direction</strong> (str):
+Orientation of the features (perpendicular to the grating bars)</li>
+<li><strong>bplt</strong> (bool):
+If true plots the calculated heights and regression lines</li>
+</ul>
 
-<h2 id="returns">Returns</h2>
+<h6 id="returns">Returns</h6>
 
-<p>hs: float
-    Calculated mean height
-pitch: float
-    Calculated mean pitch
-s_pitch: float
-    standard error of the pitch</p>
+<ul>
+<li><strong>hs</strong> (float):
+Calculated mean height</li>
+<li><strong>pitch</strong> (float):
+Calculated mean pitch</li>
+<li><strong>s_pitch</strong> (float):
+standard error of the pitch</li>
+</ul>
 </div>
 
 
@@ -3003,7 +3041,7 @@ s_pitch: float
 
             <div class="docstring"><p>Class for tip correction utilities</p>
 
-<h2 id="notes">Notes</h2>
+<h6 id="notes">Notes</h6>
 
 <p><span style="color:orange">This class will be moved to a utility module in the future
 use with caution !!!</span>.</p>
@@ -3096,14 +3134,16 @@ use with caution !!!</span>.</p>
             <div class="docstring"><p>Tip correction method implementation,
 rolls a disk  of radius R (in mm) along the original profile</p>
 
-<h2 id="parameters">Parameters</h2>
+<h6 id="parameters">Parameters</h6>
 
-<p>obj: profile.Profile
-    The profile object on wich the filter is applied
-radius: float
-    The radius of the sphere of the contact instrument
-bplt: bool
-    Plots the envelope of the filter if true</p>
+<ul>
+<li><strong>obj</strong> (profile.Profile):
+The profile object on wich the filter is applied</li>
+<li><strong>radius</strong> (float):
+The radius of the sphere of the contact instrument</li>
+<li><strong>bplt</strong> (bool):
+Plots the envelope of the filter if true</li>
+</ul>
 </div>
 
 
@@ -3171,14 +3211,16 @@ Uses the naive approach described in:
 "Algorithms for morph profile filters and their comparison"
 Shan Lou, Xiangqian Jiang, Paul J. Scott. (2012)</p>
 
-<h2 id="parameters">Parameters</h2>
+<h6 id="parameters">Parameters</h6>
 
-<p>obj: profile.Profile
-    The profile object on wich the filter is applied
-radius: float
-    The radius of the sphere of the contact instrument
-bplt: bool
-    Plots the envelope of the filter if true</p>
+<ul>
+<li><strong>obj</strong> (profile.Profile):
+The profile object on wich the filter is applied</li>
+<li><strong>radius</strong> (float):
+The radius of the sphere of the contact instrument</li>
+<li><strong>bplt</strong> (bool):
+Plots the envelope of the filter if true</li>
+</ul>
 </div>
 
 

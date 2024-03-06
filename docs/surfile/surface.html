@@ -64,11 +64,6 @@
             <input type="search" placeholder="Search..." role="searchbox" aria-label="search"
                    pattern=".+" required>
 
-            <h2>Contents</h2>
-            <ul>
-  <li><a href="#example">Example</a></li>
-</ul>
-
 
 
             <h2>API Documentation</h2>
@@ -166,7 +161,7 @@
 <li>io operation</li>
 </ul>
 
-<h2 id="example">Example</h2>
+<h6 id="example">Example</h6>
 
 <div class="pdoc-code codehilite">
 <pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">surfile</span> <span class="kn">import</span> <span class="n">surface</span>
@@ -271,7 +266,7 @@
 </span><span id="L-86"><a href="#L-86"><span class="linenos"> 86</span></a>
 </span><span id="L-87"><a href="#L-87"><span class="linenos"> 87</span></a>    <span class="k">def</span> <span class="nf">openFile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fname</span><span class="p">,</span> <span class="n">bplt</span><span class="p">,</span> <span class="n">interp</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">userscalecorrections</span><span class="o">=</span><span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">]):</span>
 </span><span id="L-88"><a href="#L-88"><span class="linenos"> 88</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="L-89"><a href="#L-89"><span class="linenos"> 89</span></a><span class="sd">        Opens a file from a supported intrument, the list of </span>
+</span><span id="L-89"><a href="#L-89"><span class="linenos"> 89</span></a><span class="sd">        Opens a file from a supported instrument, the list of </span>
 </span><span id="L-90"><a href="#L-90"><span class="linenos"> 90</span></a><span class="sd">        supported types is in measfile_io documentation.</span>
 </span><span id="L-91"><a href="#L-91"><span class="linenos"> 91</span></a>
 </span><span id="L-92"><a href="#L-92"><span class="linenos"> 92</span></a><span class="sd">        Parameters</span>
@@ -425,7 +420,7 @@
 </span><span id="L-240"><a href="#L-240"><span class="linenos">240</span></a>    <span class="k">def</span> <span class="nf">chauvenet</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">iterative</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">threshold</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">mean</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">stdv</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 </span><span id="L-241"><a href="#L-241"><span class="linenos">241</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-242"><a href="#L-242"><span class="linenos">242</span></a><span class="sd">        Removes the outliers from the topography</span>
-</span><span id="L-243"><a href="#L-243"><span class="linenos">243</span></a><span class="sd">        using the chouvenet criterion</span>
+</span><span id="L-243"><a href="#L-243"><span class="linenos">243</span></a><span class="sd">        using the Chauvenet criterion</span>
 </span><span id="L-244"><a href="#L-244"><span class="linenos">244</span></a>
 </span><span id="L-245"><a href="#L-245"><span class="linenos">245</span></a><span class="sd">        Parameters</span>
 </span><span id="L-246"><a href="#L-246"><span class="linenos">246</span></a><span class="sd">        ----------</span>
@@ -625,7 +620,7 @@
 </span><span id="Surface-87"><a href="#Surface-87"><span class="linenos"> 87</span></a>
 </span><span id="Surface-88"><a href="#Surface-88"><span class="linenos"> 88</span></a>    <span class="k">def</span> <span class="nf">openFile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fname</span><span class="p">,</span> <span class="n">bplt</span><span class="p">,</span> <span class="n">interp</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">userscalecorrections</span><span class="o">=</span><span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">]):</span>
 </span><span id="Surface-89"><a href="#Surface-89"><span class="linenos"> 89</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="Surface-90"><a href="#Surface-90"><span class="linenos"> 90</span></a><span class="sd">        Opens a file from a supported intrument, the list of </span>
+</span><span id="Surface-90"><a href="#Surface-90"><span class="linenos"> 90</span></a><span class="sd">        Opens a file from a supported instrument, the list of </span>
 </span><span id="Surface-91"><a href="#Surface-91"><span class="linenos"> 91</span></a><span class="sd">        supported types is in measfile_io documentation.</span>
 </span><span id="Surface-92"><a href="#Surface-92"><span class="linenos"> 92</span></a>
 </span><span id="Surface-93"><a href="#Surface-93"><span class="linenos"> 93</span></a><span class="sd">        Parameters</span>
@@ -779,7 +774,7 @@
 </span><span id="Surface-241"><a href="#Surface-241"><span class="linenos">241</span></a>    <span class="k">def</span> <span class="nf">chauvenet</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">iterative</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">threshold</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">mean</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">stdv</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 </span><span id="Surface-242"><a href="#Surface-242"><span class="linenos">242</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="Surface-243"><a href="#Surface-243"><span class="linenos">243</span></a><span class="sd">        Removes the outliers from the topography</span>
-</span><span id="Surface-244"><a href="#Surface-244"><span class="linenos">244</span></a><span class="sd">        using the chouvenet criterion</span>
+</span><span id="Surface-244"><a href="#Surface-244"><span class="linenos">244</span></a><span class="sd">        using the Chauvenet criterion</span>
 </span><span id="Surface-245"><a href="#Surface-245"><span class="linenos">245</span></a>
 </span><span id="Surface-246"><a href="#Surface-246"><span class="linenos">246</span></a><span class="sd">        Parameters</span>
 </span><span id="Surface-247"><a href="#Surface-247"><span class="linenos">247</span></a><span class="sd">        ----------</span>
@@ -1086,16 +1081,18 @@ Provides simple visualization plots</p>
             <div class="docstring"><p>Opens a txt file containing the values of the topography
 see Notes for more information on file format.</p>
 
-<h2 id="parameters">Parameters</h2>
+<h6 id="parameters">Parameters</h6>
 
-<p>fname : str
-    The file path
-bplt : bool
-    If true plots the opened surface
-typ : str, optional
-    Type of text file see Notes, by default 'x'</p>
+<ul>
+<li><strong>fname</strong> (str):
+The file path</li>
+<li><strong>bplt</strong> (bool):
+If true plots the opened surface</li>
+<li><strong>typ</strong> (str, optional):
+Type of text file see Notes, by default 'x'</li>
+</ul>
 
-<h2 id="notes">Notes</h2>
+<h6 id="notes">Notes</h6>
 
 <p>This method accepts two different txt formats:</p>
 
@@ -1121,7 +1118,7 @@ typ : str, optional
     <a class="headerlink" href="#Surface.openFile"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="Surface.openFile-88"><a href="#Surface.openFile-88"><span class="linenos"> 88</span></a>    <span class="k">def</span> <span class="nf">openFile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fname</span><span class="p">,</span> <span class="n">bplt</span><span class="p">,</span> <span class="n">interp</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">userscalecorrections</span><span class="o">=</span><span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">]):</span>
 </span><span id="Surface.openFile-89"><a href="#Surface.openFile-89"><span class="linenos"> 89</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="Surface.openFile-90"><a href="#Surface.openFile-90"><span class="linenos"> 90</span></a><span class="sd">        Opens a file from a supported intrument, the list of </span>
+</span><span id="Surface.openFile-90"><a href="#Surface.openFile-90"><span class="linenos"> 90</span></a><span class="sd">        Opens a file from a supported instrument, the list of </span>
 </span><span id="Surface.openFile-91"><a href="#Surface.openFile-91"><span class="linenos"> 91</span></a><span class="sd">        supported types is in measfile_io documentation.</span>
 </span><span id="Surface.openFile-92"><a href="#Surface.openFile-92"><span class="linenos"> 92</span></a>
 </span><span id="Surface.openFile-93"><a href="#Surface.openFile-93"><span class="linenos"> 93</span></a><span class="sd">        Parameters</span>
@@ -1156,19 +1153,21 @@ typ : str, optional
 </span></pre></div>
 
 
-            <div class="docstring"><p>Opens a file from a supported intrument, the list of 
+            <div class="docstring"><p>Opens a file from a supported instrument, the list of 
 supported types is in measfile_io documentation.</p>
 
-<h2 id="parameters">Parameters</h2>
+<h6 id="parameters">Parameters</h6>
 
-<p>fname : str
-    The file path
-bplt : bool
-    If true plots the opened surface
-interp : bool, optional
-    If true uses interpolation to fill NaNs, by default False
-userscalecorrections : list
-    Array to correct the values of the topography [x_mul, y_mul, z_mul].</p>
+<ul>
+<li><strong>fname</strong> (str):
+The file path</li>
+<li><strong>bplt</strong> (bool):
+If true plots the opened surface</li>
+<li><strong>interp</strong> (bool, optional):
+If true uses interpolation to fill NaNs, by default False</li>
+<li><strong>userscalecorrections</strong> (list):
+Array to correct the values of the topography [x_mul, y_mul, z_mul].</li>
+</ul>
 </div>
 
 
@@ -1224,13 +1223,15 @@ userscalecorrections : list
 
             <div class="docstring"><p>Saves the topography in the .asc file format of the tracOptic project</p>
 
-<h2 id="parameters">Parameters</h2>
+<h6 id="parameters">Parameters</h6>
 
-<p>fname : str
-    If fname is a folder the file will be saved in that folder with the surface name
-    If fname is not a folder the file will be saved at fname</p>
+<ul>
+<li><strong>fname</strong> (str):
+If fname is a folder the file will be saved in that folder with the surface name
+If fname is not a folder the file will be saved at fname</li>
+</ul>
 
-<h2 id="notes">Notes</h2>
+<h6 id="notes">Notes</h6>
 
 <p>The tracOptic file format: </p>
 
@@ -1277,11 +1278,13 @@ userscalecorrections : list
 
             <div class="docstring"><p>Saves the topography in the .txt file format with three cols</p>
 
-<h2 id="parameters">Parameters</h2>
+<h6 id="parameters">Parameters</h6>
 
-<p>fname : str
-    If fname is a folder the file will be saved in that folder with the surface name
-    If fname is not a folder the file will be saved at fname</p>
+<ul>
+<li><strong>fname</strong> (str):
+If fname is a folder the file will be saved in that folder with the surface name
+If fname is not a folder the file will be saved at fname</li>
+</ul>
 </div>
 
 
@@ -1317,12 +1320,14 @@ userscalecorrections : list
 
             <div class="docstring"><p>Rotates the original topography by the specified angle</p>
 
-<h2 id="parameters">Parameters</h2>
+<h6 id="parameters">Parameters</h6>
 
-<p>angle: float
-    The angle of rotation</p>
+<ul>
+<li><strong>angle</strong> (float):
+The angle of rotation</li>
+</ul>
 
-<h2 id="notes">Notes</h2>
+<h6 id="notes">Notes</h6>
 
 <p><span style="color:orange">This function will be moved to a utility module in the future
 use with caution !!!</span>.</p>
@@ -1378,14 +1383,16 @@ use with caution !!!</span>.</p>
 
             <div class="docstring"><p>Resamples the topography and fills the non-measured points</p>
 
-<h2 id="parameters">Parameters</h2>
+<h6 id="parameters">Parameters</h6>
 
-<p>newXsize: int
-    Number of points desired on the x-axis
-newYsize: int
-    Number of points desired on the y-axis</p>
+<ul>
+<li><strong>newXsize</strong> (int):
+Number of points desired on the x-axis</li>
+<li><strong>newYsize</strong> (int):
+Number of points desired on the y-axis</li>
+</ul>
 
-<h2 id="notes">Notes</h2>
+<h6 id="notes">Notes</h6>
 
 <p><span style="color:orange">This function will be moved to a utility module in the future
 use with caution !!!</span>.</p>
@@ -1428,12 +1435,14 @@ use with caution !!!</span>.</p>
 
             <div class="docstring"><p>Fills the surface non measured points</p>
 
-<h2 id="parameters">Parameters</h2>
+<h6 id="parameters">Parameters</h6>
 
-<p>method : str
-    The interpolation method used</p>
+<ul>
+<li><strong>method</strong> (str):
+The interpolation method used</li>
+</ul>
 
-<h2 id="notes">Notes</h2>
+<h6 id="notes">Notes</h6>
 
 <p><span style="color:orange">This function will be moved to a utility module in the future
 use with caution !!!</span>.</p>
@@ -1455,7 +1464,7 @@ use with caution !!!</span>.</p>
             <div class="pdoc-code codehilite"><pre><span></span><span id="Surface.chauvenet-241"><a href="#Surface.chauvenet-241"><span class="linenos">241</span></a>    <span class="k">def</span> <span class="nf">chauvenet</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">iterative</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">threshold</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">mean</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">stdv</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 </span><span id="Surface.chauvenet-242"><a href="#Surface.chauvenet-242"><span class="linenos">242</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="Surface.chauvenet-243"><a href="#Surface.chauvenet-243"><span class="linenos">243</span></a><span class="sd">        Removes the outliers from the topography</span>
-</span><span id="Surface.chauvenet-244"><a href="#Surface.chauvenet-244"><span class="linenos">244</span></a><span class="sd">        using the chouvenet criterion</span>
+</span><span id="Surface.chauvenet-244"><a href="#Surface.chauvenet-244"><span class="linenos">244</span></a><span class="sd">        using the Chauvenet criterion</span>
 </span><span id="Surface.chauvenet-245"><a href="#Surface.chauvenet-245"><span class="linenos">245</span></a>
 </span><span id="Surface.chauvenet-246"><a href="#Surface.chauvenet-246"><span class="linenos">246</span></a><span class="sd">        Parameters</span>
 </span><span id="Surface.chauvenet-247"><a href="#Surface.chauvenet-247"><span class="linenos">247</span></a><span class="sd">        ----------</span>
@@ -1509,23 +1518,25 @@ use with caution !!!</span>.</p>
 
 
             <div class="docstring"><p>Removes the outliers from the topography
-using the chouvenet criterion</p>
+using the Chauvenet criterion</p>
 
-<h2 id="parameters">Parameters</h2>
+<h6 id="parameters">Parameters</h6>
 
-<p>iterative : bool
-    If true keeps calling the function until the number of outliers is 0
-    If true the mean and stdv parameters are ignored as if they were not provided
-threshold : float
-    The acceptance threshold of the criterion
-mean : float
-    The mean of the expected distribution
-    If none the program calculates the mean of the distribution
-stdv : float
-    The std dev of the expected distribution
-    If none the program calculates the std dev of the distribution</p>
+<ul>
+<li><strong>iterative</strong> (bool):
+If true keeps calling the function until the number of outliers is 0
+If true the mean and stdv parameters are ignored as if they were not provided</li>
+<li><strong>threshold</strong> (float):
+The acceptance threshold of the criterion</li>
+<li><strong>mean</strong> (float):
+The mean of the expected distribution
+If none the program calculates the mean of the distribution</li>
+<li><strong>stdv</strong> (float):
+The std dev of the expected distribution
+If none the program calculates the std dev of the distribution</li>
+</ul>
 
-<h2 id="notes">Notes</h2>
+<h6 id="notes">Notes</h6>
 
 <p><span style="color:orange">This function will be moved to a utility module in the future
 use with caution !!!</span>.</p>
@@ -1573,15 +1584,19 @@ use with caution !!!</span>.</p>
 
             <div class="docstring"><p>Splits the topography into vertical or horizontal profiles</p>
 
-<h2 id="parameters">Parameters</h2>
+<h6 id="parameters">Parameters</h6>
 
-<p>axis: str
-    'x' or 'y', the axis on which the f is applied</p>
+<ul>
+<li><strong>axis</strong> (str):
+'x' or 'y', the axis on which the f is applied</li>
+</ul>
 
-<h2 id="returns">Returns</h2>
+<h6 id="returns">Returns</h6>
 
-<p>res: []
-    The resulting profiles</p>
+<ul>
+<li><strong>res</strong> ([]):
+The resulting profiles</li>
+</ul>
 </div>
 
 

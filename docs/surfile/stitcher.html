@@ -1130,25 +1130,28 @@
             <div class="docstring"><p>Given 2 surfaces finds the best allignement
 by minimizing the norm2 of the difference</p>
 
-<h2 id="parameters">Parameters</h2>
+<h6 id="parameters">Parameters</h6>
 
-<p>surl : surface.Surface
-    The left image to be stitched
-surr : surface.Surface
-    The right image to be stitched
-stitchPrc : int
-    the percentage of the image overlapping
-pixelScan: int
-    the number of pixel the method tryes to displace the images
-    an higher number results in longer excution time
-bplt : bool
-    If true plots the stitching process, limits the radius scan to 5 pixels
-    Use this only to see graphically and very slowly what this function does.</p>
+<ul>
+<li><strong>surl</strong> (surface.Surface):
+The left image to be stitched</li>
+<li><strong>surr</strong> (surface.Surface):
+The right image to be stitched</li>
+<li><strong>stitchPrc</strong> (int):
+the percentage of the image overlapping</li>
+<li><strong>pixelScan</strong> (int):
+the number of pixel the method tryes to displace the images
+an higher number results in longer excution time</li>
+<li><strong>bplt</strong> (bool):
+If true plots the stitching process, limits the radius scan to 5 pixels
+Use this only to see graphically and very slowly what this function does.</li>
+</ul>
 
-<h2 id="returns">Returns</h2>
+<h6 id="returns">Returns</h6>
 
-<p>surface.Surface
-    The stitched image</p>
+<ul>
+<li><strong>surface.Surface</strong>: The stitched image</li>
+</ul>
 </div>
 
 
@@ -1265,22 +1268,24 @@ bplt : bool
             <div class="docstring"><p>Finds the best allignment between surl and surr
 by calculating the maximum of the cross correlation</p>
 
-<h2 id="parameters">Parameters</h2>
+<h6 id="parameters">Parameters</h6>
 
-<p>samplingPrc : int
-    The percentage of the points of the overimposed
-    surfaces that is sampled from the arrays
-surl : surface.Surface
-    The left image to be stitched
-surr : surface.Surface
-    The right image to be stitched
-stitchPrc : int
-    the percentage of the image overlapping
-correlateDer : bool
-    If true uses the first derivatice for the cross correlation to
-    in order to compare the slope of the sample instead of the height
-bplt : bool
-    If true plots the stitched image</p>
+<ul>
+<li><strong>samplingPrc</strong> (int):
+The percentage of the points of the overimposed
+surfaces that is sampled from the arrays</li>
+<li><strong>surl</strong> (surface.Surface):
+The left image to be stitched</li>
+<li><strong>surr</strong> (surface.Surface):
+The right image to be stitched</li>
+<li><strong>stitchPrc</strong> (int):
+the percentage of the image overlapping</li>
+<li><strong>correlateDer</strong> (bool):
+If true uses the first derivatice for the cross correlation to
+in order to compare the slope of the sample instead of the height</li>
+<li><strong>bplt</strong> (bool):
+If true plots the stitched image</li>
+</ul>
 </div>
 
 
@@ -1460,14 +1465,16 @@ FGR: <a href="http://vladlen.info/papers/fast-global-registration.pdf">http://vl
 ICP: <a href="https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&amp;arnumber=121791">https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&amp;arnumber=121791</a>
 PFH: <a href="https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&amp;arnumber=5152473">https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&amp;arnumber=5152473</a></p>
 
-<h2 id="parameters">Parameters</h2>
+<h6 id="parameters">Parameters</h6>
 
-<p>surl : surface.Surface
-    The left image to be stitched
-surr : surface.Surface
-    The right image to be stitched
-stitchPrc : int
-    the percentage of the image overlapping</p>
+<ul>
+<li><strong>surl</strong> (surface.Surface):
+The left image to be stitched</li>
+<li><strong>surr</strong> (surface.Surface):
+The right image to be stitched</li>
+<li><strong>stitchPrc</strong> (int):
+the percentage of the image overlapping</li>
+</ul>
 </div>
 
 

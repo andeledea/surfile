@@ -563,15 +563,17 @@
 
             <div class="docstring"><p>Personalize an axis object or multiple</p>
 
-<h2 id="parameters">Parameters</h2>
+<h6 id="parameters">Parameters</h6>
 
-<p>figures: list
-    The list of ax objects to be customized
-gridcol: str
-    The color of the grid, use None to remove the grid
-xlab: str
-ylab: str
-zlab: str</p>
+<ul>
+<li><strong>figures</strong> (list):
+The list of ax objects to be customized</li>
+<li><strong>gridcol</strong> (str):
+The color of the grid, use None to remove the grid</li>
+<li><p><strong>xlab</strong> (str):</p></li>
+<li><p><strong>ylab</strong> (str):</p></li>
+<li><p><strong>zlab</strong> (str):</p></li>
+</ul>
 </div>
 
 
@@ -617,20 +619,24 @@ zlab: str</p>
 
             <div class="docstring"><p>Helper to handle indices and logical indices of NaNs.</p>
 
-<h2 id="parameters">Parameters</h2>
+<h6 id="parameters">Parameters</h6>
 
-<p>y : np.array
-    1d numpy array with possible NaNs</p>
+<ul>
+<li><strong>y</strong> (np.array):
+1d numpy array with possible NaNs</li>
+</ul>
 
-<h2 id="returns">Returns</h2>
+<h6 id="returns">Returns</h6>
 
-<p>nans : np.array
-    logical indices of NaNs
-index : funct
-    a function, with signature indices= index(logical_indices),
-    to convert logical indices of NaNs to 'equivalent' indices</p>
+<ul>
+<li><strong>nans</strong> (np.array):
+logical indices of NaNs</li>
+<li><strong>index</strong> (funct):
+a function, with signature indices= index(logical_indices),
+to convert logical indices of NaNs to 'equivalent' indices</li>
+</ul>
 
-<h2 id="example">Example</h2>
+<h6 id="example">Example</h6>
 
 <div class="pdoc-code codehilite">
 <pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="c1"># linear interpolation of NaNs</span>
@@ -730,18 +736,20 @@ index : funct
 
             <div class="docstring"><p>Decorator that implements global configurations</p>
 
-<h2 id="parameters">Parameters</h2>
+<h6 id="parameters">Parameters</h6>
 
-<p>csvPath: str
-    If not none saves the return parameters of the decorated function to a csv
-save: str
-    If not none saves the figures in the path
-bplt: bool
-    If True shows the images
-chrono: bool
-    If true times the duration of the decorated function</p>
+<ul>
+<li><strong>csvPath</strong> (str):
+If not none saves the return parameters of the decorated function to a csv</li>
+<li><strong>save</strong> (str):
+If not none saves the figures in the path</li>
+<li><strong>bplt</strong> (bool):
+If True shows the images</li>
+<li><strong>chrono</strong> (bool):
+If true times the duration of the decorated function</li>
+</ul>
 
-<h2 id="notes">Notes</h2>
+<h6 id="notes">Notes</h6>
 
 <p>Use this decorator only on methods that do not call plt.show</p>
 </div>
@@ -918,10 +926,12 @@ chrono: bool
 
             <div class="docstring"><p>Loads a user defined rc parameters file</p>
 
-<h2 id="parameters">Parameters</h2>
+<h6 id="parameters">Parameters</h6>
 
-<p>js_fin: str
-    The json file name</p>
+<ul>
+<li><strong>js_fin</strong> (str):
+The json file name</li>
+</ul>
 </div>
 
 
@@ -953,10 +963,12 @@ chrono: bool
 
             <div class="docstring"><p>Saves the current parameters to a file</p>
 
-<h2 id="parameters">Parameters</h2>
+<h6 id="parameters">Parameters</h6>
 
-<p>js_fout: str
-    The json file name</p>
+<ul>
+<li><strong>js_fout</strong> (str):
+The json file name</li>
+</ul>
 </div>
 
 

@@ -64,11 +64,6 @@
             <input type="search" placeholder="Search..." role="searchbox" aria-label="search"
                    pattern=".+" required>
 
-            <h2>Contents</h2>
-            <ul>
-  <li><a href="#example">Example</a></li>
-</ul>
-
 
 
             <h2>API Documentation</h2>
@@ -171,7 +166,7 @@
 </ul></li>
 </ul>
 
-<h2 id="example">Example</h2>
+<h6 id="example">Example</h6>
 
 <div class="pdoc-code codehilite">
 <pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="n">psd</span> <span class="o">=</span> <span class="n">texture</span><span class="o">.</span><span class="n">Psd</span><span class="p">()</span>
@@ -528,7 +523,7 @@
 </span><span id="L-337"><a href="#L-337"><span class="linenos">337</span></a>
 </span><span id="L-338"><a href="#L-338"><span class="linenos">338</span></a><span class="sd">        Returns</span>
 </span><span id="L-339"><a href="#L-339"><span class="linenos">339</span></a><span class="sd">        -------</span>
-</span><span id="L-340"><a href="#L-340"><span class="linenos">340</span></a><span class="sd">        RA, RQ, RP, RV, RZ, RSK, RKU: (float, ...)</span>
+</span><span id="L-340"><a href="#L-340"><span class="linenos">340</span></a><span class="sd">        RA, RQ, RP, RV, RT, RZ, RSK, RKU: (float, ...)</span>
 </span><span id="L-341"><a href="#L-341"><span class="linenos">341</span></a><span class="sd">            Calculated roughness parameters</span>
 </span><span id="L-342"><a href="#L-342"><span class="linenos">342</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="L-343"><a href="#L-343"><span class="linenos">343</span></a>        <span class="n">border</span> <span class="o">=</span> <span class="mi">1</span>
@@ -556,157 +551,158 @@
 </span><span id="L-365"><a href="#L-365"><span class="linenos">365</span></a>        <span class="n">RP</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nanmax</span><span class="p">(</span><span class="n">roi</span><span class="o">.</span><span class="n">Z</span><span class="p">))</span>
 </span><span id="L-366"><a href="#L-366"><span class="linenos">366</span></a>        <span class="n">RV</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nanmin</span><span class="p">(</span><span class="n">roi</span><span class="o">.</span><span class="n">Z</span><span class="p">))</span>
 </span><span id="L-367"><a href="#L-367"><span class="linenos">367</span></a>        <span class="n">RT</span> <span class="o">=</span> <span class="n">RP</span> <span class="o">+</span> <span class="n">RV</span>
-</span><span id="L-368"><a href="#L-368"><span class="linenos">368</span></a>        <span class="n">RSK</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nansum</span><span class="p">(</span><span class="n">roi</span><span class="o">.</span><span class="n">Z</span> <span class="o">**</span> <span class="mi">3</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">roi</span><span class="o">.</span><span class="n">Z</span><span class="p">))</span> <span class="o">/</span> <span class="p">(</span><span class="n">RQ</span> <span class="o">**</span> <span class="mi">3</span><span class="p">)</span>
-</span><span id="L-369"><a href="#L-369"><span class="linenos">369</span></a>        <span class="n">RKU</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nansum</span><span class="p">(</span><span class="n">roi</span><span class="o">.</span><span class="n">Z</span> <span class="o">**</span> <span class="mi">4</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">roi</span><span class="o">.</span><span class="n">Z</span><span class="p">))</span> <span class="o">/</span> <span class="p">(</span><span class="n">RQ</span> <span class="o">**</span> <span class="mi">4</span><span class="p">)</span>
-</span><span id="L-370"><a href="#L-370"><span class="linenos">370</span></a>        <span class="k">return</span> <span class="n">RA</span><span class="p">,</span> <span class="n">RQ</span><span class="p">,</span> <span class="n">RP</span><span class="p">,</span> <span class="n">RV</span><span class="p">,</span> <span class="n">RT</span><span class="p">,</span> <span class="n">RSK</span><span class="p">,</span> <span class="n">RKU</span>
-</span><span id="L-371"><a href="#L-371"><span class="linenos">371</span></a>
+</span><span id="L-368"><a href="#L-368"><span class="linenos">368</span></a>        <span class="n">RZ</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmax</span><span class="p">(</span><span class="n">roi</span><span class="o">.</span><span class="n">Z</span><span class="p">)</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmin</span><span class="p">(</span><span class="n">roi</span><span class="o">.</span><span class="n">Z</span><span class="p">)</span>
+</span><span id="L-369"><a href="#L-369"><span class="linenos">369</span></a>        <span class="n">RSK</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nansum</span><span class="p">(</span><span class="n">roi</span><span class="o">.</span><span class="n">Z</span> <span class="o">**</span> <span class="mi">3</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">roi</span><span class="o">.</span><span class="n">Z</span><span class="p">))</span> <span class="o">/</span> <span class="p">(</span><span class="n">RQ</span> <span class="o">**</span> <span class="mi">3</span><span class="p">)</span>
+</span><span id="L-370"><a href="#L-370"><span class="linenos">370</span></a>        <span class="n">RKU</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nansum</span><span class="p">(</span><span class="n">roi</span><span class="o">.</span><span class="n">Z</span> <span class="o">**</span> <span class="mi">4</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">roi</span><span class="o">.</span><span class="n">Z</span><span class="p">))</span> <span class="o">/</span> <span class="p">(</span><span class="n">RQ</span> <span class="o">**</span> <span class="mi">4</span><span class="p">)</span>
+</span><span id="L-371"><a href="#L-371"><span class="linenos">371</span></a>        <span class="k">return</span> <span class="n">RA</span><span class="p">,</span> <span class="n">RQ</span><span class="p">,</span> <span class="n">RP</span><span class="p">,</span> <span class="n">RV</span><span class="p">,</span> <span class="n">RT</span><span class="p">,</span> <span class="n">RZ</span><span class="p">,</span> <span class="n">RSK</span><span class="p">,</span> <span class="n">RKU</span>
 </span><span id="L-372"><a href="#L-372"><span class="linenos">372</span></a>
-</span><span id="L-373"><a href="#L-373"><span class="linenos">373</span></a><span class="k">def</span> <span class="nf">__makeFacesVectorized</span><span class="p">(</span><span class="n">shape</span><span class="p">):</span>
-</span><span id="L-374"><a href="#L-374"><span class="linenos">374</span></a>    <span class="n">Nr</span> <span class="o">=</span> <span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-</span><span id="L-375"><a href="#L-375"><span class="linenos">375</span></a>    <span class="n">Nc</span> <span class="o">=</span> <span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
-</span><span id="L-376"><a href="#L-376"><span class="linenos">376</span></a>
-</span><span id="L-377"><a href="#L-377"><span class="linenos">377</span></a>    <span class="n">out</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="n">Nr</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">Nc</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
-</span><span id="L-378"><a href="#L-378"><span class="linenos">378</span></a>
-</span><span id="L-379"><a href="#L-379"><span class="linenos">379</span></a>    <span class="n">r</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">Nr</span> <span class="o">*</span> <span class="n">Nc</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">Nr</span><span class="p">,</span> <span class="n">Nc</span><span class="p">)</span>
-</span><span id="L-380"><a href="#L-380"><span class="linenos">380</span></a>
-</span><span id="L-381"><a href="#L-381"><span class="linenos">381</span></a>    <span class="n">out</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">r</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-</span><span id="L-382"><a href="#L-382"><span class="linenos">382</span></a>    <span class="n">out</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">r</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">:]</span>
-</span><span id="L-383"><a href="#L-383"><span class="linenos">383</span></a>    <span class="n">out</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">r</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">:]</span>
-</span><span id="L-384"><a href="#L-384"><span class="linenos">384</span></a>
-</span><span id="L-385"><a href="#L-385"><span class="linenos">385</span></a>    <span class="n">out</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">r</span><span class="p">[</span><span class="mi">1</span><span class="p">:,</span> <span class="mi">1</span><span class="p">:]</span>
-</span><span id="L-386"><a href="#L-386"><span class="linenos">386</span></a>    <span class="n">out</span><span class="p">[:,</span> <span class="p">:,</span> <span class="p">:,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">r</span><span class="p">[</span><span class="mi">1</span><span class="p">:,</span> <span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span>
-</span><span id="L-387"><a href="#L-387"><span class="linenos">387</span></a>
-</span><span id="L-388"><a href="#L-388"><span class="linenos">388</span></a>    <span class="n">out</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
-</span><span id="L-389"><a href="#L-389"><span class="linenos">389</span></a>    <span class="k">return</span> <span class="n">out</span>
-</span><span id="L-390"><a href="#L-390"><span class="linenos">390</span></a>
+</span><span id="L-373"><a href="#L-373"><span class="linenos">373</span></a>
+</span><span id="L-374"><a href="#L-374"><span class="linenos">374</span></a><span class="k">def</span> <span class="nf">__makeFacesVectorized</span><span class="p">(</span><span class="n">shape</span><span class="p">):</span>
+</span><span id="L-375"><a href="#L-375"><span class="linenos">375</span></a>    <span class="n">Nr</span> <span class="o">=</span> <span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+</span><span id="L-376"><a href="#L-376"><span class="linenos">376</span></a>    <span class="n">Nc</span> <span class="o">=</span> <span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+</span><span id="L-377"><a href="#L-377"><span class="linenos">377</span></a>
+</span><span id="L-378"><a href="#L-378"><span class="linenos">378</span></a>    <span class="n">out</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="n">Nr</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">Nc</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+</span><span id="L-379"><a href="#L-379"><span class="linenos">379</span></a>
+</span><span id="L-380"><a href="#L-380"><span class="linenos">380</span></a>    <span class="n">r</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">Nr</span> <span class="o">*</span> <span class="n">Nc</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">Nr</span><span class="p">,</span> <span class="n">Nc</span><span class="p">)</span>
+</span><span id="L-381"><a href="#L-381"><span class="linenos">381</span></a>
+</span><span id="L-382"><a href="#L-382"><span class="linenos">382</span></a>    <span class="n">out</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">r</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+</span><span id="L-383"><a href="#L-383"><span class="linenos">383</span></a>    <span class="n">out</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">r</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">:]</span>
+</span><span id="L-384"><a href="#L-384"><span class="linenos">384</span></a>    <span class="n">out</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">r</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">:]</span>
+</span><span id="L-385"><a href="#L-385"><span class="linenos">385</span></a>
+</span><span id="L-386"><a href="#L-386"><span class="linenos">386</span></a>    <span class="n">out</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">r</span><span class="p">[</span><span class="mi">1</span><span class="p">:,</span> <span class="mi">1</span><span class="p">:]</span>
+</span><span id="L-387"><a href="#L-387"><span class="linenos">387</span></a>    <span class="n">out</span><span class="p">[:,</span> <span class="p">:,</span> <span class="p">:,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">r</span><span class="p">[</span><span class="mi">1</span><span class="p">:,</span> <span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span>
+</span><span id="L-388"><a href="#L-388"><span class="linenos">388</span></a>
+</span><span id="L-389"><a href="#L-389"><span class="linenos">389</span></a>    <span class="n">out</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+</span><span id="L-390"><a href="#L-390"><span class="linenos">390</span></a>    <span class="k">return</span> <span class="n">out</span>
 </span><span id="L-391"><a href="#L-391"><span class="linenos">391</span></a>
-</span><span id="L-392"><a href="#L-392"><span class="linenos">392</span></a><span class="k">def</span> <span class="nf">__appendSpherical_np</span><span class="p">(</span><span class="n">xyz</span><span class="p">):</span>
-</span><span id="L-393"><a href="#L-393"><span class="linenos">393</span></a>    <span class="n">xy</span> <span class="o">=</span> <span class="n">xyz</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">xyz</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">**</span> <span class="mi">2</span>
-</span><span id="L-394"><a href="#L-394"><span class="linenos">394</span></a>    <span class="c1"># rs = np.sqrt(xy + xyz[:, 2] ** 2)</span>
-</span><span id="L-395"><a href="#L-395"><span class="linenos">395</span></a>    <span class="n">thetas</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">rad2deg</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arctan2</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">xy</span><span class="p">),</span> <span class="n">xyz</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">]))</span>  <span class="c1"># for elevation angle defined from Z-axis down</span>
-</span><span id="L-396"><a href="#L-396"><span class="linenos">396</span></a>    <span class="c1"># ptsnew[:,4] = np.arctan2(xyz[:,2], np.sqrt(xy))  # for elevation angle defined from XY-plane up</span>
-</span><span id="L-397"><a href="#L-397"><span class="linenos">397</span></a>    <span class="n">phis</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">rad2deg</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arctan2</span><span class="p">(</span><span class="n">xyz</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">xyz</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]))</span>
-</span><span id="L-398"><a href="#L-398"><span class="linenos">398</span></a>    <span class="n">phis</span><span class="p">[</span><span class="n">phis</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">360</span>
-</span><span id="L-399"><a href="#L-399"><span class="linenos">399</span></a>    <span class="k">return</span> <span class="n">thetas</span><span class="p">,</span> <span class="n">phis</span>
-</span><span id="L-400"><a href="#L-400"><span class="linenos">400</span></a>
+</span><span id="L-392"><a href="#L-392"><span class="linenos">392</span></a>
+</span><span id="L-393"><a href="#L-393"><span class="linenos">393</span></a><span class="k">def</span> <span class="nf">__appendSpherical_np</span><span class="p">(</span><span class="n">xyz</span><span class="p">):</span>
+</span><span id="L-394"><a href="#L-394"><span class="linenos">394</span></a>    <span class="n">xy</span> <span class="o">=</span> <span class="n">xyz</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">xyz</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">**</span> <span class="mi">2</span>
+</span><span id="L-395"><a href="#L-395"><span class="linenos">395</span></a>    <span class="c1"># rs = np.sqrt(xy + xyz[:, 2] ** 2)</span>
+</span><span id="L-396"><a href="#L-396"><span class="linenos">396</span></a>    <span class="n">thetas</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">rad2deg</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arctan2</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">xy</span><span class="p">),</span> <span class="n">xyz</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">]))</span>  <span class="c1"># for elevation angle defined from Z-axis down</span>
+</span><span id="L-397"><a href="#L-397"><span class="linenos">397</span></a>    <span class="c1"># ptsnew[:,4] = np.arctan2(xyz[:,2], np.sqrt(xy))  # for elevation angle defined from XY-plane up</span>
+</span><span id="L-398"><a href="#L-398"><span class="linenos">398</span></a>    <span class="n">phis</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">rad2deg</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arctan2</span><span class="p">(</span><span class="n">xyz</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">xyz</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]))</span>
+</span><span id="L-399"><a href="#L-399"><span class="linenos">399</span></a>    <span class="n">phis</span><span class="p">[</span><span class="n">phis</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">360</span>
+</span><span id="L-400"><a href="#L-400"><span class="linenos">400</span></a>    <span class="k">return</span> <span class="n">thetas</span><span class="p">,</span> <span class="n">phis</span>
 </span><span id="L-401"><a href="#L-401"><span class="linenos">401</span></a>
-</span><span id="L-402"><a href="#L-402"><span class="linenos">402</span></a><span class="nd">@funct</span><span class="o">.</span><span class="n">options</span><span class="p">(</span><span class="n">bplt</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">csvPath</span><span class="o">=</span><span class="s1">&#39;out</span><span class="se">\\</span><span class="s1">&#39;</span><span class="p">)</span>
-</span><span id="L-403"><a href="#L-403"><span class="linenos">403</span></a><span class="k">def</span> <span class="nf">slopeDistribution</span><span class="p">(</span><span class="n">obj</span><span class="p">:</span> <span class="n">surface</span><span class="o">.</span><span class="n">Surface</span><span class="p">,</span> <span class="n">structured</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">theta_res</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">phi_res</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">adaptive_hist</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">bplt</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-</span><span id="L-404"><a href="#L-404"><span class="linenos">404</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="L-405"><a href="#L-405"><span class="linenos">405</span></a><span class="sd">    Calculates the slope distribution in angles theta and phi</span>
-</span><span id="L-406"><a href="#L-406"><span class="linenos">406</span></a>
-</span><span id="L-407"><a href="#L-407"><span class="linenos">407</span></a><span class="sd">    Parameters</span>
-</span><span id="L-408"><a href="#L-408"><span class="linenos">408</span></a><span class="sd">    ----------</span>
-</span><span id="L-409"><a href="#L-409"><span class="linenos">409</span></a><span class="sd">    obj: surface.Surface</span>
-</span><span id="L-410"><a href="#L-410"><span class="linenos">410</span></a><span class="sd">        The surface n wich the slope distribution is calculated</span>
-</span><span id="L-411"><a href="#L-411"><span class="linenos">411</span></a><span class="sd">    structured: bool</span>
-</span><span id="L-412"><a href="#L-412"><span class="linenos">412</span></a><span class="sd">        If true the method assumes equal spacing along x-axis (dx) and equal spacing along</span>
-</span><span id="L-413"><a href="#L-413"><span class="linenos">413</span></a><span class="sd">        y-axis</span>
-</span><span id="L-414"><a href="#L-414"><span class="linenos">414</span></a><span class="sd">        If false the method uses a generalized triangle approach (recommended)</span>
-</span><span id="L-415"><a href="#L-415"><span class="linenos">415</span></a><span class="sd">    theta_res: float</span>
-</span><span id="L-416"><a href="#L-416"><span class="linenos">416</span></a><span class="sd">        The angle resolution for the theta angle</span>
-</span><span id="L-417"><a href="#L-417"><span class="linenos">417</span></a><span class="sd">    phi_res: float</span>
-</span><span id="L-418"><a href="#L-418"><span class="linenos">418</span></a><span class="sd">        The angle resolution for the phi angle</span>
-</span><span id="L-419"><a href="#L-419"><span class="linenos">419</span></a><span class="sd">    adaptive_hist: bool</span>
-</span><span id="L-420"><a href="#L-420"><span class="linenos">420</span></a><span class="sd">        If true the bins are calculated between 0 and the max angles</span>
-</span><span id="L-421"><a href="#L-421"><span class="linenos">421</span></a><span class="sd">        If false the bins are calculated between 0 - 90 for theta, 0 - 360 for phi</span>
-</span><span id="L-422"><a href="#L-422"><span class="linenos">422</span></a><span class="sd">    bplt: bool</span>
-</span><span id="L-423"><a href="#L-423"><span class="linenos">423</span></a><span class="sd">        If True plots the calculated histograms</span>
-</span><span id="L-424"><a href="#L-424"><span class="linenos">424</span></a>
-</span><span id="L-425"><a href="#L-425"><span class="linenos">425</span></a><span class="sd">    Returns</span>
-</span><span id="L-426"><a href="#L-426"><span class="linenos">426</span></a><span class="sd">    -------</span>
-</span><span id="L-427"><a href="#L-427"><span class="linenos">427</span></a><span class="sd">    (hist_theta, edges_theta): tuple</span>
-</span><span id="L-428"><a href="#L-428"><span class="linenos">428</span></a><span class="sd">        The theta histogram</span>
-</span><span id="L-429"><a href="#L-429"><span class="linenos">429</span></a><span class="sd">    (hist_phi, edges_phi): tuple</span>
-</span><span id="L-430"><a href="#L-430"><span class="linenos">430</span></a><span class="sd">        The phi histogram</span>
-</span><span id="L-431"><a href="#L-431"><span class="linenos">431</span></a><span class="sd">        </span>
-</span><span id="L-432"><a href="#L-432"><span class="linenos">432</span></a><span class="sd">    Notes</span>
-</span><span id="L-433"><a href="#L-433"><span class="linenos">433</span></a><span class="sd">    -----</span>
-</span><span id="L-434"><a href="#L-434"><span class="linenos">434</span></a><span class="sd">    This method performs a slope distribution analysis on the surface by calculating all </span>
-</span><span id="L-435"><a href="#L-435"><span class="linenos">435</span></a><span class="sd">    the normal vectors to the triangles constructed on the adjacent points of the topography. </span>
-</span><span id="L-436"><a href="#L-436"><span class="linenos">436</span></a><span class="sd">    The normal vectors are then expressed in polar coordinates and for the two angles </span>
-</span><span id="L-437"><a href="#L-437"><span class="linenos">437</span></a><span class="sd">    (elevation, azimuth) a histogram plot is generated. The number of bins for each angle can </span>
-</span><span id="L-438"><a href="#L-438"><span class="linenos">438</span></a><span class="sd">    be specified by the user by setting the two parameters res and adaptive_hist. </span>
-</span><span id="L-439"><a href="#L-439"><span class="linenos">439</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="L-440"><a href="#L-440"><span class="linenos">440</span></a>    <span class="n">x</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
-</span><span id="L-441"><a href="#L-441"><span class="linenos">441</span></a>    <span class="n">y</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">Y</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
-</span><span id="L-442"><a href="#L-442"><span class="linenos">442</span></a>    <span class="n">z</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">Z</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
-</span><span id="L-443"><a href="#L-443"><span class="linenos">443</span></a>
-</span><span id="L-444"><a href="#L-444"><span class="linenos">444</span></a>    <span class="n">ind</span> <span class="o">=</span> <span class="n">__makeFacesVectorized</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">Z</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
-</span><span id="L-445"><a href="#L-445"><span class="linenos">445</span></a>
-</span><span id="L-446"><a href="#L-446"><span class="linenos">446</span></a>    <span class="k">def</span> <span class="nf">unstructuredMesh</span><span class="p">():</span>
-</span><span id="L-447"><a href="#L-447"><span class="linenos">447</span></a>        <span class="n">A</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">x</span><span class="p">[</span><span class="n">ind</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]],</span> <span class="n">y</span><span class="p">[</span><span class="n">ind</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]],</span> <span class="n">z</span><span class="p">[</span><span class="n">ind</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]]])</span><span class="o">.</span><span class="n">T</span>
-</span><span id="L-448"><a href="#L-448"><span class="linenos">448</span></a>        <span class="n">B</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">x</span><span class="p">[</span><span class="n">ind</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]],</span> <span class="n">y</span><span class="p">[</span><span class="n">ind</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]],</span> <span class="n">z</span><span class="p">[</span><span class="n">ind</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]]])</span><span class="o">.</span><span class="n">T</span>
-</span><span id="L-449"><a href="#L-449"><span class="linenos">449</span></a>        <span class="n">C</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">x</span><span class="p">[</span><span class="n">ind</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">]],</span> <span class="n">y</span><span class="p">[</span><span class="n">ind</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">]],</span> <span class="n">z</span><span class="p">[</span><span class="n">ind</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">]]])</span><span class="o">.</span><span class="n">T</span>
-</span><span id="L-450"><a href="#L-450"><span class="linenos">450</span></a>
-</span><span id="L-451"><a href="#L-451"><span class="linenos">451</span></a>        <span class="n">u</span> <span class="o">=</span> <span class="n">B</span> <span class="o">-</span> <span class="n">A</span>
-</span><span id="L-452"><a href="#L-452"><span class="linenos">452</span></a>        <span class="n">v</span> <span class="o">=</span> <span class="n">C</span> <span class="o">-</span> <span class="n">B</span>
-</span><span id="L-453"><a href="#L-453"><span class="linenos">453</span></a>
-</span><span id="L-454"><a href="#L-454"><span class="linenos">454</span></a>        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">cross</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
-</span><span id="L-455"><a href="#L-455"><span class="linenos">455</span></a>
-</span><span id="L-456"><a href="#L-456"><span class="linenos">456</span></a>    <span class="k">def</span> <span class="nf">structuredMesh</span><span class="p">():</span>
-</span><span id="L-457"><a href="#L-457"><span class="linenos">457</span></a>        <span class="n">dx</span><span class="p">,</span> <span class="n">dy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">x</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">x</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">y</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">y</span><span class="p">)</span>
-</span><span id="L-458"><a href="#L-458"><span class="linenos">458</span></a>
-</span><span id="L-459"><a href="#L-459"><span class="linenos">459</span></a>        <span class="n">eve_fun</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">a</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([(</span><span class="n">z</span><span class="p">[</span><span class="n">a</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">-</span> <span class="n">z</span><span class="p">[</span><span class="n">a</span><span class="p">[</span><span class="mi">1</span><span class="p">]])</span> <span class="o">*</span> <span class="n">dy</span><span class="p">,</span> <span class="p">(</span><span class="n">z</span><span class="p">[</span><span class="n">a</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">-</span> <span class="n">z</span><span class="p">[</span><span class="n">a</span><span class="p">[</span><span class="mi">2</span><span class="p">]])</span> <span class="o">*</span> <span class="n">dx</span><span class="p">,</span> <span class="n">dx</span> <span class="o">*</span> <span class="n">dy</span><span class="p">])</span>
-</span><span id="L-460"><a href="#L-460"><span class="linenos">460</span></a>        <span class="n">odd_fun</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">a</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([(</span><span class="n">z</span><span class="p">[</span><span class="n">a</span><span class="p">[</span><span class="mi">2</span><span class="p">]]</span> <span class="o">-</span> <span class="n">z</span><span class="p">[</span><span class="n">a</span><span class="p">[</span><span class="mi">1</span><span class="p">]])</span> <span class="o">*</span> <span class="n">dy</span><span class="p">,</span> <span class="p">(</span><span class="n">z</span><span class="p">[</span><span class="n">a</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">-</span> <span class="n">z</span><span class="p">[</span><span class="n">a</span><span class="p">[</span><span class="mi">1</span><span class="p">]])</span> <span class="o">*</span> <span class="n">dx</span><span class="p">,</span> <span class="n">dx</span> <span class="o">*</span> <span class="n">dy</span><span class="p">])</span>
-</span><span id="L-461"><a href="#L-461"><span class="linenos">461</span></a>
-</span><span id="L-462"><a href="#L-462"><span class="linenos">462</span></a>        <span class="n">ind_eve</span> <span class="o">=</span> <span class="n">ind</span><span class="p">[::</span><span class="mi">2</span><span class="p">]</span>
-</span><span id="L-463"><a href="#L-463"><span class="linenos">463</span></a>        <span class="n">n_eve</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">apply_along_axis</span><span class="p">(</span><span class="n">eve_fun</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">ind_eve</span><span class="p">)</span>
-</span><span id="L-464"><a href="#L-464"><span class="linenos">464</span></a>
-</span><span id="L-465"><a href="#L-465"><span class="linenos">465</span></a>        <span class="n">ind_odd</span> <span class="o">=</span> <span class="n">ind</span><span class="p">[</span><span class="mi">1</span><span class="p">::</span><span class="mi">2</span><span class="p">]</span>
-</span><span id="L-466"><a href="#L-466"><span class="linenos">466</span></a>        <span class="n">n_odd</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">apply_along_axis</span><span class="p">(</span><span class="n">odd_fun</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">ind_odd</span><span class="p">)</span>
-</span><span id="L-467"><a href="#L-467"><span class="linenos">467</span></a>
-</span><span id="L-468"><a href="#L-468"><span class="linenos">468</span></a>        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="n">n_eve</span><span class="p">,</span> <span class="n">n_odd</span><span class="p">))</span>
-</span><span id="L-469"><a href="#L-469"><span class="linenos">469</span></a>
-</span><span id="L-470"><a href="#L-470"><span class="linenos">470</span></a>    <span class="k">if</span> <span class="n">structured</span><span class="p">:</span> <span class="n">normals</span> <span class="o">=</span> <span class="n">structuredMesh</span><span class="p">()</span>
-</span><span id="L-471"><a href="#L-471"><span class="linenos">471</span></a>    <span class="k">else</span><span class="p">:</span>          <span class="n">normals</span> <span class="o">=</span> <span class="n">unstructuredMesh</span><span class="p">()</span>
-</span><span id="L-472"><a href="#L-472"><span class="linenos">472</span></a>
-</span><span id="L-473"><a href="#L-473"><span class="linenos">473</span></a>    <span class="n">thetas</span><span class="p">,</span> <span class="n">phis</span> <span class="o">=</span> <span class="n">__appendSpherical_np</span><span class="p">(</span><span class="n">normals</span><span class="p">)</span>
-</span><span id="L-474"><a href="#L-474"><span class="linenos">474</span></a>
-</span><span id="L-475"><a href="#L-475"><span class="linenos">475</span></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Slope Distribution:</span><span class="se">\n</span><span class="s1">Theta:</span><span class="se">\t</span><span class="si">{</span><span class="n">st</span><span class="o">.</span><span class="n">describe</span><span class="p">(</span><span class="n">thetas</span><span class="p">)</span><span class="si">}</span><span class="se">\n</span><span class="s1">Phi:</span><span class="se">\t</span><span class="si">{</span><span class="n">st</span><span class="o">.</span><span class="n">describe</span><span class="p">(</span><span class="n">phis</span><span class="p">)</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
-</span><span id="L-476"><a href="#L-476"><span class="linenos">476</span></a>
-</span><span id="L-477"><a href="#L-477"><span class="linenos">477</span></a>    <span class="k">if</span> <span class="ow">not</span> <span class="n">adaptive_hist</span><span class="p">:</span>
-</span><span id="L-478"><a href="#L-478"><span class="linenos">478</span></a>        <span class="n">max_theta</span> <span class="o">=</span> <span class="mi">90</span>
-</span><span id="L-479"><a href="#L-479"><span class="linenos">479</span></a>        <span class="n">max_phi</span> <span class="o">=</span> <span class="mi">360</span>
-</span><span id="L-480"><a href="#L-480"><span class="linenos">480</span></a>        <span class="n">thetas</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">thetas</span><span class="p">,</span> <span class="n">max_theta</span><span class="p">)</span>  <span class="c1"># add only one value to max the space</span>
-</span><span id="L-481"><a href="#L-481"><span class="linenos">481</span></a>        <span class="n">phis</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">phis</span><span class="p">,</span> <span class="n">max_phi</span><span class="p">)</span>
-</span><span id="L-482"><a href="#L-482"><span class="linenos">482</span></a>
-</span><span id="L-483"><a href="#L-483"><span class="linenos">483</span></a>    <span class="k">else</span><span class="p">:</span>
-</span><span id="L-484"><a href="#L-484"><span class="linenos">484</span></a>        <span class="n">max_theta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">thetas</span><span class="p">)</span>
-</span><span id="L-485"><a href="#L-485"><span class="linenos">485</span></a>        <span class="n">max_phi</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">phis</span><span class="p">)</span>
-</span><span id="L-486"><a href="#L-486"><span class="linenos">486</span></a>
-</span><span id="L-487"><a href="#L-487"><span class="linenos">487</span></a>    <span class="n">theta_bins</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">max_theta</span> <span class="o">/</span> <span class="n">theta_res</span><span class="p">))</span>
-</span><span id="L-488"><a href="#L-488"><span class="linenos">488</span></a>    <span class="n">phi_bins</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">max_phi</span> <span class="o">/</span> <span class="n">phi_res</span><span class="p">))</span>
-</span><span id="L-489"><a href="#L-489"><span class="linenos">489</span></a>
-</span><span id="L-490"><a href="#L-490"><span class="linenos">490</span></a>    <span class="n">hist_theta</span><span class="p">,</span> <span class="n">edges_theta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">histogram</span><span class="p">(</span><span class="n">thetas</span><span class="p">,</span> <span class="n">bins</span><span class="o">=</span><span class="n">theta_bins</span><span class="p">)</span>
-</span><span id="L-491"><a href="#L-491"><span class="linenos">491</span></a>    <span class="n">hist_phi</span><span class="p">,</span> <span class="n">edges_phi</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">histogram</span><span class="p">(</span><span class="n">phis</span><span class="p">,</span> <span class="n">bins</span><span class="o">=</span><span class="n">phi_bins</span><span class="p">)</span>
-</span><span id="L-492"><a href="#L-492"><span class="linenos">492</span></a>
-</span><span id="L-493"><a href="#L-493"><span class="linenos">493</span></a>    <span class="k">if</span> <span class="n">bplt</span><span class="p">:</span>
-</span><span id="L-494"><a href="#L-494"><span class="linenos">494</span></a>        <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
-</span><span id="L-495"><a href="#L-495"><span class="linenos">495</span></a>        <span class="p">(</span><span class="n">ax_ht</span><span class="p">,</span> <span class="n">bx_ht</span><span class="p">)</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">nrows</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">ncols</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-</span><span id="L-496"><a href="#L-496"><span class="linenos">496</span></a>        <span class="n">ax_ht</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="n">edges_theta</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">bins</span><span class="o">=</span><span class="n">edges_theta</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="n">hist_theta</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">ind</span><span class="p">)</span> <span class="o">*</span> <span class="mi">100</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;darksalmon&#39;</span><span class="p">)</span>
-</span><span id="L-497"><a href="#L-497"><span class="linenos">497</span></a>        <span class="n">bx_ht</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="n">edges_phi</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">bins</span><span class="o">=</span><span class="n">edges_phi</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="n">hist_phi</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">ind</span><span class="p">)</span> <span class="o">*</span> <span class="mi">100</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;darkturquoise&#39;</span><span class="p">)</span>
-</span><span id="L-498"><a href="#L-498"><span class="linenos">498</span></a>        <span class="n">funct</span><span class="o">.</span><span class="n">persFig</span><span class="p">(</span>
-</span><span id="L-499"><a href="#L-499"><span class="linenos">499</span></a>            <span class="p">[</span><span class="n">ax_ht</span><span class="p">,</span> <span class="n">bx_ht</span><span class="p">],</span>
-</span><span id="L-500"><a href="#L-500"><span class="linenos">500</span></a>            <span class="n">gridcol</span><span class="o">=</span><span class="s1">&#39;grey&#39;</span><span class="p">,</span>
-</span><span id="L-501"><a href="#L-501"><span class="linenos">501</span></a>            <span class="n">xlab</span><span class="o">=</span><span class="s1">&#39;slope distribution [deg]&#39;</span><span class="p">,</span>
-</span><span id="L-502"><a href="#L-502"><span class="linenos">502</span></a>            <span class="n">ylab</span><span class="o">=</span><span class="s1">&#39;percentage [%]&#39;</span>
-</span><span id="L-503"><a href="#L-503"><span class="linenos">503</span></a>        <span class="p">)</span>
-</span><span id="L-504"><a href="#L-504"><span class="linenos">504</span></a>        <span class="n">ax_ht</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">name</span> <span class="o">+</span> <span class="s1">&#39; Theta&#39;</span><span class="p">)</span>
-</span><span id="L-505"><a href="#L-505"><span class="linenos">505</span></a>        <span class="n">bx_ht</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">name</span> <span class="o">+</span> <span class="s1">&#39; Phi&#39;</span><span class="p">)</span>
-</span><span id="L-506"><a href="#L-506"><span class="linenos">506</span></a>
-</span><span id="L-507"><a href="#L-507"><span class="linenos">507</span></a>        <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
-</span><span id="L-508"><a href="#L-508"><span class="linenos">508</span></a>        <span class="n">cx</span><span class="p">,</span> <span class="n">dx</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">121</span><span class="p">,</span> <span class="n">polar</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">122</span><span class="p">,</span> <span class="n">polar</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-</span><span id="L-509"><a href="#L-509"><span class="linenos">509</span></a>        <span class="n">cx</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="n">edges_theta</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]),</span> <span class="n">hist_theta</span> <span class="o">/</span> <span class="nb">max</span><span class="p">(</span><span class="n">hist_theta</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span> <span class="o">/</span> <span class="n">theta_bins</span><span class="p">,</span>
-</span><span id="L-510"><a href="#L-510"><span class="linenos">510</span></a>               <span class="n">bottom</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;darksalmon&#39;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Theta&#39;</span><span class="p">)</span>
-</span><span id="L-511"><a href="#L-511"><span class="linenos">511</span></a>        <span class="n">dx</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="n">edges_phi</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]),</span> <span class="n">hist_phi</span> <span class="o">/</span> <span class="nb">max</span><span class="p">(</span><span class="n">hist_phi</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span> <span class="o">/</span> <span class="n">phi_bins</span><span class="p">,</span>
-</span><span id="L-512"><a href="#L-512"><span class="linenos">512</span></a>               <span class="n">bottom</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;darkturquoise&#39;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Phi&#39;</span><span class="p">)</span>
-</span><span id="L-513"><a href="#L-513"><span class="linenos">513</span></a>        <span class="n">cx</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
-</span><span id="L-514"><a href="#L-514"><span class="linenos">514</span></a>        <span class="n">dx</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
-</span><span id="L-515"><a href="#L-515"><span class="linenos">515</span></a>        <span class="n">cx</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
-</span><span id="L-516"><a href="#L-516"><span class="linenos">516</span></a>        <span class="c1"># plt.show()</span>
-</span><span id="L-517"><a href="#L-517"><span class="linenos">517</span></a>
-</span><span id="L-518"><a href="#L-518"><span class="linenos">518</span></a>    <span class="k">return</span> <span class="p">(</span><span class="n">edges_theta</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">hist_theta</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">ind</span><span class="p">)</span> <span class="o">*</span> <span class="mi">100</span><span class="p">),</span> <span class="p">(</span><span class="n">edges_phi</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">hist_phi</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">ind</span><span class="p">)</span> <span class="o">*</span> <span class="mi">100</span><span class="p">)</span>
+</span><span id="L-402"><a href="#L-402"><span class="linenos">402</span></a>
+</span><span id="L-403"><a href="#L-403"><span class="linenos">403</span></a><span class="nd">@funct</span><span class="o">.</span><span class="n">options</span><span class="p">(</span><span class="n">bplt</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">csvPath</span><span class="o">=</span><span class="s1">&#39;out</span><span class="se">\\</span><span class="s1">&#39;</span><span class="p">)</span>
+</span><span id="L-404"><a href="#L-404"><span class="linenos">404</span></a><span class="k">def</span> <span class="nf">slopeDistribution</span><span class="p">(</span><span class="n">obj</span><span class="p">:</span> <span class="n">surface</span><span class="o">.</span><span class="n">Surface</span><span class="p">,</span> <span class="n">structured</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">theta_res</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">phi_res</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">adaptive_hist</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">bplt</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+</span><span id="L-405"><a href="#L-405"><span class="linenos">405</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-406"><a href="#L-406"><span class="linenos">406</span></a><span class="sd">    Calculates the slope distribution in angles theta and phi</span>
+</span><span id="L-407"><a href="#L-407"><span class="linenos">407</span></a>
+</span><span id="L-408"><a href="#L-408"><span class="linenos">408</span></a><span class="sd">    Parameters</span>
+</span><span id="L-409"><a href="#L-409"><span class="linenos">409</span></a><span class="sd">    ----------</span>
+</span><span id="L-410"><a href="#L-410"><span class="linenos">410</span></a><span class="sd">    obj: surface.Surface</span>
+</span><span id="L-411"><a href="#L-411"><span class="linenos">411</span></a><span class="sd">        The surface n wich the slope distribution is calculated</span>
+</span><span id="L-412"><a href="#L-412"><span class="linenos">412</span></a><span class="sd">    structured: bool</span>
+</span><span id="L-413"><a href="#L-413"><span class="linenos">413</span></a><span class="sd">        If true the method assumes equal spacing along x-axis (dx) and equal spacing along</span>
+</span><span id="L-414"><a href="#L-414"><span class="linenos">414</span></a><span class="sd">        y-axis</span>
+</span><span id="L-415"><a href="#L-415"><span class="linenos">415</span></a><span class="sd">        If false the method uses a generalized triangle approach (recommended)</span>
+</span><span id="L-416"><a href="#L-416"><span class="linenos">416</span></a><span class="sd">    theta_res: float</span>
+</span><span id="L-417"><a href="#L-417"><span class="linenos">417</span></a><span class="sd">        The angle resolution for the theta angle</span>
+</span><span id="L-418"><a href="#L-418"><span class="linenos">418</span></a><span class="sd">    phi_res: float</span>
+</span><span id="L-419"><a href="#L-419"><span class="linenos">419</span></a><span class="sd">        The angle resolution for the phi angle</span>
+</span><span id="L-420"><a href="#L-420"><span class="linenos">420</span></a><span class="sd">    adaptive_hist: bool</span>
+</span><span id="L-421"><a href="#L-421"><span class="linenos">421</span></a><span class="sd">        If true the bins are calculated between 0 and the max angles</span>
+</span><span id="L-422"><a href="#L-422"><span class="linenos">422</span></a><span class="sd">        If false the bins are calculated between 0 - 90 for theta, 0 - 360 for phi</span>
+</span><span id="L-423"><a href="#L-423"><span class="linenos">423</span></a><span class="sd">    bplt: bool</span>
+</span><span id="L-424"><a href="#L-424"><span class="linenos">424</span></a><span class="sd">        If True plots the calculated histograms</span>
+</span><span id="L-425"><a href="#L-425"><span class="linenos">425</span></a>
+</span><span id="L-426"><a href="#L-426"><span class="linenos">426</span></a><span class="sd">    Returns</span>
+</span><span id="L-427"><a href="#L-427"><span class="linenos">427</span></a><span class="sd">    -------</span>
+</span><span id="L-428"><a href="#L-428"><span class="linenos">428</span></a><span class="sd">    (hist_theta, edges_theta): tuple</span>
+</span><span id="L-429"><a href="#L-429"><span class="linenos">429</span></a><span class="sd">        The theta histogram</span>
+</span><span id="L-430"><a href="#L-430"><span class="linenos">430</span></a><span class="sd">    (hist_phi, edges_phi): tuple</span>
+</span><span id="L-431"><a href="#L-431"><span class="linenos">431</span></a><span class="sd">        The phi histogram</span>
+</span><span id="L-432"><a href="#L-432"><span class="linenos">432</span></a><span class="sd">        </span>
+</span><span id="L-433"><a href="#L-433"><span class="linenos">433</span></a><span class="sd">    Notes</span>
+</span><span id="L-434"><a href="#L-434"><span class="linenos">434</span></a><span class="sd">    -----</span>
+</span><span id="L-435"><a href="#L-435"><span class="linenos">435</span></a><span class="sd">    This method performs a slope distribution analysis on the surface by calculating all </span>
+</span><span id="L-436"><a href="#L-436"><span class="linenos">436</span></a><span class="sd">    the normal vectors to the triangles constructed on the adjacent points of the topography. </span>
+</span><span id="L-437"><a href="#L-437"><span class="linenos">437</span></a><span class="sd">    The normal vectors are then expressed in polar coordinates and for the two angles </span>
+</span><span id="L-438"><a href="#L-438"><span class="linenos">438</span></a><span class="sd">    (elevation, azimuth) a histogram plot is generated. The number of bins for each angle can </span>
+</span><span id="L-439"><a href="#L-439"><span class="linenos">439</span></a><span class="sd">    be specified by the user by setting the two parameters res and adaptive_hist. </span>
+</span><span id="L-440"><a href="#L-440"><span class="linenos">440</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="L-441"><a href="#L-441"><span class="linenos">441</span></a>    <span class="n">x</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+</span><span id="L-442"><a href="#L-442"><span class="linenos">442</span></a>    <span class="n">y</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">Y</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+</span><span id="L-443"><a href="#L-443"><span class="linenos">443</span></a>    <span class="n">z</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">Z</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+</span><span id="L-444"><a href="#L-444"><span class="linenos">444</span></a>
+</span><span id="L-445"><a href="#L-445"><span class="linenos">445</span></a>    <span class="n">ind</span> <span class="o">=</span> <span class="n">__makeFacesVectorized</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">Z</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+</span><span id="L-446"><a href="#L-446"><span class="linenos">446</span></a>
+</span><span id="L-447"><a href="#L-447"><span class="linenos">447</span></a>    <span class="k">def</span> <span class="nf">unstructuredMesh</span><span class="p">():</span>
+</span><span id="L-448"><a href="#L-448"><span class="linenos">448</span></a>        <span class="n">A</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">x</span><span class="p">[</span><span class="n">ind</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]],</span> <span class="n">y</span><span class="p">[</span><span class="n">ind</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]],</span> <span class="n">z</span><span class="p">[</span><span class="n">ind</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]]])</span><span class="o">.</span><span class="n">T</span>
+</span><span id="L-449"><a href="#L-449"><span class="linenos">449</span></a>        <span class="n">B</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">x</span><span class="p">[</span><span class="n">ind</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]],</span> <span class="n">y</span><span class="p">[</span><span class="n">ind</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]],</span> <span class="n">z</span><span class="p">[</span><span class="n">ind</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]]])</span><span class="o">.</span><span class="n">T</span>
+</span><span id="L-450"><a href="#L-450"><span class="linenos">450</span></a>        <span class="n">C</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">x</span><span class="p">[</span><span class="n">ind</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">]],</span> <span class="n">y</span><span class="p">[</span><span class="n">ind</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">]],</span> <span class="n">z</span><span class="p">[</span><span class="n">ind</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">]]])</span><span class="o">.</span><span class="n">T</span>
+</span><span id="L-451"><a href="#L-451"><span class="linenos">451</span></a>
+</span><span id="L-452"><a href="#L-452"><span class="linenos">452</span></a>        <span class="n">u</span> <span class="o">=</span> <span class="n">B</span> <span class="o">-</span> <span class="n">A</span>
+</span><span id="L-453"><a href="#L-453"><span class="linenos">453</span></a>        <span class="n">v</span> <span class="o">=</span> <span class="n">C</span> <span class="o">-</span> <span class="n">B</span>
+</span><span id="L-454"><a href="#L-454"><span class="linenos">454</span></a>
+</span><span id="L-455"><a href="#L-455"><span class="linenos">455</span></a>        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">cross</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
+</span><span id="L-456"><a href="#L-456"><span class="linenos">456</span></a>
+</span><span id="L-457"><a href="#L-457"><span class="linenos">457</span></a>    <span class="k">def</span> <span class="nf">structuredMesh</span><span class="p">():</span>
+</span><span id="L-458"><a href="#L-458"><span class="linenos">458</span></a>        <span class="n">dx</span><span class="p">,</span> <span class="n">dy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">x</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">x</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">y</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">y</span><span class="p">)</span>
+</span><span id="L-459"><a href="#L-459"><span class="linenos">459</span></a>
+</span><span id="L-460"><a href="#L-460"><span class="linenos">460</span></a>        <span class="n">eve_fun</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">a</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([(</span><span class="n">z</span><span class="p">[</span><span class="n">a</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">-</span> <span class="n">z</span><span class="p">[</span><span class="n">a</span><span class="p">[</span><span class="mi">1</span><span class="p">]])</span> <span class="o">*</span> <span class="n">dy</span><span class="p">,</span> <span class="p">(</span><span class="n">z</span><span class="p">[</span><span class="n">a</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">-</span> <span class="n">z</span><span class="p">[</span><span class="n">a</span><span class="p">[</span><span class="mi">2</span><span class="p">]])</span> <span class="o">*</span> <span class="n">dx</span><span class="p">,</span> <span class="n">dx</span> <span class="o">*</span> <span class="n">dy</span><span class="p">])</span>
+</span><span id="L-461"><a href="#L-461"><span class="linenos">461</span></a>        <span class="n">odd_fun</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">a</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([(</span><span class="n">z</span><span class="p">[</span><span class="n">a</span><span class="p">[</span><span class="mi">2</span><span class="p">]]</span> <span class="o">-</span> <span class="n">z</span><span class="p">[</span><span class="n">a</span><span class="p">[</span><span class="mi">1</span><span class="p">]])</span> <span class="o">*</span> <span class="n">dy</span><span class="p">,</span> <span class="p">(</span><span class="n">z</span><span class="p">[</span><span class="n">a</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">-</span> <span class="n">z</span><span class="p">[</span><span class="n">a</span><span class="p">[</span><span class="mi">1</span><span class="p">]])</span> <span class="o">*</span> <span class="n">dx</span><span class="p">,</span> <span class="n">dx</span> <span class="o">*</span> <span class="n">dy</span><span class="p">])</span>
+</span><span id="L-462"><a href="#L-462"><span class="linenos">462</span></a>
+</span><span id="L-463"><a href="#L-463"><span class="linenos">463</span></a>        <span class="n">ind_eve</span> <span class="o">=</span> <span class="n">ind</span><span class="p">[::</span><span class="mi">2</span><span class="p">]</span>
+</span><span id="L-464"><a href="#L-464"><span class="linenos">464</span></a>        <span class="n">n_eve</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">apply_along_axis</span><span class="p">(</span><span class="n">eve_fun</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">ind_eve</span><span class="p">)</span>
+</span><span id="L-465"><a href="#L-465"><span class="linenos">465</span></a>
+</span><span id="L-466"><a href="#L-466"><span class="linenos">466</span></a>        <span class="n">ind_odd</span> <span class="o">=</span> <span class="n">ind</span><span class="p">[</span><span class="mi">1</span><span class="p">::</span><span class="mi">2</span><span class="p">]</span>
+</span><span id="L-467"><a href="#L-467"><span class="linenos">467</span></a>        <span class="n">n_odd</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">apply_along_axis</span><span class="p">(</span><span class="n">odd_fun</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">ind_odd</span><span class="p">)</span>
+</span><span id="L-468"><a href="#L-468"><span class="linenos">468</span></a>
+</span><span id="L-469"><a href="#L-469"><span class="linenos">469</span></a>        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="n">n_eve</span><span class="p">,</span> <span class="n">n_odd</span><span class="p">))</span>
+</span><span id="L-470"><a href="#L-470"><span class="linenos">470</span></a>
+</span><span id="L-471"><a href="#L-471"><span class="linenos">471</span></a>    <span class="k">if</span> <span class="n">structured</span><span class="p">:</span> <span class="n">normals</span> <span class="o">=</span> <span class="n">structuredMesh</span><span class="p">()</span>
+</span><span id="L-472"><a href="#L-472"><span class="linenos">472</span></a>    <span class="k">else</span><span class="p">:</span>          <span class="n">normals</span> <span class="o">=</span> <span class="n">unstructuredMesh</span><span class="p">()</span>
+</span><span id="L-473"><a href="#L-473"><span class="linenos">473</span></a>
+</span><span id="L-474"><a href="#L-474"><span class="linenos">474</span></a>    <span class="n">thetas</span><span class="p">,</span> <span class="n">phis</span> <span class="o">=</span> <span class="n">__appendSpherical_np</span><span class="p">(</span><span class="n">normals</span><span class="p">)</span>
+</span><span id="L-475"><a href="#L-475"><span class="linenos">475</span></a>
+</span><span id="L-476"><a href="#L-476"><span class="linenos">476</span></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Slope Distribution:</span><span class="se">\n</span><span class="s1">Theta:</span><span class="se">\t</span><span class="si">{</span><span class="n">st</span><span class="o">.</span><span class="n">describe</span><span class="p">(</span><span class="n">thetas</span><span class="p">)</span><span class="si">}</span><span class="se">\n</span><span class="s1">Phi:</span><span class="se">\t</span><span class="si">{</span><span class="n">st</span><span class="o">.</span><span class="n">describe</span><span class="p">(</span><span class="n">phis</span><span class="p">)</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+</span><span id="L-477"><a href="#L-477"><span class="linenos">477</span></a>
+</span><span id="L-478"><a href="#L-478"><span class="linenos">478</span></a>    <span class="k">if</span> <span class="ow">not</span> <span class="n">adaptive_hist</span><span class="p">:</span>
+</span><span id="L-479"><a href="#L-479"><span class="linenos">479</span></a>        <span class="n">max_theta</span> <span class="o">=</span> <span class="mi">90</span>
+</span><span id="L-480"><a href="#L-480"><span class="linenos">480</span></a>        <span class="n">max_phi</span> <span class="o">=</span> <span class="mi">360</span>
+</span><span id="L-481"><a href="#L-481"><span class="linenos">481</span></a>        <span class="n">thetas</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">thetas</span><span class="p">,</span> <span class="n">max_theta</span><span class="p">)</span>  <span class="c1"># add only one value to max the space</span>
+</span><span id="L-482"><a href="#L-482"><span class="linenos">482</span></a>        <span class="n">phis</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">phis</span><span class="p">,</span> <span class="n">max_phi</span><span class="p">)</span>
+</span><span id="L-483"><a href="#L-483"><span class="linenos">483</span></a>
+</span><span id="L-484"><a href="#L-484"><span class="linenos">484</span></a>    <span class="k">else</span><span class="p">:</span>
+</span><span id="L-485"><a href="#L-485"><span class="linenos">485</span></a>        <span class="n">max_theta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">thetas</span><span class="p">)</span>
+</span><span id="L-486"><a href="#L-486"><span class="linenos">486</span></a>        <span class="n">max_phi</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">phis</span><span class="p">)</span>
+</span><span id="L-487"><a href="#L-487"><span class="linenos">487</span></a>
+</span><span id="L-488"><a href="#L-488"><span class="linenos">488</span></a>    <span class="n">theta_bins</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">max_theta</span> <span class="o">/</span> <span class="n">theta_res</span><span class="p">))</span>
+</span><span id="L-489"><a href="#L-489"><span class="linenos">489</span></a>    <span class="n">phi_bins</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">max_phi</span> <span class="o">/</span> <span class="n">phi_res</span><span class="p">))</span>
+</span><span id="L-490"><a href="#L-490"><span class="linenos">490</span></a>
+</span><span id="L-491"><a href="#L-491"><span class="linenos">491</span></a>    <span class="n">hist_theta</span><span class="p">,</span> <span class="n">edges_theta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">histogram</span><span class="p">(</span><span class="n">thetas</span><span class="p">,</span> <span class="n">bins</span><span class="o">=</span><span class="n">theta_bins</span><span class="p">)</span>
+</span><span id="L-492"><a href="#L-492"><span class="linenos">492</span></a>    <span class="n">hist_phi</span><span class="p">,</span> <span class="n">edges_phi</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">histogram</span><span class="p">(</span><span class="n">phis</span><span class="p">,</span> <span class="n">bins</span><span class="o">=</span><span class="n">phi_bins</span><span class="p">)</span>
+</span><span id="L-493"><a href="#L-493"><span class="linenos">493</span></a>
+</span><span id="L-494"><a href="#L-494"><span class="linenos">494</span></a>    <span class="k">if</span> <span class="n">bplt</span><span class="p">:</span>
+</span><span id="L-495"><a href="#L-495"><span class="linenos">495</span></a>        <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+</span><span id="L-496"><a href="#L-496"><span class="linenos">496</span></a>        <span class="p">(</span><span class="n">ax_ht</span><span class="p">,</span> <span class="n">bx_ht</span><span class="p">)</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">nrows</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">ncols</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+</span><span id="L-497"><a href="#L-497"><span class="linenos">497</span></a>        <span class="n">ax_ht</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="n">edges_theta</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">bins</span><span class="o">=</span><span class="n">edges_theta</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="n">hist_theta</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">ind</span><span class="p">)</span> <span class="o">*</span> <span class="mi">100</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;darksalmon&#39;</span><span class="p">)</span>
+</span><span id="L-498"><a href="#L-498"><span class="linenos">498</span></a>        <span class="n">bx_ht</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="n">edges_phi</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">bins</span><span class="o">=</span><span class="n">edges_phi</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="n">hist_phi</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">ind</span><span class="p">)</span> <span class="o">*</span> <span class="mi">100</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;darkturquoise&#39;</span><span class="p">)</span>
+</span><span id="L-499"><a href="#L-499"><span class="linenos">499</span></a>        <span class="n">funct</span><span class="o">.</span><span class="n">persFig</span><span class="p">(</span>
+</span><span id="L-500"><a href="#L-500"><span class="linenos">500</span></a>            <span class="p">[</span><span class="n">ax_ht</span><span class="p">,</span> <span class="n">bx_ht</span><span class="p">],</span>
+</span><span id="L-501"><a href="#L-501"><span class="linenos">501</span></a>            <span class="n">gridcol</span><span class="o">=</span><span class="s1">&#39;grey&#39;</span><span class="p">,</span>
+</span><span id="L-502"><a href="#L-502"><span class="linenos">502</span></a>            <span class="n">xlab</span><span class="o">=</span><span class="s1">&#39;slope distribution [deg]&#39;</span><span class="p">,</span>
+</span><span id="L-503"><a href="#L-503"><span class="linenos">503</span></a>            <span class="n">ylab</span><span class="o">=</span><span class="s1">&#39;percentage [%]&#39;</span>
+</span><span id="L-504"><a href="#L-504"><span class="linenos">504</span></a>        <span class="p">)</span>
+</span><span id="L-505"><a href="#L-505"><span class="linenos">505</span></a>        <span class="n">ax_ht</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">name</span> <span class="o">+</span> <span class="s1">&#39; Theta&#39;</span><span class="p">)</span>
+</span><span id="L-506"><a href="#L-506"><span class="linenos">506</span></a>        <span class="n">bx_ht</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">name</span> <span class="o">+</span> <span class="s1">&#39; Phi&#39;</span><span class="p">)</span>
+</span><span id="L-507"><a href="#L-507"><span class="linenos">507</span></a>
+</span><span id="L-508"><a href="#L-508"><span class="linenos">508</span></a>        <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+</span><span id="L-509"><a href="#L-509"><span class="linenos">509</span></a>        <span class="n">cx</span><span class="p">,</span> <span class="n">dx</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">121</span><span class="p">,</span> <span class="n">polar</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">122</span><span class="p">,</span> <span class="n">polar</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</span><span id="L-510"><a href="#L-510"><span class="linenos">510</span></a>        <span class="n">cx</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="n">edges_theta</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]),</span> <span class="n">hist_theta</span> <span class="o">/</span> <span class="nb">max</span><span class="p">(</span><span class="n">hist_theta</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span> <span class="o">/</span> <span class="n">theta_bins</span><span class="p">,</span>
+</span><span id="L-511"><a href="#L-511"><span class="linenos">511</span></a>               <span class="n">bottom</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;darksalmon&#39;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Theta&#39;</span><span class="p">)</span>
+</span><span id="L-512"><a href="#L-512"><span class="linenos">512</span></a>        <span class="n">dx</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="n">edges_phi</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]),</span> <span class="n">hist_phi</span> <span class="o">/</span> <span class="nb">max</span><span class="p">(</span><span class="n">hist_phi</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span> <span class="o">/</span> <span class="n">phi_bins</span><span class="p">,</span>
+</span><span id="L-513"><a href="#L-513"><span class="linenos">513</span></a>               <span class="n">bottom</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;darkturquoise&#39;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Phi&#39;</span><span class="p">)</span>
+</span><span id="L-514"><a href="#L-514"><span class="linenos">514</span></a>        <span class="n">cx</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+</span><span id="L-515"><a href="#L-515"><span class="linenos">515</span></a>        <span class="n">dx</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+</span><span id="L-516"><a href="#L-516"><span class="linenos">516</span></a>        <span class="n">cx</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+</span><span id="L-517"><a href="#L-517"><span class="linenos">517</span></a>        <span class="c1"># plt.show()</span>
+</span><span id="L-518"><a href="#L-518"><span class="linenos">518</span></a>
+</span><span id="L-519"><a href="#L-519"><span class="linenos">519</span></a>    <span class="k">return</span> <span class="p">(</span><span class="n">edges_theta</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">hist_theta</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">ind</span><span class="p">)</span> <span class="o">*</span> <span class="mi">100</span><span class="p">),</span> <span class="p">(</span><span class="n">edges_phi</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">hist_phi</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">ind</span><span class="p">)</span> <span class="o">*</span> <span class="mi">100</span><span class="p">)</span>
 </span></pre></div>
 
 
@@ -1218,23 +1214,27 @@ calculation.</p>
 
             <div class="docstring"><p>Evaluate the power spectral density of the topography</p>
 
-<h2 id="parameters">Parameters</h2>
+<h6 id="parameters">Parameters</h6>
 
-<p>obj: surface.Surface
-    The topography
-bplt: bool
-    If True plots the PSD result</p>
+<ul>
+<li><strong>obj</strong> (surface.Surface):
+The topography</li>
+<li><strong>bplt</strong> (bool):
+If True plots the PSD result</li>
+</ul>
 
-<h2 id="returns">Returns</h2>
+<h6 id="returns">Returns</h6>
 
-<p>psd: np.ndarray
-    The calculated psd of the surface
-fx, fy: np.array
-    The x and y axis of the psd
-psd_x, psd_y: np.ndarray
-    The psd along the given axis</p>
+<ul>
+<li><strong>psd</strong> (np.ndarray):
+The calculated psd of the surface</li>
+<li><strong>fx, fy</strong> (np.array):
+The x and y axis of the psd</li>
+<li><strong>psd_x, psd_y</strong> (np.ndarray):
+The psd along the given axis</li>
+</ul>
 
-<h2 id="notes">Notes</h2>
+<h6 id="notes">Notes</h6>
 
 <p>The power spectral density (PSD) function gives indication on  the strength 
 of different frequency components  as function of the spatial frequency and 
@@ -1323,19 +1323,23 @@ $</p>
 
             <div class="docstring"><p>Calculate the spectra in polar coordinates</p>
 
-<h2 id="parameters">Parameters</h2>
+<h6 id="parameters">Parameters</h6>
 
-<p>df_fct: float
-    The frequency resolution
-bplt: bool
-    If true the spectra is plotted in a 3d projection axis</p>
+<ul>
+<li><strong>df_fct</strong> (float):
+The frequency resolution</li>
+<li><strong>bplt</strong> (bool):
+If true the spectra is plotted in a 3d projection axis</li>
+</ul>
 
-<h2 id="returns">Returns</h2>
+<h6 id="returns">Returns</h6>
 
-<p>psdP: np.ndarray
-    The polar spectra evaluated
-Fr, Th: np.array
-    The polar coordinate vectors</p>
+<ul>
+<li><strong>psdP</strong> (np.ndarray):
+The polar spectra evaluated</li>
+<li><strong>Fr, Th</strong> (np.array):
+The polar coordinate vectors</li>
+</ul>
 </div>
 
 
@@ -1412,18 +1416,22 @@ Fr, Th: np.array
 
             <div class="docstring"><p>Calculate the angle integrated spectra</p>
 
-<h2 id="parameters">Parameters</h2>
+<h6 id="parameters">Parameters</h6>
 
-<p>df_fct: float
-bplt: bool
-    If true the angle integrated spectra is plotted</p>
+<ul>
+<li><p><strong>df_fct</strong> (float):</p></li>
+<li><p><strong>bplt</strong> (bool):
+If true the angle integrated spectra is plotted</p></li>
+</ul>
 
-<h2 id="returns">Returns</h2>
+<h6 id="returns">Returns</h6>
 
-<p>psdP: np.ndarray
-    The polar spectra evaluated
-Fr, Th: np.array
-    The polar coordinate vectors</p>
+<ul>
+<li><strong>psdP</strong> (np.ndarray):
+The polar spectra evaluated</li>
+<li><strong>Fr, Th</strong> (np.array):
+The polar coordinate vectors</li>
+</ul>
 </div>
 
 
@@ -1475,15 +1483,19 @@ Fr, Th: np.array
 
             <div class="docstring"><p>Calculate the average specra in the x and y directions</p>
 
-<h2 id="parameters">Parameters</h2>
+<h6 id="parameters">Parameters</h6>
 
-<p>bplt: bool
-    Plots the mean spectra if true</p>
+<ul>
+<li><strong>bplt</strong> (bool):
+Plots the mean spectra if true</li>
+</ul>
 
-<h2 id="returns">Returns</h2>
+<h6 id="returns">Returns</h6>
 
-<p>psdMeanx, psdMeany: np.array
-    The mean psd arrays</p>
+<ul>
+<li><strong>psdMeanx, psdMeany</strong> (np.array):
+The mean psd arrays</li>
+</ul>
 </div>
 
 
@@ -1577,7 +1589,7 @@ Fr, Th: np.array
 </span><span id="Parameters-338"><a href="#Parameters-338"><span class="linenos">338</span></a>
 </span><span id="Parameters-339"><a href="#Parameters-339"><span class="linenos">339</span></a><span class="sd">        Returns</span>
 </span><span id="Parameters-340"><a href="#Parameters-340"><span class="linenos">340</span></a><span class="sd">        -------</span>
-</span><span id="Parameters-341"><a href="#Parameters-341"><span class="linenos">341</span></a><span class="sd">        RA, RQ, RP, RV, RZ, RSK, RKU: (float, ...)</span>
+</span><span id="Parameters-341"><a href="#Parameters-341"><span class="linenos">341</span></a><span class="sd">        RA, RQ, RP, RV, RT, RZ, RSK, RKU: (float, ...)</span>
 </span><span id="Parameters-342"><a href="#Parameters-342"><span class="linenos">342</span></a><span class="sd">            Calculated roughness parameters</span>
 </span><span id="Parameters-343"><a href="#Parameters-343"><span class="linenos">343</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="Parameters-344"><a href="#Parameters-344"><span class="linenos">344</span></a>        <span class="n">border</span> <span class="o">=</span> <span class="mi">1</span>
@@ -1605,9 +1617,10 @@ Fr, Th: np.array
 </span><span id="Parameters-366"><a href="#Parameters-366"><span class="linenos">366</span></a>        <span class="n">RP</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nanmax</span><span class="p">(</span><span class="n">roi</span><span class="o">.</span><span class="n">Z</span><span class="p">))</span>
 </span><span id="Parameters-367"><a href="#Parameters-367"><span class="linenos">367</span></a>        <span class="n">RV</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nanmin</span><span class="p">(</span><span class="n">roi</span><span class="o">.</span><span class="n">Z</span><span class="p">))</span>
 </span><span id="Parameters-368"><a href="#Parameters-368"><span class="linenos">368</span></a>        <span class="n">RT</span> <span class="o">=</span> <span class="n">RP</span> <span class="o">+</span> <span class="n">RV</span>
-</span><span id="Parameters-369"><a href="#Parameters-369"><span class="linenos">369</span></a>        <span class="n">RSK</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nansum</span><span class="p">(</span><span class="n">roi</span><span class="o">.</span><span class="n">Z</span> <span class="o">**</span> <span class="mi">3</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">roi</span><span class="o">.</span><span class="n">Z</span><span class="p">))</span> <span class="o">/</span> <span class="p">(</span><span class="n">RQ</span> <span class="o">**</span> <span class="mi">3</span><span class="p">)</span>
-</span><span id="Parameters-370"><a href="#Parameters-370"><span class="linenos">370</span></a>        <span class="n">RKU</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nansum</span><span class="p">(</span><span class="n">roi</span><span class="o">.</span><span class="n">Z</span> <span class="o">**</span> <span class="mi">4</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">roi</span><span class="o">.</span><span class="n">Z</span><span class="p">))</span> <span class="o">/</span> <span class="p">(</span><span class="n">RQ</span> <span class="o">**</span> <span class="mi">4</span><span class="p">)</span>
-</span><span id="Parameters-371"><a href="#Parameters-371"><span class="linenos">371</span></a>        <span class="k">return</span> <span class="n">RA</span><span class="p">,</span> <span class="n">RQ</span><span class="p">,</span> <span class="n">RP</span><span class="p">,</span> <span class="n">RV</span><span class="p">,</span> <span class="n">RT</span><span class="p">,</span> <span class="n">RSK</span><span class="p">,</span> <span class="n">RKU</span>
+</span><span id="Parameters-369"><a href="#Parameters-369"><span class="linenos">369</span></a>        <span class="n">RZ</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmax</span><span class="p">(</span><span class="n">roi</span><span class="o">.</span><span class="n">Z</span><span class="p">)</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmin</span><span class="p">(</span><span class="n">roi</span><span class="o">.</span><span class="n">Z</span><span class="p">)</span>
+</span><span id="Parameters-370"><a href="#Parameters-370"><span class="linenos">370</span></a>        <span class="n">RSK</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nansum</span><span class="p">(</span><span class="n">roi</span><span class="o">.</span><span class="n">Z</span> <span class="o">**</span> <span class="mi">3</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">roi</span><span class="o">.</span><span class="n">Z</span><span class="p">))</span> <span class="o">/</span> <span class="p">(</span><span class="n">RQ</span> <span class="o">**</span> <span class="mi">3</span><span class="p">)</span>
+</span><span id="Parameters-371"><a href="#Parameters-371"><span class="linenos">371</span></a>        <span class="n">RKU</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nansum</span><span class="p">(</span><span class="n">roi</span><span class="o">.</span><span class="n">Z</span> <span class="o">**</span> <span class="mi">4</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">roi</span><span class="o">.</span><span class="n">Z</span><span class="p">))</span> <span class="o">/</span> <span class="p">(</span><span class="n">RQ</span> <span class="o">**</span> <span class="mi">4</span><span class="p">)</span>
+</span><span id="Parameters-372"><a href="#Parameters-372"><span class="linenos">372</span></a>        <span class="k">return</span> <span class="n">RA</span><span class="p">,</span> <span class="n">RQ</span><span class="p">,</span> <span class="n">RP</span><span class="p">,</span> <span class="n">RV</span><span class="p">,</span> <span class="n">RT</span><span class="p">,</span> <span class="n">RZ</span><span class="p">,</span> <span class="n">RSK</span><span class="p">,</span> <span class="n">RKU</span>
 </span></pre></div>
 
 
@@ -1645,7 +1658,7 @@ Fr, Th: np.array
 </span><span id="Parameters.calc-338"><a href="#Parameters.calc-338"><span class="linenos">338</span></a>
 </span><span id="Parameters.calc-339"><a href="#Parameters.calc-339"><span class="linenos">339</span></a><span class="sd">        Returns</span>
 </span><span id="Parameters.calc-340"><a href="#Parameters.calc-340"><span class="linenos">340</span></a><span class="sd">        -------</span>
-</span><span id="Parameters.calc-341"><a href="#Parameters.calc-341"><span class="linenos">341</span></a><span class="sd">        RA, RQ, RP, RV, RZ, RSK, RKU: (float, ...)</span>
+</span><span id="Parameters.calc-341"><a href="#Parameters.calc-341"><span class="linenos">341</span></a><span class="sd">        RA, RQ, RP, RV, RT, RZ, RSK, RKU: (float, ...)</span>
 </span><span id="Parameters.calc-342"><a href="#Parameters.calc-342"><span class="linenos">342</span></a><span class="sd">            Calculated roughness parameters</span>
 </span><span id="Parameters.calc-343"><a href="#Parameters.calc-343"><span class="linenos">343</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="Parameters.calc-344"><a href="#Parameters.calc-344"><span class="linenos">344</span></a>        <span class="n">border</span> <span class="o">=</span> <span class="mi">1</span>
@@ -1673,31 +1686,38 @@ Fr, Th: np.array
 </span><span id="Parameters.calc-366"><a href="#Parameters.calc-366"><span class="linenos">366</span></a>        <span class="n">RP</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nanmax</span><span class="p">(</span><span class="n">roi</span><span class="o">.</span><span class="n">Z</span><span class="p">))</span>
 </span><span id="Parameters.calc-367"><a href="#Parameters.calc-367"><span class="linenos">367</span></a>        <span class="n">RV</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nanmin</span><span class="p">(</span><span class="n">roi</span><span class="o">.</span><span class="n">Z</span><span class="p">))</span>
 </span><span id="Parameters.calc-368"><a href="#Parameters.calc-368"><span class="linenos">368</span></a>        <span class="n">RT</span> <span class="o">=</span> <span class="n">RP</span> <span class="o">+</span> <span class="n">RV</span>
-</span><span id="Parameters.calc-369"><a href="#Parameters.calc-369"><span class="linenos">369</span></a>        <span class="n">RSK</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nansum</span><span class="p">(</span><span class="n">roi</span><span class="o">.</span><span class="n">Z</span> <span class="o">**</span> <span class="mi">3</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">roi</span><span class="o">.</span><span class="n">Z</span><span class="p">))</span> <span class="o">/</span> <span class="p">(</span><span class="n">RQ</span> <span class="o">**</span> <span class="mi">3</span><span class="p">)</span>
-</span><span id="Parameters.calc-370"><a href="#Parameters.calc-370"><span class="linenos">370</span></a>        <span class="n">RKU</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nansum</span><span class="p">(</span><span class="n">roi</span><span class="o">.</span><span class="n">Z</span> <span class="o">**</span> <span class="mi">4</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">roi</span><span class="o">.</span><span class="n">Z</span><span class="p">))</span> <span class="o">/</span> <span class="p">(</span><span class="n">RQ</span> <span class="o">**</span> <span class="mi">4</span><span class="p">)</span>
-</span><span id="Parameters.calc-371"><a href="#Parameters.calc-371"><span class="linenos">371</span></a>        <span class="k">return</span> <span class="n">RA</span><span class="p">,</span> <span class="n">RQ</span><span class="p">,</span> <span class="n">RP</span><span class="p">,</span> <span class="n">RV</span><span class="p">,</span> <span class="n">RT</span><span class="p">,</span> <span class="n">RSK</span><span class="p">,</span> <span class="n">RKU</span>
+</span><span id="Parameters.calc-369"><a href="#Parameters.calc-369"><span class="linenos">369</span></a>        <span class="n">RZ</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmax</span><span class="p">(</span><span class="n">roi</span><span class="o">.</span><span class="n">Z</span><span class="p">)</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmin</span><span class="p">(</span><span class="n">roi</span><span class="o">.</span><span class="n">Z</span><span class="p">)</span>
+</span><span id="Parameters.calc-370"><a href="#Parameters.calc-370"><span class="linenos">370</span></a>        <span class="n">RSK</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nansum</span><span class="p">(</span><span class="n">roi</span><span class="o">.</span><span class="n">Z</span> <span class="o">**</span> <span class="mi">3</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">roi</span><span class="o">.</span><span class="n">Z</span><span class="p">))</span> <span class="o">/</span> <span class="p">(</span><span class="n">RQ</span> <span class="o">**</span> <span class="mi">3</span><span class="p">)</span>
+</span><span id="Parameters.calc-371"><a href="#Parameters.calc-371"><span class="linenos">371</span></a>        <span class="n">RKU</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nansum</span><span class="p">(</span><span class="n">roi</span><span class="o">.</span><span class="n">Z</span> <span class="o">**</span> <span class="mi">4</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">roi</span><span class="o">.</span><span class="n">Z</span><span class="p">))</span> <span class="o">/</span> <span class="p">(</span><span class="n">RQ</span> <span class="o">**</span> <span class="mi">4</span><span class="p">)</span>
+</span><span id="Parameters.calc-372"><a href="#Parameters.calc-372"><span class="linenos">372</span></a>        <span class="k">return</span> <span class="n">RA</span><span class="p">,</span> <span class="n">RQ</span><span class="p">,</span> <span class="n">RP</span><span class="p">,</span> <span class="n">RV</span><span class="p">,</span> <span class="n">RT</span><span class="p">,</span> <span class="n">RZ</span><span class="p">,</span> <span class="n">RSK</span><span class="p">,</span> <span class="n">RKU</span>
 </span></pre></div>
 
 
             <div class="docstring"><p>Calculates the roughness parameters of a profile</p>
 
-<h2 id="parameters">Parameters</h2>
+<h6 id="parameters">Parameters</h6>
 
-<p>obj: profile.Profile
-    The profile on which the parameters are calculates
-rem: remover.Remover
-    - if None, the low frequency components are not filtered
-fil: filter.Filter
-    The filter that is applied before the calculations. The cutoff
-    of the filter is used to select the central region of the profile,
-    half cutof is not condsidered at the adges of the rofile
-bplt: bool
-    If true plots the profile after the pre-proocessing</p>
+<ul>
+<li><strong>obj</strong> (profile.Profile):
+The profile on which the parameters are calculates</li>
+<li><strong>rem</strong> (remover.Remover):
+<ul>
+<li>if None, the low frequency components are not filtered</li>
+</ul></li>
+<li><strong>fil</strong> (filter.Filter):
+The filter that is applied before the calculations. The cutoff
+of the filter is used to select the central region of the profile,
+half cutof is not condsidered at the adges of the rofile</li>
+<li><strong>bplt</strong> (bool):
+If true plots the profile after the pre-proocessing</li>
+</ul>
 
-<h2 id="returns">Returns</h2>
+<h6 id="returns">Returns</h6>
 
-<p>RA, RQ, RP, RV, RZ, RSK, RKU: (float, ...)
-    Calculated roughness parameters</p>
+<ul>
+<li><strong>RA, RQ, RP, RV, RT, RZ, RSK, RKU</strong> ((float, ...)):
+Calculated roughness parameters</li>
+</ul>
 </div>
 
 
@@ -1763,32 +1783,36 @@ bplt: bool
 
             <div class="docstring"><p>Calculates the slope distribution in angles theta and phi</p>
 
-<h2 id="parameters">Parameters</h2>
+<h6 id="parameters">Parameters</h6>
 
-<p>obj: surface.Surface
-    The surface n wich the slope distribution is calculated
-structured: bool
-    If true the method assumes equal spacing along x-axis (dx) and equal spacing along
-    y-axis
-    If false the method uses a generalized triangle approach (recommended)
-theta_res: float
-    The angle resolution for the theta angle
-phi_res: float
-    The angle resolution for the phi angle
-adaptive_hist: bool
-    If true the bins are calculated between 0 and the max angles
-    If false the bins are calculated between 0 - 90 for theta, 0 - 360 for phi
-bplt: bool
-    If True plots the calculated histograms</p>
+<ul>
+<li><strong>obj</strong> (surface.Surface):
+The surface n wich the slope distribution is calculated</li>
+<li><strong>structured</strong> (bool):
+If true the method assumes equal spacing along x-axis (dx) and equal spacing along
+y-axis
+If false the method uses a generalized triangle approach (recommended)</li>
+<li><strong>theta_res</strong> (float):
+The angle resolution for the theta angle</li>
+<li><strong>phi_res</strong> (float):
+The angle resolution for the phi angle</li>
+<li><strong>adaptive_hist</strong> (bool):
+If true the bins are calculated between 0 and the max angles
+If false the bins are calculated between 0 - 90 for theta, 0 - 360 for phi</li>
+<li><strong>bplt</strong> (bool):
+If True plots the calculated histograms</li>
+</ul>
 
-<h2 id="returns">Returns</h2>
+<h6 id="returns">Returns</h6>
 
-<p>(hist_theta, edges_theta): tuple
-    The theta histogram
-(hist_phi, edges_phi): tuple
-    The phi histogram</p>
+<ul>
+<li><strong>(hist_theta, edges_theta)</strong> (tuple):
+The theta histogram</li>
+<li><strong>(hist_phi, edges_phi)</strong> (tuple):
+The phi histogram</li>
+</ul>
 
-<h2 id="notes">Notes</h2>
+<h6 id="notes">Notes</h6>
 
 <p>This method performs a slope distribution analysis on the surface by calculating all 
 the normal vectors to the triangles constructed on the adjacent points of the topography. 

@@ -1139,23 +1139,27 @@ last edit 2024-02-09
 
             <div class="docstring"><p>Main function that reads from files according to the file extension</p>
 
-<h2 id="parameters">Parameters</h2>
+<h6 id="parameters">Parameters</h6>
 
-<p>filename : String
-    The path of the file
-userscalecorr : np.array
-    [x, y, z] vector of correction values
-interpolflag : Bool
-    If true fills the non measured points with spline interpolation</p>
+<ul>
+<li><strong>filename</strong> (String):
+The path of the file</li>
+<li><strong>userscalecorr</strong> (np.array):
+[x, y, z] vector of correction values</li>
+<li><strong>interpolflag</strong> (Bool):
+If true fills the non measured points with spline interpolation</li>
+</ul>
 
-<h2 id="returns">Returns</h2>
+<h6 id="returns">Returns</h6>
 
-<p>dx : float
-    The x spacing
-dy : float
-    The y spacing
-height_map : np.array
-    The Z array</p>
+<ul>
+<li><strong>dx</strong> (float):
+The x spacing</li>
+<li><strong>dy</strong> (float):
+The y spacing</li>
+<li><strong>height_map</strong> (np.array):
+The Z array</li>
+</ul>
 </div>
 
 
@@ -1191,7 +1195,7 @@ height_map : np.array
 
             <div class="docstring"><p>Convert string to float without stopping at an error</p>
 
-<h2 id="notes">Notes</h2>
+<h6 id="notes">Notes</h6>
 
 <p>In txt files the nan values are represented with
 a non numerical value and the numpy reading routines 
@@ -1277,15 +1281,19 @@ is used in case of reading failure to insert a NaN value.</p>
             <div class="docstring"><p>Reads a txt file with spacing values on the top 
 two lines and then the list of Z values of the array.</p>
 
-<h2 id="parameters">Parameters</h2>
+<h6 id="parameters">Parameters</h6>
 
-<p>fname : string
-    The file path to open</p>
+<ul>
+<li><strong>fname</strong> (string):
+The file path to open</li>
+</ul>
 
-<h2 id="returns">Returns</h2>
+<h6 id="returns">Returns</h6>
 
-<p>(X, Y, Z, x, y) : tuple
-    The arrays red from the file</p>
+<ul>
+<li><strong>(X, Y, Z, x, y)</strong> (tuple):
+The arrays red from the file</li>
+</ul>
 </div>
 
 
@@ -1333,15 +1341,19 @@ two lines and then the list of Z values of the array.</p>
 
             <div class="docstring"><p>Reads a txt file with three columns [x, y, z]</p>
 
-<h2 id="parameters">Parameters</h2>
+<h6 id="parameters">Parameters</h6>
 
-<p>fname : string
-    The file path to open</p>
+<ul>
+<li><strong>fname</strong> (string):
+The file path to open</li>
+</ul>
 
-<h2 id="returns">Returns</h2>
+<h6 id="returns">Returns</h6>
 
-<p>(X, Y, Z, x, y) : tuple
-    The arrays red from the file</p>
+<ul>
+<li><strong>(X, Y, Z, x, y)</strong> (tuple):
+The arrays red from the file</li>
+</ul>
 </div>
 
 

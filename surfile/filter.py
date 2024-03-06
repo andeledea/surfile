@@ -307,7 +307,6 @@ class SurfaceGaussian(Filter):
     def filter(obj: surface.Surface, cutoff, bplt=False):
         """
         Applies to a surface object a gaussian filter ISO 16610-21.
-        Applies to a surface object a gaussian filter ISO 16610-21.
         The resulting profile is cut at the borders to avoid border effects.
         TODO !!!
 

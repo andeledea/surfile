@@ -188,7 +188,7 @@ class Profile:
         -----
         This function uses np.genfromtxt() with converter
         >>> converters={0: lambda s: float(s or np.nan)}
-        this is used to correctly decect all NaN formats in txt
+        this is used to correctly detect all NaN formats in txt
         """ 
         self.name = os.path.basename(fname)
         

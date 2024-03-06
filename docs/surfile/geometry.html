@@ -64,11 +64,6 @@
             <input type="search" placeholder="Search..." role="searchbox" aria-label="search"
                    pattern=".+" required>
 
-            <h2>Contents</h2>
-            <ul>
-  <li><a href="#notes">Notes</a></li>
-</ul>
-
 
 
             <h2>API Documentation</h2>
@@ -261,7 +256,7 @@
 </ul></li>
 </ul>
 
-<h2 id="notes">Notes</h2>
+<h6 id="notes">Notes</h6>
 
 <p>Measurements made by microscopy techniques involve sample loading,
 and specifically profilometers involve the housing of samples above a tilt x-y table.
@@ -946,7 +941,7 @@ features present in the image borders.</p>
 </span><span id="L-663"><a href="#L-663"><span class="linenos"> 663</span></a>        <span class="k">else</span><span class="p">:</span>
 </span><span id="L-664"><a href="#L-664"><span class="linenos"> 664</span></a>            <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">X</span><span class="p">,</span> <span class="n">obj</span><span class="o">.</span><span class="n">Y</span><span class="p">,</span> <span class="n">obj</span><span class="o">.</span><span class="n">Z</span>
 </span><span id="L-665"><a href="#L-665"><span class="linenos"> 665</span></a>
-</span><span id="L-666"><a href="#L-666"><span class="linenos"> 666</span></a>        <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span>  <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="n">y</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="n">z</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span>
+</span><span id="L-666"><a href="#L-666"><span class="linenos"> 666</span></a>        <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span>  <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="n">y</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="n">z</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
 </span><span id="L-667"><a href="#L-667"><span class="linenos"> 667</span></a>
 </span><span id="L-668"><a href="#L-668"><span class="linenos"> 668</span></a>        <span class="k">if</span> <span class="n">bound</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
 </span><span id="L-669"><a href="#L-669"><span class="linenos"> 669</span></a>            <span class="n">bound</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmean</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">Z</span><span class="p">)</span>  <span class="c1"># set the bound to the mean point</span>
@@ -1464,7 +1459,7 @@ common to all the derived classes:</p>
 <li>Cylinder</li>
 </ul>
 
-<h2 id="notes">Notes</h2>
+<h6 id="notes">Notes</h6>
 
 <p>The form or geometry parameters are estimated by minimizing the sum of the squares
 of the residuals: $\varepsilon_i \; = \; f(\mathbf{p}, x_i, y_i, z_i)$
@@ -1506,12 +1501,14 @@ is the tuple of geometry parameters or polynomial coefficients to be estimated b
             <div class="docstring"><p>Applies the fit operation to the obj with the
 parameters of the self object</p>
 
-<h2 id="parameters">Parameters</h2>
+<h6 id="parameters">Parameters</h6>
 
-<p>obj : surfile.container
-    The data structure
-bplt : bool, optional
-    If true plots the removed form, by default False</p>
+<ul>
+<li><strong>obj</strong> (surfile.container):
+The data structure</li>
+<li><strong>bplt</strong> (bool, optional):
+If true plots the removed form, by default False</li>
+</ul>
 </div>
 
 
@@ -1553,14 +1550,16 @@ bplt : bool, optional
 
             <div class="docstring"><p>Plots the fitted 1d function and the profile</p>
 
-<h2 id="parameters">Parameters</h2>
+<h6 id="parameters">Parameters</h6>
 
-<p>x : np.array
-    The x values of the profile
-z : np.array
-    The z values of the profile
-coeff : np.array
-    The coefficients of the polynomial fit</p>
+<ul>
+<li><strong>x</strong> (np.array):
+The x values of the profile</li>
+<li><strong>z</strong> (np.array):
+The z values of the profile</li>
+<li><strong>coeff</strong> (np.array):
+The coefficients of the polynomial fit</li>
+</ul>
 </div>
 
 
@@ -1606,19 +1605,23 @@ coeff : np.array
             <div class="docstring"><p>Calculates the polynomial function given the
 coefficients and subtracts the form from the profile</p>
 
-<h2 id="parameters">Parameters</h2>
+<h6 id="parameters">Parameters</h6>
 
-<p>x : np.array
-    The x values of the profile
-z : np.array
-    The z values of the profile
-coeff : np.array
-    The coefficients of the polynomial fit</p>
+<ul>
+<li><strong>x</strong> (np.array):
+The x values of the profile</li>
+<li><strong>z</strong> (np.array):
+The z values of the profile</li>
+<li><strong>coeff</strong> (np.array):
+The coefficients of the polynomial fit</li>
+</ul>
 
-<h2 id="returns">Returns</h2>
+<h6 id="returns">Returns</h6>
 
-<p>z_final : np.array
-    The final z values of the profile after the form is removed</p>
+<ul>
+<li><strong>z_final</strong> (np.array):
+The final z values of the profile after the form is removed</li>
+</ul>
 </div>
 
 
@@ -1662,16 +1665,18 @@ coeff : np.array
 
             <div class="docstring"><p>Plots the fitted 2d function and the surface</p>
 
-<h2 id="parameters">Parameters</h2>
+<h6 id="parameters">Parameters</h6>
 
-<p>x : np.array
-    The x values of the surface
-y : np.array
-    The y values of the surface
-z : np.array
-    The z values of the surface
-coeff : np.array
-    The coefficients of the polynomial fit</p>
+<ul>
+<li><strong>x</strong> (np.array):
+The x values of the surface</li>
+<li><strong>y</strong> (np.array):
+The y values of the surface</li>
+<li><strong>z</strong> (np.array):
+The z values of the surface</li>
+<li><strong>coeff</strong> (np.array):
+The coefficients of the polynomial fit</li>
+</ul>
 </div>
 
 
@@ -1717,21 +1722,25 @@ coeff : np.array
 
             <div class="docstring"><p>Removes the fitted 2d function from the surface</p>
 
-<h2 id="parameters">Parameters</h2>
+<h6 id="parameters">Parameters</h6>
 
-<p>x : np.array
-    The x values of the surface
-y : np.array
-    The y values of the surface
-z : np.array
-    The z values of the surface
-coeff : np.array
-    The coefficients of the polynomial fit</p>
+<ul>
+<li><strong>x</strong> (np.array):
+The x values of the surface</li>
+<li><strong>y</strong> (np.array):
+The y values of the surface</li>
+<li><strong>z</strong> (np.array):
+The z values of the surface</li>
+<li><strong>coeff</strong> (np.array):
+The coefficients of the polynomial fit</li>
+</ul>
 
-<h2 id="returns">Returns</h2>
+<h6 id="returns">Returns</h6>
 
-<p>z_final : np.array
-    The final z values of the surface after the form is removed</p>
+<ul>
+<li><strong>z_final</strong> (np.array):
+The final z values of the surface after the form is removed</li>
+</ul>
 </div>
 
 
@@ -1823,12 +1832,14 @@ fit on a profile data.</p>
             <div class="docstring"><p>Applies the fit operation to the obj with the
 parameters of the self object</p>
 
-<h2 id="parameters">Parameters</h2>
+<h6 id="parameters">Parameters</h6>
 
-<p>obj : surfile.container
-    The data structure
-bplt : bool, optional
-    If true plots the removed form, by default False</p>
+<ul>
+<li><strong>obj</strong> (surfile.container):
+The data structure</li>
+<li><strong>bplt</strong> (bool, optional):
+If true plots the removed form, by default False</li>
+</ul>
 </div>
 
 
@@ -1889,19 +1900,23 @@ bplt : bool, optional
 
             <div class="docstring"><p>Least square line fit implementation on a profile</p>
 
-<h2 id="parameters">Parameters</h2>
+<h6 id="parameters">Parameters</h6>
 
-<p>obj : profile.Profile
-    The profile object on wich the form is removed
-bplt : bool
-    If True plots the line overimposed on the profile</p>
+<ul>
+<li><strong>obj</strong> (profile.Profile):
+The profile object on wich the form is removed</li>
+<li><strong>bplt</strong> (bool):
+If True plots the line overimposed on the profile</li>
+</ul>
 
-<h2 id="returns">Returns</h2>
+<h6 id="returns">Returns</h6>
 
-<p>(m, q) : (float, ...)
-    The line equation coefficients</p>
+<ul>
+<li><strong>(m, q)</strong> ((float, ...)):
+The line equation coefficients</li>
+</ul>
 
-<h2 id="notes">Notes</h2>
+<h6 id="notes">Notes</h6>
 
 <p>$\min_{\mathbf{p}} {\sum\limits_{i = 0}^{n-1}  f(\mathbf{p}, x_i, z_i)^2 }$</p>
 
@@ -2086,23 +2101,25 @@ fit on a profile data.</p>
 
             <div class="docstring"><p>Creates a ProfilePolynomial object with the parameters provided</p>
 
-<h2 id="parameters">Parameters</h2>
+<h6 id="parameters">Parameters</h6>
 
-<p>degree: int
-    polynomial degree
-comp: funct / lambda
-    comparison method between bound and profile
-bound: float
-    -if not set the fit uses all points,
-    -if set the fit uses all points below the value,
-    -if set to True the fit uses only the values below the average value of the profile
-cutter: cutter.Cutter
-    -if not set, the fit uses all points
-    -if true allows the user to select manually the region of interest
-    -if a cutter obj is passed the fit is done only on the cutted profile points
-     and then applied on the whole profile</p>
+<ul>
+<li><strong>degree</strong> (int):
+polynomial degree</li>
+<li><strong>comp</strong> (funct / lambda):
+comparison method between bound and profile</li>
+<li><strong>bound</strong> (float):
+-if not set the fit uses all points,
+-if set the fit uses all points below the value,
+-if set to True the fit uses only the values below the average value of the profile</li>
+<li><strong>cutter</strong> (cutter.Cutter):
+-if not set, the fit uses all points
+-if true allows the user to select manually the region of interest
+-if a cutter obj is passed the fit is done only on the cutted profile points
+ and then applied on the whole profile</li>
+</ul>
 
-<h2 id="examples">Examples</h2>
+<h6 id="examples">Examples</h6>
 
 <div class="pdoc-code codehilite">
 <pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="n">profPolyFit</span> <span class="o">=</span> <span class="n">ProfilePolynomial</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">bound</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">cutter</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
@@ -2176,12 +2193,14 @@ cutter: cutter.Cutter
             <div class="docstring"><p>Applies the fit operation to the obj with the
 parameters of the self object</p>
 
-<h2 id="parameters">Parameters</h2>
+<h6 id="parameters">Parameters</h6>
 
-<p>obj : surfile.container
-    The data structure
-bplt : bool, optional
-    If true plots the removed form, by default False</p>
+<ul>
+<li><strong>obj</strong> (surfile.container):
+The data structure</li>
+<li><strong>bplt</strong> (bool, optional):
+If true plots the removed form, by default False</li>
+</ul>
 </div>
 
 
@@ -2264,32 +2283,36 @@ bplt : bool, optional
 
             <div class="docstring"><p>Plynomial fit implementation on a profile using the least square method</p>
 
-<h2 id="parameters">Parameters</h2>
+<h6 id="parameters">Parameters</h6>
 
-<p>obj: profile.Profile
-    The profile object on wich the form is removed
-degree: int
-    polynomial degree
-comp: funct / lambda
-    comparison method between bound and profile
-bound: float
-    -if not set the fit uses all points,
-    -if set the fit uses all points below the value,
-    -if set to True the fit uses only the values below the average value of the profile
-cutter: cutter.Cutter
-    -if not set, the fit uses all points
-    -if true allows the user to select manually the region of interest
-    -if a cutter obj is passed the fit is done only on the cutted profile points
-     and then applied on the whole profile
-bplt: bool
-    If True plots the polynomial form overimposed on the profile</p>
+<ul>
+<li><strong>obj</strong> (profile.Profile):
+The profile object on wich the form is removed</li>
+<li><strong>degree</strong> (int):
+polynomial degree</li>
+<li><strong>comp</strong> (funct / lambda):
+comparison method between bound and profile</li>
+<li><strong>bound</strong> (float):
+-if not set the fit uses all points,
+-if set the fit uses all points below the value,
+-if set to True the fit uses only the values below the average value of the profile</li>
+<li><strong>cutter</strong> (cutter.Cutter):
+-if not set, the fit uses all points
+-if true allows the user to select manually the region of interest
+-if a cutter obj is passed the fit is done only on the cutted profile points
+ and then applied on the whole profile</li>
+<li><strong>bplt</strong> (bool):
+If True plots the polynomial form overimposed on the profile</li>
+</ul>
 
-<h2 id="returns">Returns</h2>
+<h6 id="returns">Returns</h6>
 
-<p>coeff: np.array()
-    The polynomial form coefficients</p>
+<ul>
+<li><strong>coeff</strong> (np.array()):
+The polynomial form coefficients</li>
+</ul>
 
-<h2 id="notes">Notes</h2>
+<h6 id="notes">Notes</h6>
 
 <p>$\min_{\mathbf{p}} {\sum\limits_{i = 0}^{n-1}  f(\mathbf{p}, x_i, z_i)^2 }$</p>
 
@@ -2493,36 +2516,40 @@ fit on a profile data.</p>
 
             <div class="docstring"><p>Circle fit implementation using the least square method</p>
 
-<h2 id="parameters">Parameters</h2>
+<h6 id="parameters">Parameters</h6>
 
-<p>obj: profile.Profile
-    The profile object on wich the form is removed
-cutter: cutter.Cutter
-    -if not set, the fit uses all points
-    -if true allows the user to select manually the region of interest
-    -if a cutter obj is passed the fit is done only on the cutted profile points
-     and then applied on the whole profile
-finalize: bool
-    If set to False the fit will not alter the surface,
-    the method will only return the radius and the form deviation
-bplt: bool
-    Plots the sphere fitted to the data points</p>
+<ul>
+<li><strong>obj</strong> (profile.Profile):
+The profile object on wich the form is removed</li>
+<li><strong>cutter</strong> (cutter.Cutter):
+-if not set, the fit uses all points
+-if true allows the user to select manually the region of interest
+-if a cutter obj is passed the fit is done only on the cutted profile points
+ and then applied on the whole profile</li>
+<li><strong>finalize</strong> (bool):
+If set to False the fit will not alter the surface,
+the method will only return the radius and the form deviation</li>
+<li><strong>bplt</strong> (bool):
+Plots the sphere fitted to the data points</li>
+</ul>
 
-<h2 id="returns">Returns</h2>
+<h6 id="returns">Returns</h6>
 
-<p>r: float
-    The radius of the fitted circle
-dev: float
-    The form deviation of the points
-(xc, zc) : tuple
-    Centre coordinates</p>
+<ul>
+<li><strong>r</strong> (float):
+The radius of the fitted circle</li>
+<li><strong>dev</strong> (float):
+The form deviation of the points</li>
+<li><strong>(xc, zc)</strong> (tuple):
+Centre coordinates</li>
+</ul>
 
-<h2 id="notes">Notes</h2>
+<h6 id="notes">Notes</h6>
 
 <p>The method used is from circle-fit python package hyperLSQ()
 which implements the algorithm in [1]</p>
 
-<h2 id="references">References</h2>
+<h6 id="references">References</h6>
 
 <p>[1] Rangarajan, Prasanna &amp; Kanatani, Kenichi &amp; Niitsuma, Hirotaka &amp; Sugaya, Yasuyuki. (2010). 
 Hyper Least Squares and Its Applications. 5-8. 10.1109/ICPR.2010.10.</p>
@@ -2606,7 +2633,7 @@ common to all the derived classes:</p>
 <li>Cylinder</li>
 </ul>
 
-<h2 id="notes">Notes</h2>
+<h6 id="notes">Notes</h6>
 
 <p>The form or geometry parameters are estimated by minimizing the sum of the squares
 of the residuals: $\varepsilon_i \; = \; f(\mathbf{p}, x_i, y_i, z_i)$
@@ -2668,14 +2695,16 @@ is the tuple of geometry parameters or polynomial coefficients to be estimated b
 
             <div class="docstring"><p>Adjust the profile to preserve the derivative in the stitching.py points</p>
 
-<h2 id="parameters">Parameters</h2>
+<h6 id="parameters">Parameters</h6>
 
-<p>obj: profile.Profile
-    The profile on wich the correction is calculated
-stitchPos: np.array
-    The x positions of the stitching.py
-bplt: bool
-    Plots the comparison between the corrected profile and the original</p>
+<ul>
+<li><strong>obj</strong> (profile.Profile):
+The profile on wich the correction is calculated</li>
+<li><strong>stitchPos</strong> (np.array):
+The x positions of the stitching.py</li>
+<li><strong>bplt</strong> (bool):
+Plots the comparison between the corrected profile and the original</li>
+</ul>
 </div>
 
 
@@ -2787,7 +2816,7 @@ common to all the derived classes:</p>
 <li>Cylinder</li>
 </ul>
 
-<h2 id="notes">Notes</h2>
+<h6 id="notes">Notes</h6>
 
 <p>The form or geometry parameters are estimated by minimizing the sum of the squares
 of the residuals: $\varepsilon_i \; = \; f(\mathbf{p}, x_i, y_i, z_i)$
@@ -2881,14 +2910,16 @@ is the tuple of geometry parameters or polynomial coefficients to be estimated b
             <div class="docstring"><p>Alligns the profile using the recursive histogram method, stops when
 the tilt correction is less than the parameter final_m</p>
 
-<h2 id="parameters">Parameters</h2>
+<h6 id="parameters">Parameters</h6>
 
-<p>obj: profile.Profile
-    The profile object on wich the form is removed
-final_m: float
-    The end slope correction
-bplt: bool
-    Plots the histogram evolution over the iterations</p>
+<ul>
+<li><strong>obj</strong> (profile.Profile):
+The profile object on wich the form is removed</li>
+<li><strong>final_m</strong> (float):
+The end slope correction</li>
+<li><strong>bplt</strong> (bool):
+Plots the histogram evolution over the iterations</li>
+</ul>
 </div>
 
 
@@ -2980,12 +3011,14 @@ fit on surface data.</p>
             <div class="docstring"><p>Applies the fit operation to the obj with the
 parameters of the self object</p>
 
-<h2 id="parameters">Parameters</h2>
+<h6 id="parameters">Parameters</h6>
 
-<p>obj : surfile.container
-    The data structure
-bplt : bool, optional
-    If true plots the removed form, by default False</p>
+<ul>
+<li><strong>obj</strong> (surfile.container):
+The data structure</li>
+<li><strong>bplt</strong> (bool, optional):
+If true plots the removed form, by default False</li>
+</ul>
 </div>
 
 
@@ -3033,19 +3066,23 @@ bplt : bool, optional
 
             <div class="docstring"><p>Least square plane fit implementation</p>
 
-<h2 id="parameters">Parameters</h2>
+<h6 id="parameters">Parameters</h6>
 
-<p>obj : surface.Surface
-    The surface object on wich the LS plane is applied
-bplt : bool
-    If True plots the plane overimposed on the surface</p>
+<ul>
+<li><strong>obj</strong> (surface.Surface):
+The surface object on wich the LS plane is applied</li>
+<li><strong>bplt</strong> (bool):
+If True plots the plane overimposed on the surface</li>
+</ul>
 
-<h2 id="returns">Returns</h2>
+<h6 id="returns">Returns</h6>
 
-<p>sol : np.ndarray
-    Array of polynomial coefficients.</p>
+<ul>
+<li><strong>sol</strong> (np.ndarray):
+Array of polynomial coefficients.</li>
+</ul>
 
-<h2 id="notes">Notes</h2>
+<h6 id="notes">Notes</h6>
 
 <p>$\min_{\mathbf{p}} {\sum\limits_{i = 0}^{n-1}  f(\mathbf{p}, x_i, y_i, z_i)^2 }$</p>
 
@@ -3174,7 +3211,7 @@ $\mathbf{p}=[[p_{0,0}, p_{0,1}][p_{1,0}, \textcolor{red}{p_{1,1}}]]$.</p>
 </span><span id="SurfacePolynomial-664"><a href="#SurfacePolynomial-664"><span class="linenos">664</span></a>        <span class="k">else</span><span class="p">:</span>
 </span><span id="SurfacePolynomial-665"><a href="#SurfacePolynomial-665"><span class="linenos">665</span></a>            <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">X</span><span class="p">,</span> <span class="n">obj</span><span class="o">.</span><span class="n">Y</span><span class="p">,</span> <span class="n">obj</span><span class="o">.</span><span class="n">Z</span>
 </span><span id="SurfacePolynomial-666"><a href="#SurfacePolynomial-666"><span class="linenos">666</span></a>
-</span><span id="SurfacePolynomial-667"><a href="#SurfacePolynomial-667"><span class="linenos">667</span></a>        <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span>  <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="n">y</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="n">z</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span>
+</span><span id="SurfacePolynomial-667"><a href="#SurfacePolynomial-667"><span class="linenos">667</span></a>        <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span>  <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="n">y</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="n">z</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
 </span><span id="SurfacePolynomial-668"><a href="#SurfacePolynomial-668"><span class="linenos">668</span></a>
 </span><span id="SurfacePolynomial-669"><a href="#SurfacePolynomial-669"><span class="linenos">669</span></a>        <span class="k">if</span> <span class="n">bound</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
 </span><span id="SurfacePolynomial-670"><a href="#SurfacePolynomial-670"><span class="linenos">670</span></a>            <span class="n">bound</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmean</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">Z</span><span class="p">)</span>  <span class="c1"># set the bound to the mean point</span>
@@ -3271,26 +3308,28 @@ fit on surface data.</p>
 
             <div class="docstring"><p>Creates a SurfacePolynomial object with the parameters provided</p>
 
-<h2 id="parameters">Parameters</h2>
+<h6 id="parameters">Parameters</h6>
 
-<p>kx, ky : int
-    Polynomial order in x and y, respectively.
-full : bool, optional
-    If True, will solve using the full polynomial matrix.  Otherwise,
-    will use the upper-left triangle of the matrix.  See
-    <code>polyinterp2d</code> for further details.  Note that if kx != ky, then
-    the full matrix will be solved for. (@sofia_redux/toolkit)
-comp : funct / lambda, optional
-    comparison method between bound and surface
-bound: float, optional
-    if not set the fit uses all points,
-    if set the fit uses all points below the values,
-    if set to True the fit uses only the values below the average value of the surface
-cutter : cutter.Cutter
-    -if not set, the fit uses all points
-    -if true allows the user to select manually the region of interest
-    -if a cutter obj is passed the fit is done only on the cutted profile points
-     and then applied on the whole profile</p>
+<ul>
+<li><strong>kx, ky</strong> (int):
+Polynomial order in x and y, respectively.</li>
+<li><strong>full</strong> (bool, optional):
+If True, will solve using the full polynomial matrix.  Otherwise,
+will use the upper-left triangle of the matrix.  See
+<code>polyinterp2d</code> for further details.  Note that if kx != ky, then
+the full matrix will be solved for. (@sofia_redux/toolkit)</li>
+<li><strong>comp</strong> (funct / lambda, optional):
+comparison method between bound and surface</li>
+<li><strong>bound</strong> (float, optional):
+if not set the fit uses all points,
+if set the fit uses all points below the values,
+if set to True the fit uses only the values below the average value of the surface</li>
+<li><strong>cutter</strong> (cutter.Cutter):
+-if not set, the fit uses all points
+-if true allows the user to select manually the region of interest
+-if a cutter obj is passed the fit is done only on the cutted profile points
+ and then applied on the whole profile</li>
+</ul>
 </div>
 
 
@@ -3380,12 +3419,14 @@ cutter : cutter.Cutter
             <div class="docstring"><p>Applies the fit operation to the obj with the
 parameters of the self object</p>
 
-<h2 id="parameters">Parameters</h2>
+<h6 id="parameters">Parameters</h6>
 
-<p>obj : surfile.container
-    The data structure
-bplt : bool, optional
-    If true plots the removed form, by default False</p>
+<ul>
+<li><strong>obj</strong> (surfile.container):
+The data structure</li>
+<li><strong>bplt</strong> (bool, optional):
+If true plots the removed form, by default False</li>
+</ul>
 </div>
 
 
@@ -3456,7 +3497,7 @@ bplt : bool, optional
 </span><span id="SurfacePolynomial.formFit-664"><a href="#SurfacePolynomial.formFit-664"><span class="linenos">664</span></a>        <span class="k">else</span><span class="p">:</span>
 </span><span id="SurfacePolynomial.formFit-665"><a href="#SurfacePolynomial.formFit-665"><span class="linenos">665</span></a>            <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">X</span><span class="p">,</span> <span class="n">obj</span><span class="o">.</span><span class="n">Y</span><span class="p">,</span> <span class="n">obj</span><span class="o">.</span><span class="n">Z</span>
 </span><span id="SurfacePolynomial.formFit-666"><a href="#SurfacePolynomial.formFit-666"><span class="linenos">666</span></a>
-</span><span id="SurfacePolynomial.formFit-667"><a href="#SurfacePolynomial.formFit-667"><span class="linenos">667</span></a>        <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span>  <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="n">y</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="n">z</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span>
+</span><span id="SurfacePolynomial.formFit-667"><a href="#SurfacePolynomial.formFit-667"><span class="linenos">667</span></a>        <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span>  <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="n">y</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="n">z</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
 </span><span id="SurfacePolynomial.formFit-668"><a href="#SurfacePolynomial.formFit-668"><span class="linenos">668</span></a>
 </span><span id="SurfacePolynomial.formFit-669"><a href="#SurfacePolynomial.formFit-669"><span class="linenos">669</span></a>        <span class="k">if</span> <span class="n">bound</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
 </span><span id="SurfacePolynomial.formFit-670"><a href="#SurfacePolynomial.formFit-670"><span class="linenos">670</span></a>            <span class="n">bound</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmean</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">Z</span><span class="p">)</span>  <span class="c1"># set the bound to the mean point</span>
@@ -3504,37 +3545,41 @@ bplt : bool, optional
 
             <div class="docstring"><p>Least square polynomial fit implementation on surface data</p>
 
-<h2 id="parameters">Parameters</h2>
+<h6 id="parameters">Parameters</h6>
 
-<p>obj : surface.Surface
-    The surface object on wich the polynomial fit is applied
-kx, ky : int
-    Polynomial order in x and y, respectively.
-full : bool, optional
-    If True, will solve using the full polynomial matrix.  Otherwise,
-    will use the upper-left triangle of the matrix.  See
-    <code>polyinterp2d</code> for further details.  Note that if kx != ky, then
-    the full matrix will be solved for. (@sofia_redux/toolkit)
-comp : funct / lambda, optional
-    comparison method between bound and surface
-bound : float, optional
-    if not set the fit uses all points,
-    if set the fit uses all points below the values,
-    if set to True the fit uses only the values below the average value of the surface
-cutter : cutter.Cutter
-    -if not set, the fit uses all points
-    -if true allows the user to select manually the region of interest
-    -if a cutter obj is passed the fit is done only on the cutted profile points
-     and then applied on the whole profile
-bplt: bool, optional
-    If True plots the plane overimposed on the surface</p>
+<ul>
+<li><strong>obj</strong> (surface.Surface):
+The surface object on wich the polynomial fit is applied</li>
+<li><strong>kx, ky</strong> (int):
+Polynomial order in x and y, respectively.</li>
+<li><strong>full</strong> (bool, optional):
+If True, will solve using the full polynomial matrix.  Otherwise,
+will use the upper-left triangle of the matrix.  See
+<code>polyinterp2d</code> for further details.  Note that if kx != ky, then
+the full matrix will be solved for. (@sofia_redux/toolkit)</li>
+<li><strong>comp</strong> (funct / lambda, optional):
+comparison method between bound and surface</li>
+<li><strong>bound</strong> (float, optional):
+if not set the fit uses all points,
+if set the fit uses all points below the values,
+if set to True the fit uses only the values below the average value of the surface</li>
+<li><strong>cutter</strong> (cutter.Cutter):
+-if not set, the fit uses all points
+-if true allows the user to select manually the region of interest
+-if a cutter obj is passed the fit is done only on the cutted profile points
+ and then applied on the whole profile</li>
+<li><strong>bplt</strong> (bool, optional):
+If True plots the plane overimposed on the surface</li>
+</ul>
 
-<h2 id="returns">Returns</h2>
+<h6 id="returns">Returns</h6>
 
-<p>sol : np.ndarray
-    Array of polynomial coefficients.</p>
+<ul>
+<li><strong>sol</strong> (np.ndarray):
+Array of polynomial coefficients.</li>
+</ul>
 
-<h2 id="notes">Notes</h2>
+<h6 id="notes">Notes</h6>
 
 <p>$\min_{\mathbf{p}} {\sum\limits_{i = 0}^{n-1}  f(\mathbf{p}, x_i, y_i, z_i)^2 }$</p>
 
@@ -3752,14 +3797,16 @@ plane defined by three points selected by the user.</p>
 Opens a plot figure to choose the 3 points and finds the equation
 of the plane passing through those 3 points.</p>
 
-<h2 id="parameters">Parameters</h2>
+<h6 id="parameters">Parameters</h6>
 
-<p>obj : surface.Surface
-    The surface object on wich the polynomial fit is applied
-bplt : bool
-    If True plots the plane overimposed on the surface</p>
+<ul>
+<li><strong>obj</strong> (surface.Surface):
+The surface object on wich the polynomial fit is applied</li>
+<li><strong>bplt</strong> (bool):
+If True plots the plane overimposed on the surface</li>
+</ul>
 
-<h2 id="notes">Notes</h2>
+<h6 id="notes">Notes</h6>
 
 <p>Once the choice has been confirmed, the program calculates the coefficients 
 a, b and c of the equation of the plane $z_{plane}(x,y)$  passing through the 
@@ -4012,28 +4059,32 @@ least square sphere</p>
 
             <div class="docstring"><p>Calculates the least square sphere</p>
 
-<h2 id="parameters">Parameters</h2>
+<h6 id="parameters">Parameters</h6>
 
-<p>obj : surface.Surface
-    The surface object on wich the polynomial fit is applied
-finalize : bool
-    If set to False the fit will not alter the surface,
-    the method will only return the center and the radius
-radius : float
-    If None the method will use the best fit radius
-    If a radius is passed then the program will use it
-concavity : str
-    Can be either 'convex' or 'concave'
-    If set to None the program will find the concavity of the sample
-bplt : bool
-    Plots the sphere fitted to the data points</p>
+<ul>
+<li><strong>obj</strong> (surface.Surface):
+The surface object on wich the polynomial fit is applied</li>
+<li><strong>finalize</strong> (bool):
+If set to False the fit will not alter the surface,
+the method will only return the center and the radius</li>
+<li><strong>radius</strong> (float):
+If None the method will use the best fit radius
+If a radius is passed then the program will use it</li>
+<li><strong>concavity</strong> (str):
+Can be either 'convex' or 'concave'
+If set to None the program will find the concavity of the sample</li>
+<li><strong>bplt</strong> (bool):
+Plots the sphere fitted to the data points</li>
+</ul>
 
-<h2 id="returns">Returns</h2>
+<h6 id="returns">Returns</h6>
 
-<p>(radius, C): (float, [xc, yc, zc])
-    Radius and sphere center coordinates</p>
+<ul>
+<li><strong>(radius, C)</strong> ((float, [xc, yc, zc])):
+Radius and sphere center coordinates</li>
+</ul>
 
-<h2 id="notes">Notes</h2>
+<h6 id="notes">Notes</h6>
 
 <p>The general equation of a sphere is: $(x-x_c)^2+(y-y_c)^2+(z-z_c)^2=r^2$</p>
 
@@ -4291,41 +4342,44 @@ least square cylinder</p>
             <div class="docstring"><p>This is a fitting for a horizontal along x cylinder fitting
 uses the following parameters to find the best cylinder fit</p>
 
-<h2 id="parameters">Parameters</h2>
+<h6 id="parameters">Parameters</h6>
 
-<p>obj : surface.Surface
-    The surface object on wich the cylinder fit is applied
-radius : float
-    The cylinder nominal radius
-alphaY : float
-    An estimate ot the cylinder rotation about the y-axis (radian)
-alphaZ : float
-    An estimate ot the cylinder rotation about the z-axis (radian)
-concavity : str
-    Can be either 'convex' or 'concave'
-base : bool
-    If true removes the points at the base of the cylinder
-finalize : bool
-    If set to False the fit will not alter the surface,
-    the method will only return the center and the radius
-bplt : bool
-    Plots the sphere fitted to the data points</p>
+<ul>
+<li><strong>obj</strong> (surface.Surface):
+The surface object on wich the cylinder fit is applied</li>
+<li><strong>radius</strong> (float):
+The cylinder nominal radius</li>
+<li><strong>alphaY</strong> (float):
+An estimate ot the cylinder rotation about the y-axis (radian)</li>
+<li><strong>alphaZ</strong> (float):
+An estimate ot the cylinder rotation about the z-axis (radian)</li>
+<li><strong>concavity</strong> (str):
+Can be either 'convex' or 'concave'</li>
+<li><strong>base</strong> (bool):
+If true removes the points at the base of the cylinder</li>
+<li><strong>finalize</strong> (bool):
+If set to False the fit will not alter the surface,
+the method will only return the center and the radius</li>
+<li><strong>bplt</strong> (bool):
+Plots the sphere fitted to the data points</li>
+</ul>
 
-<h2 id="returns">Returns</h2>
+<h6 id="returns">Returns</h6>
 
-<p>est_p : np.array
-    P[0] = r, radius of the cylinder</p>
+<ul>
+<li><p><strong>est_p</strong> (np.array):
+P[0] = r, radius of the cylinder</p>
 
-<pre><code>p[1] = Yc, y coordinate of the cylinder centre
+<p>p[1] = Yc, y coordinate of the cylinder centre</p>
 
-P[2] = Zc, z coordinate of the cylinder centre
+<p>P[2] = Zc, z coordinate of the cylinder centre</p>
 
-P[3] = alpha_z, rotation angle (radian) about the z-axis
+<p>P[3] = alpha_z, rotation angle (radian) about the z-axis</p>
 
-P[4] = alpha_y, rotation angle (radian) about the y-axis
-</code></pre>
+<p>P[4] = alpha_y, rotation angle (radian) about the y-axis</p></li>
+</ul>
 
-<h2 id="notes">Notes</h2>
+<h6 id="notes">Notes</h6>
 
 <p>The cylinder fit is done according to the general cylider equation with 5
 degrees of freedom to accomodate for the axis rotation and translation.

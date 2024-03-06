@@ -1,9 +1,9 @@
 """
 --------
-Package for surface and profile processing
+SurfILE: package for surface and profile processing
 
-Containers
---------
+Data structures
+---------------
 - profile
 - surface
     
@@ -13,7 +13,7 @@ Containers
 Utilities
 --------
 - stitcher: stitching of topography for augmented FOV
-- cutter: cutting edges and sections of topographies
+- cutter: cropping topographies and cutting profiles
 - extractor: profile extraction from surface
 
 The utilities can be used in two ways:
@@ -27,7 +27,7 @@ The utilities can be used in two ways:
 >>> ex.apply(sur, bplt=True)
 
 Processings
---------
+-----------
     - texture: PSD / roughness / slopeDistribution
     - filter: filtering of profile and surfaces (alpha state)
     - analysis: gratings, readius calculation\n
@@ -44,6 +44,26 @@ graph RL;
     M[surfile.stitcher]--> G;
     G[surfile.surface]--> E;
     H[surfile.texture]--> D & E & G;
+
+    subgraph DATA STRUCTURES
+        E
+        G
+    end
+
+    subgraph FORM OPERATORS
+        D
+    end
+
+    subgraph UTILITIES
+        C
+        M
+        B
+    end
+
+    subgraph DATA PROCESSING
+        A
+        H
+    end
 ```
 
 Dependencies
@@ -65,6 +85,11 @@ To view documentation interactively run:
 >>> pip install pdoc
 >>> python3 -m pdoc surfile --math --mermaid
 and open the localhost server in the browser.
+
+References
+----------
+For more information about the package, please read our paper on ... 
+If you use this package in one of your projects, please cite: DOI: ...
 
 \nGitHub: @andeledea, @...
 """

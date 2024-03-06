@@ -10,7 +10,7 @@ Python library for analyzing topographic features of surfaces from
 
 <!-- ABOUT THE PROJECT -->
 ## About The Project
-
+The project is intended to be an easy to use tool box providing multiple algorithms to analyze areal surface topographies: areal height maps and profiles.
 <!-- GOAL -->
 ### Goal
 The project aims to provide easy-to-use Python programs for analysing areal surface topographies and profiles:
@@ -69,7 +69,6 @@ Please consider contributing to the documentation of the package as well.
 <!-- LICENCE -->
 ## License
 GNU GPLv3
-
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
