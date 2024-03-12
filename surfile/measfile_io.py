@@ -96,6 +96,9 @@ def read_microscopedata(filename, userscalecorr, interpolflag):
     elif filename[fnlen - 4:fnlen].find('asc') > -1:
         # returns all data in micron
         nx, ny, dx, dy, height_map, measdate = read_asc(content)
+    elif filename[fnlen - 5:fnlen].find('tiff') > -1:
+        # returns all data in micron
+        nx, ny, dx, dy, height_map = read_tiff(filename)
     else:
         if content.find(b'LEXT') > -1:
             # returns all data in micron
@@ -529,6 +532,56 @@ def read_bcrf(content):
         zmap2D = []
     return xpixels, ypixels, dx, dy, zmap2D
 
+def read_tiff(filename):
+    """Read tiff files"""
+    import tifffile
+    import pspylib.tiff as tiff
+        
+    reader = tiff.TiffReader(filename)
+
+    a: dict = reader.data.scanHeader.scanHeader
+
+    with tifffile.TiffFile(filename) as tif:
+        tif_tags: dict = {}
+        for tag in tif.pages[0].tags.values():
+            name, value = tag.name, tag.value
+            tif_tags[name] = value
+
+    for i in range(len(list(a.keys()))):
+        b = list(a.values())[i][0]
+        if list(a.values())[i][1] == 'uint16':
+            c = chr(b[0])
+            for j in range(1,len(b)):
+                if chr(b[j]) != 0:
+                    c = '{}{}'.format(c,chr(b[j]))
+        if list(a.values())[i][1] == 'int32':
+            c = b
+        if list(a.values())[i][1] == 'double64':
+            c = b
+        
+        # string cleaning from null characters 
+        if type(c) == str:
+            c: str = c.replace('\x00', '')
+        
+        # important data savings
+        if list(a.keys())[i] == "width":
+            nx: int = c
+
+        if list(a.keys())[i] == "height":
+            ny: int = c
+        
+        if list(a.keys())[i] == "scanSizeWidth":
+            dx: int = c / nx
+
+        if list(a.keys())[i] == "scanSizeHeight":
+            dy: int = c / ny
+        
+    pixels: list = np.array(reader.data.scanData.ZData)
+    pixels = np.reshape(pixels, (ny, nx))
+    print(pixels.shape)
+
+    return nx, ny, dx, dy, pixels
+
 def read_sur(content):
     """Read mountains files"""
     little_endian = 1
@@ -842,3 +895,4 @@ def pointcloud_to_heightmap(dat_x, dat_y, dat_z):
         n1 = n_all // n_y
     z_map = dat_z.reshape(n1, n2)
     return delta_x, delta_y, z_map
+
