@@ -72,8 +72,9 @@ class Profile:
             print(f'Skipped {charlines} word lines')
             z.pop(0)
 
-            self.Z0 = self.Z = np.array(z)
-            self.X0 = self.X = np.linspace(0, (len(z)) * xs, len(z))
+            self.Z = np.array(z)
+            self.X = np.linspace(0, (len(z)) * xs, len(z))
+            self.X0, self.Z0 = copy.deepcopy(self.X), copy.deepcopy(self.Z)
 
             if bplt: self.pltPrf()
 
@@ -100,8 +101,7 @@ class Profile:
         self.X = np.array(data[:, 0])
         self.Z = (yB - yC)
 
-        self.X0 = copy.copy(self.X)
-        self.Z0 = copy.copy(self.Z)
+        self.X0, self.Z0 = copy.deepcopy(self.X), copy.deepcopy(self.Z)
 
         if bplt:
             fig, ax = plt.subplots()
@@ -166,9 +166,10 @@ class Profile:
         Speed = np.frombuffer(s[766: 768], dtype=dt)[0]
         print(f'N = {Npoints}, Nc_o = {Ncutoffs}, Speed = {Speed}')
 
-        self.X = self.X0 = np.linspace(0, Ncutoffs * Lcutoff, Npoints)
-        self.Z = self.Z0 = np.frombuffer(s[920: 920 + 2 * Npoints], dtype=dt) / Factor
+        self.X = np.linspace(0, Ncutoffs * Lcutoff, Npoints)
+        self.Z = np.frombuffer(s[920: 920 + 2 * Npoints], dtype=dt) / Factor
 
+        self.X0, self.Z0 = copy.deepcopy(self.X), copy.deepcopy(self.Z)
         if bplt: self.pltPrf()
 
     def openTxt(self, fname, bplt, header=0):
@@ -196,8 +197,7 @@ class Profile:
                                        skip_header=header, 
                                        usecols=[0, 1], unpack=True,
                                        converters={0: lambda s: float(s or np.nan)})
-        self.X0 = copy.deepcopy(self.X)
-        self.Z0 = copy.deepcopy(self.Z)
+        self.X0, self.Z0 = copy.deepcopy(self.X), copy.deepcopy(self.Z)
         if bplt: self.pltPrf()
     
     def saveTxt(self, fname):
@@ -225,9 +225,10 @@ class Profile:
         bplt: bool
             Plots the profile
         """
-        self.X0 = self.X = np.asarray(X)
-        self.Z0 = self.Z = np.asarray(Y)
+        self.X = np.asarray(X)
+        self.Z = np.asarray(Y)
 
+        self.X0, self.Z0 = copy.deepcopy(self.X), copy.deepcopy(self.Z)
         if bplt: self.pltPrf()
         
     def fillNM(self, bplt=False):
@@ -251,6 +252,7 @@ class Profile:
             ylab='z [um]'
         )
         ax.set_title(self.name)
+        return fig, ax
 
     @options(bplt=rcs.params['bpCom'], save=rcs.params['spCom'])
     def pltCompare(self):
@@ -265,3 +267,4 @@ class Profile:
             ylab='z [um]'
         )
         ax.set_title(self.name)
+        return fig, ax

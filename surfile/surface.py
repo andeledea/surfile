@@ -78,9 +78,7 @@ class Surface:
         if typ == 's':
             self.X, self.Y, self.Z, self.x, self.y = measfile_io.read_spaceZtxt(fname)
 
-        self.X0 = self.X
-        self.Y0 = self.Y
-        self.Z0 = self.Z
+        self.X0, self.Y0, self.Z0 = copy.deepcopy(self.X), copy.deepcopy(self.Y), copy.deepcopy(self.Z)
 
         if bplt: self.pltC()
 
@@ -115,9 +113,25 @@ class Surface:
         self.X, self.Y = np.meshgrid(self.x, self.y)
         self.Z = z_map
 
-        self.X0, self.Y0, self.Z0 = copy.copy(self.X), copy.copy(self.Y), copy.copy(self.Z)
+        self.X0, self.Y0, self.Z0 = copy.deepcopy(self.X), copy.deepcopy(self.Y), copy.deepcopy(self.Z)
 
         if bplt: self.pltC()
+
+    def setValues(self, dx, dy, z_map, bplt=False):
+        (n_y, n_x) = z_map.shape
+        self.rangeX = n_x * dx
+        self.rangeY = n_y * dy
+        self.x = np.linspace(0, self.rangeX, num=n_x)
+        self.y = np.linspace(0, self.rangeY, num=n_y)
+
+        # create main XYZ and backup of original points in Z0
+        self.X, self.Y = np.meshgrid(self.x, self.y)
+        self.Z = z_map
+
+        self.X0, self.Y0, self.Z0 = copy.deepcopy(self.X), copy.deepcopy(self.Y), copy.deepcopy(self.Z)
+
+        if bplt: self.pltC()
+        
 
     def saveAsc(self, fname):
         """
@@ -330,9 +344,10 @@ class Surface:
             gridcol='grey',
             xlab='x [um]',
             ylab='y [um]',
-            zlab='z [nm]'
+            zlab='z [um]'
         )
         ax_3d.set_title(self.name)
+        return fig, ax_3d 
 
     @options(bplt=rcs.params['bsCom'], save=rcs.params['ssCom'])
     def pltCompare(self):
@@ -349,6 +364,7 @@ class Surface:
             ylab='y [um]'
         )
         ax.set_title(self.name)
+        return fig, ax, bx
 
     @options(bplt=rcs.params['bsCol'], save=rcs.params['ssCol'])
     def pltC(self):
@@ -365,3 +381,4 @@ class Surface:
         ax_2d.set_title(self.name)
         ax_2d.grid(False)
         ax_2d.set_aspect('equal')
+        return fig, ax_2d
