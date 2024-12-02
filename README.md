@@ -11,6 +11,9 @@ Python library for analyzing topographic features of surfaces from
 <!-- ABOUT THE PROJECT -->
 ## About The Project
 The project is intended to be an easy to use tool box providing multiple algorithms to analyze areal surface topographies: areal height maps and profiles.
+
+A scientific paper was published and can be found here:
+https://doi.org/10.3390/metrology4040041
 <!-- GOAL -->
 ### Goal
 The project aims to provide easy-to-use Python programs for analysing areal surface topographies and profiles:
